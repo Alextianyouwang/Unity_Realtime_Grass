@@ -3,25 +3,25 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class PlaneManager : MonoBehaviour
 {
-    private PlaneMeshGenerator _meshGenerator;
-    public int numVertX = 10;
-    public int numVertY = 10;
+    private MeshPlaneGenerator _meshGenerator;
+    public int numChunk = 10;
     public Vector2 size = Vector2.one * 10;
+
+    public float[,] heightMap;
     private void OnEnable()
     {
-        _meshGenerator = new PlaneMeshGenerator();
-        Mesh m = _meshGenerator.PlaneMesh(numVertX, numVertY, size);
+        _meshGenerator = new MeshPlaneGenerator();
+        Mesh m = _meshGenerator.PlaneMesh(numChunk + 1, size, TryGetHeightMap(numChunk + 1));
         GetComponent<MeshFilter>().mesh = m;
     }
 
-    private void OnDrawGizmos()
+    float[,] TryGetHeightMap(int numVert) 
     {
-        if (_meshGenerator == null)
-            return;
-        foreach (Vector3 v in _meshGenerator.vertices) 
-        {
-            Gizmos.DrawSphere(v, 0.1f);
-        }
+        HeightMapManager heightMap = GetComponent<HeightMapManager>();
+        if (heightMap != null)
+            return heightMap.PerlinMap(numVert);
+        else
+            return new float[numVert, numVert];
     }
 
 

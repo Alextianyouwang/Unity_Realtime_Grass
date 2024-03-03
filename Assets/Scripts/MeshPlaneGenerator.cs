@@ -1,32 +1,32 @@
 
 using UnityEngine;
 
-public class PlaneMeshGenerator 
+public class MeshPlaneGenerator 
 {
-    public Vector3[] vertices;
+    Vector3[] vertices;
     Vector2[] uvs; 
     int[] triangles;
     int triStart = 0;
-    public Mesh PlaneMesh(int numVertX, int numVertY, Vector2 size) 
+    public Mesh PlaneMesh(int numVert, Vector2 size, float[,] heightMap) 
     {
         Mesh m = new Mesh();
-        vertices = new Vector3[numVertX * numVertY];
-        uvs = new Vector2[numVertX * numVertY];
-        triangles = new int[(numVertX - 1) * (numVertY - 1) * 6];
+        vertices = new Vector3[numVert * numVert];
+        uvs = new Vector2[numVert * numVert];
+        triangles = new int[(numVert - 1) * (numVert - 1) * 6];
         Vector3 initialPoint = new Vector3(-size.x / 2, 0,- size.y / 2);
-        float xInc = size.x / (numVertX - 1);
-        float yInc = size.y / (numVertY - 1);
+        float inc = size.x / (numVert - 1);
 
         
-        for (int x = 0; x < numVertX; x++) 
+        for (int x = 0; x < numVert; x++) 
         {
-            for (int y = 0; y < numVertY; y++) 
+            for (int y = 0; y < numVert; y++) 
             {
-                vertices[x * numVertY + y] = initialPoint + new Vector3(x * xInc, 0, y * yInc);
-                uvs[x * numVertY + y] = new Vector2((float)x / (numVertX-1),(float)y / (numVertY-1));
-                if (x >= numVertX - 1 || y >= numVertY - 1)
+                vertices[x * numVert + y] = initialPoint + new Vector3(x * inc, 0, y * inc);
+                vertices[x * numVert + y].y += heightMap[x, y];
+                uvs[x * numVert + y] = new Vector2((float)x / (numVert - 1),(float)y / (numVert - 1));
+                if (x >= numVert - 1 || y >= numVert - 1)
                     continue;
-                FillTriangle(x * numVertY + y, numVertY);
+                FillTriangle(x * numVert + y, numVert);
             }
         }
         m.vertices = vertices;
@@ -36,7 +36,6 @@ public class PlaneMeshGenerator
         m.RecalculateNormals();
         return m;
     }
-
     void FillTriangle(int index, int numVertY) 
     {
         int botRight = index + 1;
