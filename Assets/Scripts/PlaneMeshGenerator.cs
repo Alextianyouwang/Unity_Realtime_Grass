@@ -23,7 +23,7 @@ public class PlaneMeshGenerator
             for (int y = 0; y < numVertY; y++) 
             {
                 vertices[x * numVertY + y] = initialPoint + new Vector3(x * xInc, 0, y * yInc);
-                uvs[x * numVertY + y] = new Vector2((float)x / numVertX, (float)y / numVertY);
+                uvs[x * numVertY + y] = new Vector2((float)x / (numVertX-1),(float)y / (numVertY-1));
                 if (x >= numVertX - 1 || y >= numVertY - 1)
                     continue;
                 FillTriangle(x * numVertY + y, numVertY);
