@@ -2,28 +2,27 @@ using System.Collections.Generic;
 using UnityEngine;
 public static class PoissonDiskSampler 
 {
-    static Vector2[,] grids;
-    static List<Vector2> finalPoints;
+    static int[] grids;
+    static List<Vector2> allPoints;
     static List<Vector2> activePoints;
+
     public static List<Vector2> PoissonSamples(float r, int k , Vector2 area) 
     {
-        finalPoints = new List<Vector2>();
         activePoints = new List<Vector2>();
+        allPoints = new List<Vector2>();
         int N = 2;
         float gridSize = r / Mathf.Sqrt(N);
-        int numGridX = Mathf.CeilToInt(area.x / gridSize);
-        int numGridY = Mathf.CeilToInt(area.y / gridSize);
+        int numGridX = Mathf.CeilToInt(area.x / gridSize) + 1;
+        int numGridY = Mathf.CeilToInt(area.y / gridSize) + 1;
 
-
-        grids = new Vector2[numGridX, numGridY];
+        grids = new int[numGridX* numGridY];
         for (int x = 0; x < numGridX; x++)
             for (int y = 0; y < numGridY; y++)
-                grids[x, y] = Vector2.zero;
+                grids[x * numGridY +  y] = -1;
 
         Vector2 p0 = GetRandomPoint(area);
-        finalPoints.Add(p0);
         activePoints.Add(p0);
-        InsertPointToGrid(p0, gridSize);
+        InsertPointToGrid(p0, gridSize, numGridY);
 
         while (activePoints.Count > 0) 
         {
@@ -38,60 +37,51 @@ public static class PoissonDiskSampler
                 float posX = sample.x  + Mathf.Cos (theta) * radius;
                 float posY = sample.y  + Mathf.Sin (theta) * radius;
                 Vector2 newPoint = new Vector2(posX, posY);
-                if (!IsValidPoint(newPoint, gridSize, r, area))
+                if (!IsValidPoint(newPoint, gridSize, r, area, numGridX, numGridY))
                     continue;
-                finalPoints.Add(newPoint);
                 activePoints.Add(newPoint);
-                InsertPointToGrid(newPoint, gridSize);
+                InsertPointToGrid(newPoint, gridSize, numGridY);
                 found = true;
                 break;
             }
             if (!found)
                 activePoints.Remove(sample);
-
-            
         }
-
-        
-        return finalPoints;
+        return allPoints;
     }
 
-    static void InsertPointToGrid(Vector2 point,float gridSize) 
+    static void InsertPointToGrid(Vector2 point,float gridSize, int numGridY) 
     {
         int XGrid = Mathf.FloorToInt(point.x / gridSize);
         int YGrid = Mathf.FloorToInt(point.y / gridSize);
-
-        grids[XGrid, YGrid] = point;
+        if (grids[XGrid * numGridY + YGrid] != -1)
+            return;
+        allPoints.Add(point);
+        grids[XGrid * numGridY + YGrid] = allPoints.Count - 1;
     }
     static Vector2 GetRandomPoint(Vector2 area)
     {
         return new Vector2(Random.Range(0, area.x), Random.Range(0, area.y));
     }
 
-    static bool IsValidPoint(Vector2 sample, float gridSize, float radius, Vector2 area) 
+    static bool IsValidPoint(Vector2 sample, float gridSize, float radius, Vector2 area, int gridWidth, int gridHeight) 
     {
-        if (sample.x < 0 || sample.x >= area.x || sample.y < 0 || sample.y >= area.y)
+        if (sample.x < 0 || sample.x > area.x|| sample.y < 0 || sample.y > area.y)
             return false;
         int XGrid = Mathf.FloorToInt(sample.x / gridSize);
         int YGrid = Mathf.FloorToInt(sample.y / gridSize);
-        int gridWidth = grids.GetLength(0);
-        int gridHeight = grids.GetLength(1);
-        int i0 = Mathf.Max(0, XGrid - 1);
-        int i1 = Mathf.Min(gridWidth - 1, XGrid + 1);
-        int j0 = Mathf.Max(0, YGrid - 1);
-        int j1 = Mathf.Min(gridHeight - 1, YGrid + 1);
+
+        int i0 = Mathf.Max(0, XGrid - 2);
+        int i1 = Mathf.Min(gridWidth - 1, XGrid + 2);
+        int j0 = Mathf.Max(0, YGrid - 2);
+        int j1 = Mathf.Min(gridHeight - 1, YGrid + 2);
 
         for (int i = i0; i < i1; i++) 
-        {
             for (int j = j0; j < j1; j++) 
-            {
-                if (grids[i, j] != Vector2.zero) 
-                {
-                    if (Vector2.Distance(grids[i, j], sample) < radius)
+                if (grids[i * gridHeight + j] != -1)
+                    if (Vector2.Distance(allPoints[grids[i * gridHeight + j]], sample) < radius)
                         return false;
-                }
-            }
-        }
+
         return true;
     }
 
