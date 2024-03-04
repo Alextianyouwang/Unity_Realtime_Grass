@@ -1,0 +1,56 @@
+#pragma kernel CSMain
+
+struct SourceVertex {
+
+	float3 positionOS;
+	float2 uv; 
+	float3 normalOS;
+};
+StructuredBuffer <SourceVertex> _SourceVerticesBuffer;
+
+StructuredBuffer <int> _SourceTrianglesBuffer;
+
+struct PoissonDisk {
+	float3 positionWS;
+	float radius;
+};
+AppendStructuredBuffer<PoissonDisk> _DisksBuffer;
+
+struct TempVertex {
+	float3 positionWS;
+	float2 uv;
+	float3 normalWS;
+};
+uint _NumTriangles;
+float4x4 _LocalToWorld;
+
+TempVertex ConvertToWS(SourceVertex i) {
+	TempVertex o;
+	o.positionWS = mul(_LocalToWorld, float4 (i.positionOS, 1)).xyz;
+	o.uv = i.uv;
+	o.normalWS = mul(_LocalToWorld, float4 (i.normalOS, 0)).xyz;
+	return o;
+}
+
+float3 GetTriangleCenter(float3 a, float3 b, float3 c) 
+{
+	return (a + b + c) / 3;
+}
+
+[numthreads(128,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= _NumTriangles)
+		return;
+
+	int triStart = id.x * 3;
+	TempVertex input[3];
+	[unroll] for (int i = 0; i < 3; i++) {
+		input[i] = ConvertToWS (_SourceVerticesBuffer[_SourceTrianglesBuffer[triStart + i]]);
+	}
+
+	PoissonDisk output;
+	output.positionWS = GetTriangleCenter(input[0].positionWS, input[1].positionWS, input[2].positionWS);
+	output.radius = 0.5f;
+	_DisksBuffer.Append(output);
+}

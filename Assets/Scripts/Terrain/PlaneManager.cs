@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [ExecuteInEditMode]
@@ -8,11 +9,14 @@ public class PlaneManager : MonoBehaviour
     public Vector2 size = Vector2.one * 10;
 
     public float[,] heightMap;
+
+    public static Action<Mesh> OnShareMesh;
     private void OnEnable()
     {
         _meshGenerator = new MeshPlaneGenerator();
         Mesh m = _meshGenerator.PlaneMesh(numChunk + 1, size, TryGetHeightMap(numChunk + 1));
         GetComponent<MeshFilter>().mesh = m;
+        OnShareMesh?.Invoke(m);
     }
 
     float[,] TryGetHeightMap(int numVert) 
