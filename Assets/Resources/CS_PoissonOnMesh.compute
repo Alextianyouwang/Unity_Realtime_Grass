@@ -1,5 +1,7 @@
 #pragma kernel CSMain
 
+#include "Noise.hlsl"
+
 struct SourceVertex {
 
 	float3 positionOS;
@@ -37,6 +39,22 @@ float3 GetTriangleCenter(float3 a, float3 b, float3 c)
 	return (a + b + c) / 3;
 }
 
+float3 RandomPointInTriangle(float3 a, float3 b, float3 c, float randSeed)
+{
+
+	float r1 = nrand( (float)randSeed * 0.002323); 
+	float r2 = nrand( (float)randSeed * 0.0032676); 
+
+	if (r1 + r2 >= 1)
+	{
+		r1 = 1 - r1;
+		r2 = 1 - r2;
+	}
+	float r3 = 1 - r1 - r2;
+	float3 randomPoint = r1 * a + r2 * b + r3 * c;
+	return randomPoint;
+}
+
 [numthreads(128,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
@@ -50,7 +68,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 	}
 
 	PoissonDisk output;
-	output.positionWS = GetTriangleCenter(input[0].positionWS, input[1].positionWS, input[2].positionWS);
+	output.positionWS = RandomPointInTriangle(input[0].positionWS, input[1].positionWS, input[2].positionWS,id.x);
 	output.radius = 0.5f;
 	_DisksBuffer.Append(output);
 }

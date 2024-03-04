@@ -222,7 +222,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 619980801}
-  m_Mesh: {fileID: 1645585036}
+  m_Mesh: {fileID: 1829886818}
 --- !u!114 &619980806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -255,7 +255,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942d795a682ca1e499e60a323f8bd807, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PoissonSpawner: {fileID: 7200000, guid: 6f485d81ac5ca6040911b03e1523db39, type: 3}
 --- !u!1 &1417080639
 GameObject:
   m_ObjectHideFlags: 0
@@ -374,7 +373,7 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
---- !u!43 &1645585036
+--- !u!43 &1829886818
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

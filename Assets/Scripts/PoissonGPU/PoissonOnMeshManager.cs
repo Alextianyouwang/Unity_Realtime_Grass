@@ -3,7 +3,7 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class PoissonOnMeshManager : MonoBehaviour
 {
-    public ComputeShader PoissonSpawner;
+    private ComputeShader _spawnShader;
 
     private ComputeBuffer _sourceVerticesBuffer;
     private ComputeBuffer _sourceTrianglesBuffer;
@@ -32,8 +32,8 @@ public class PoissonOnMeshManager : MonoBehaviour
     private void OnEnable()
     {
         PlaneManager.OnShareMesh += GetMesh;
-        GetMeshData(_mesh);
-        InitializeShader();
+        _spawnShader = (ComputeShader)Resources.Load("CS_PoissonOnMesh");
+        SpawnPoint();
     }
     private void OnDisable()
     {
@@ -45,8 +45,17 @@ public class PoissonOnMeshManager : MonoBehaviour
         _mesh = m;
     }
 
+    private void SpawnPoint() 
+    {
+        if (_mesh == null)
+            return;
+        GetMeshData(_mesh);
+        InitializeShader();
+    }
+
     private void GetMeshData(Mesh mesh) 
     {
+       
         _sourceVertices = new SourceVertex[mesh.vertices.Length];
         for (int i = 0; i < _sourceVertices.Length; i++) 
         {
@@ -72,13 +81,13 @@ public class PoissonOnMeshManager : MonoBehaviour
         _disksBuffer = new ComputeBuffer(_triangleCount, sizeof(float) * 4, ComputeBufferType.Append);
         _disksBuffer.SetCounterValue(0);
 
-        PoissonSpawner.SetMatrix("_LocalToWorld", transform.localToWorldMatrix);
-        PoissonSpawner.SetInt("_NumTriangles", _triangleCount);
-        PoissonSpawner.SetBuffer(0, "_SourceVerticesBuffer", _sourceVerticesBuffer);
-        PoissonSpawner.SetBuffer(0, "_SourceTrianglesBuffer", _sourceTrianglesBuffer);
-        PoissonSpawner.SetBuffer(0, "_DisksBuffer", _disksBuffer);
+        _spawnShader.SetMatrix("_LocalToWorld", transform.localToWorldMatrix);
+        _spawnShader.SetInt("_NumTriangles", _triangleCount);
+        _spawnShader.SetBuffer(0, "_SourceVerticesBuffer", _sourceVerticesBuffer);
+        _spawnShader.SetBuffer(0, "_SourceTrianglesBuffer", _sourceTrianglesBuffer);
+        _spawnShader.SetBuffer(0, "_DisksBuffer", _disksBuffer);
 
-        PoissonSpawner.Dispatch(0, Mathf.CeilToInt(_triangleCount / 128), 1, 1);
+        _spawnShader.Dispatch(0, Mathf.CeilToInt(_triangleCount / 128), 1, 1);
 
         _disksBuffer.GetData(_spawnPositions);
     }
