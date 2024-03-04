@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [ExecuteInEditMode]
-public class PoissonOnMeshManager : MonoBehaviour
+public class SpawnOnMeshManager : MonoBehaviour
 {
     private ComputeShader _spawnShader;
 
@@ -10,11 +10,14 @@ public class PoissonOnMeshManager : MonoBehaviour
     private ComputeBuffer _disksBuffer;
 
     private SourceVertex[] _sourceVertices;
-    private PoissonDisk[] _spawnPositions;
+    private SpawnData[] _spawnPositions;
     private int[] _sourceTriangles;
-    private int _triangleCount;
+    private int _quadCount;
 
     private Mesh _mesh;
+
+    [Range (1,5)]
+    public int Subdivision = 2;
 
     struct SourceVertex
     {
@@ -23,7 +26,7 @@ public class PoissonOnMeshManager : MonoBehaviour
         public Vector3 normalOS;
     };
 
-    struct PoissonDisk 
+    struct SpawnData
     {
         public Vector3 positionWS;
         public float radius;
@@ -32,12 +35,15 @@ public class PoissonOnMeshManager : MonoBehaviour
     private void OnEnable()
     {
         PlaneManager.OnShareMesh += GetMesh;
-        _spawnShader = (ComputeShader)Resources.Load("CS_PoissonOnMesh");
+        _spawnShader = (ComputeShader)Resources.Load("CS_SpawnOnMesh");
         SpawnPoint();
     }
     private void OnDisable()
     {
         PlaneManager.OnShareMesh -= GetMesh;
+        _sourceTrianglesBuffer.Release();
+        _sourceVerticesBuffer.Release();
+        _disksBuffer.Release();
     }
 
     private void GetMesh(Mesh m) 
@@ -66,9 +72,9 @@ public class PoissonOnMeshManager : MonoBehaviour
             };
         }
         _sourceTriangles = mesh.triangles;
-        _triangleCount = _sourceTriangles.Length / 3;
+        _quadCount = _sourceTriangles.Length / 6;
 
-        _spawnPositions = new PoissonDisk[_triangleCount];
+        _spawnPositions = new SpawnData[_quadCount * Subdivision * Subdivision];
 
     }
 
@@ -78,16 +84,18 @@ public class PoissonOnMeshManager : MonoBehaviour
         _sourceTrianglesBuffer.SetData(_sourceTriangles);
         _sourceVerticesBuffer = new ComputeBuffer(_sourceVertices.Length, sizeof(float) * 8);
         _sourceVerticesBuffer.SetData(_sourceVertices);
-        _disksBuffer = new ComputeBuffer(_triangleCount, sizeof(float) * 4, ComputeBufferType.Append);
+        _disksBuffer = new ComputeBuffer(_spawnPositions.Length, sizeof(float) * 4, ComputeBufferType.Append);
         _disksBuffer.SetCounterValue(0);
 
         _spawnShader.SetMatrix("_LocalToWorld", transform.localToWorldMatrix);
-        _spawnShader.SetInt("_NumTriangles", _triangleCount);
+        _spawnShader.SetInt("_NumTriangles", _quadCount);
+        _spawnShader.SetInt("_Subdivisions", Subdivision);
+
         _spawnShader.SetBuffer(0, "_SourceVerticesBuffer", _sourceVerticesBuffer);
         _spawnShader.SetBuffer(0, "_SourceTrianglesBuffer", _sourceTrianglesBuffer);
         _spawnShader.SetBuffer(0, "_DisksBuffer", _disksBuffer);
 
-        _spawnShader.Dispatch(0, Mathf.CeilToInt(_triangleCount / 128), 1, 1);
+        _spawnShader.Dispatch(0, Mathf.CeilToInt(_quadCount / 128f), 1, 1);
 
         _disksBuffer.GetData(_spawnPositions);
     }
@@ -97,7 +105,7 @@ public class PoissonOnMeshManager : MonoBehaviour
         if (_spawnPositions == null)
             return;
 
-        foreach (PoissonDisk p in _spawnPositions) 
+        foreach (SpawnData p in _spawnPositions) 
         {
             Gizmos.DrawSphere(p.positionWS, 0.05f);
         }

@@ -1,0 +1,72 @@
+#pragma kernel CSMain
+
+#include "HL_Noise.hlsl"
+
+struct SourceVertex {
+
+	float3 positionOS;
+	float2 uv; 
+	float3 normalOS;
+};
+StructuredBuffer <SourceVertex> _SourceVerticesBuffer;
+
+StructuredBuffer <int> _SourceTrianglesBuffer;
+
+struct SpawnData {
+	float3 positionWS;
+	float radius;
+};
+AppendStructuredBuffer<SpawnData> _DisksBuffer;
+
+struct TempVertex {
+	float3 positionWS;
+	float2 uv;
+	float3 normalWS;
+};
+uint _NumTriangles;
+uint _Subdivisions = 2;
+float4x4 _LocalToWorld;
+
+TempVertex ConvertToWS(SourceVertex i) {
+	TempVertex o;
+	o.positionWS = mul(_LocalToWorld, float4 (i.positionOS, 1)).xyz;
+	o.uv = i.uv;
+	o.normalWS = mul(_LocalToWorld, float4 (i.normalOS, 0)).xyz;
+	return o;
+}
+
+
+[numthreads(128,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= _NumTriangles)
+		return;
+
+	int triStart = id.x * 6;
+	TempVertex input[6];
+	[unroll]for (int i = 0; i < 6; i++) 
+		input[i] = ConvertToWS(_SourceVerticesBuffer[_SourceTrianglesBuffer[triStart + i]]);
+
+
+	uint iteration = _Subdivisions;
+	float xInc = (input[2].positionWS.x - input[1].positionWS.x)/iteration;
+	float zInc = (input[2].positionWS.z - input[1].positionWS.z)/iteration;
+
+	for (uint x = 0; x < iteration; x++)
+	{
+		for (uint z = 0; z < iteration; z++)
+		{
+			SpawnData output;
+
+			float r1 = lerp(input[5].positionWS.y, input[2].positionWS.y, float(x) / float(iteration));
+			float r2 = lerp(input[1].positionWS.y, input[0].positionWS.y, float(x) / float(iteration)); 
+			float y = lerp(r2, r1, float(z) / float(iteration));
+
+			output.positionWS = input[1].positionWS + float3(xInc * x, 0, zInc * z);
+			output.positionWS.y = y;
+			output.radius = 0.5f;
+			_DisksBuffer.Append(output);
+		}
+	}
+	
+}
