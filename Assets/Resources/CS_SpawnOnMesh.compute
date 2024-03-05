@@ -16,7 +16,7 @@ struct SpawnData {
 	float3 positionWS;
 	float radius;
 };
-AppendStructuredBuffer<SpawnData> _DisksBuffer;
+AppendStructuredBuffer<SpawnData> _SpawnBuffer;
 
 struct TempVertex {
 	float3 positionWS;
@@ -65,8 +65,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 			output.positionWS = input[1].positionWS + float3(xInc * x, 0, zInc * z);
 			output.positionWS.y = y;
 			output.radius = 0.5f;
-			_DisksBuffer.Append(output);
-		}
+            _SpawnBuffer.Append(output);
+        }
 	}
 	
 }
