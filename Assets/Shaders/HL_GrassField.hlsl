@@ -1,6 +1,7 @@
 #ifndef GRASSFIELD_GRAPHIC_INCLUDE
 #define GRASSFIELD_GRAPHIC_INCLUDE
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "../INCLUDE/HL_GraphicsHelper.hlsl"
 
 struct VertexInput
 {
@@ -24,11 +25,14 @@ StructuredBuffer<SpawnData> _SpawnBuffer;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 float _Scale;
 
+
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
     float3 posOffsetWS = _SpawnBuffer[instanceID].positionWS ;
-    float3 posWS = v.positionOS * _Scale + posOffsetWS;
+    float3 posWS = RotateAroundYInDegrees(float4(v.positionOS, 1), instanceID * 12.9898).xyz;
+    posWS *= _Scale;
+    posWS += posOffsetWS;
     o.positionWS = posWS;
     o.positionCS = mul(UNITY_MATRIX_MVP, float4(posWS,1));
     o.normalWS = mul(UNITY_MATRIX_M, float4(v.normalOS, 0)).xyz;

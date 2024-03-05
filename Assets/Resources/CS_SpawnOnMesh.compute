@@ -1,6 +1,6 @@
 #pragma kernel CSMain
 
-#include "HL_Noise.hlsl"
+#include "../INCLUDE/HL_Noise.hlsl"
 
 struct SourceVertex {
 

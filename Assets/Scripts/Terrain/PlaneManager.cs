@@ -14,6 +14,7 @@ public class PlaneManager : MonoBehaviour
     private void OnEnable()
     {
         _meshGenerator = new MeshPlaneGenerator();
+        
         Mesh m = _meshGenerator.PlaneMesh(numChunk + 1, size, TryGetHeightMap(numChunk + 1));
         GetComponent<MeshFilter>().mesh = m;
         OnShareMesh?.Invoke(m);
