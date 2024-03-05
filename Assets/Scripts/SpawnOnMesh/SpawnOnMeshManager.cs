@@ -18,7 +18,6 @@ public class SpawnOnMeshManager : MonoBehaviour
 
     public Mesh GrassBlade;
     public Material GrassMaterial;
-    public bool ShowGizmo = true;
 
     [Range (1,5)]
     public int Subdivision = 2;
@@ -122,9 +121,7 @@ public class SpawnOnMeshManager : MonoBehaviour
             GrassMaterial.SetBuffer("_SpawnBuffer", _spawnBuffer);
 
         _spawnShader.Dispatch(0, Mathf.CeilToInt(_quadCount / 128f), 1, 1);
-
-        if (ShowGizmo)
-            _spawnBuffer.GetData(_spawnPositions);
+        _spawnBuffer.GetData(_spawnPositions);
     }
 
     private void Update()
@@ -140,16 +137,4 @@ public class SpawnOnMeshManager : MonoBehaviour
             0, null, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
     }
 
-    private void OnDrawGizmos()
-    {
-        if (_spawnPositions == null)
-            return;
-        if (!ShowGizmo)
-            return;
-
-        foreach (SpawnData p in _spawnPositions) 
-        {
-            Gizmos.DrawSphere(p.positionWS, 0.05f);
-        }
-    }
 }

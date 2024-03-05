@@ -222,7 +222,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 619980801}
-  m_Mesh: {fileID: 2075558165}
+  m_Mesh: {fileID: 1710763230}
 --- !u!114 &619980806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -255,10 +255,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942d795a682ca1e499e60a323f8bd807, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GrassBlade: {fileID: 4300000, guid: 696ee1f4a69d2f442add066d155d15aa, type: 2}
+  GrassBlade: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   GrassMaterial: {fileID: 2100000, guid: 815a509e078cc4b43af2350162c58ce8, type: 2}
-  ShowGizmo: 0
-  Subdivision: 5
+  Subdivision: 3
 --- !u!1 &1417080639
 GameObject:
   m_ObjectHideFlags: 0
@@ -482,7 +481,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!43 &2075558165
+--- !u!43 &1710763230
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

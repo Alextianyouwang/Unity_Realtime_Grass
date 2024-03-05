@@ -22,11 +22,13 @@ struct SpawnData
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
+float _Scale;
+
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
     float3 posOffsetWS = _SpawnBuffer[instanceID].positionWS ;
-    float3 posWS = v.positionOS + posOffsetWS;
+    float3 posWS = v.positionOS * _Scale + posOffsetWS;
     o.positionWS = posWS;
     o.positionCS = mul(UNITY_MATRIX_MVP, float4(posWS,1));
     o.normalWS = mul(UNITY_MATRIX_M, float4(v.normalOS, 0)).xyz;

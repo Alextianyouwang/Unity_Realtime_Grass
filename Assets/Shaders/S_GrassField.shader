@@ -3,6 +3,7 @@ Shader "Procedural/S_GrassField"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _Scale ("Scale", Range(0,1)) = 1
     }
     SubShader
     {
