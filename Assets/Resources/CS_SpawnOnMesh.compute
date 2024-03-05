@@ -49,20 +49,24 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 
 	uint iteration = _Subdivisions;
-	float xInc = (input[2].positionWS.x - input[1].positionWS.x)/iteration;
-	float zInc = (input[2].positionWS.z - input[1].positionWS.z)/iteration;
+
+    float3 chunkSize = input[2].positionWS - input[1].positionWS;
+    float3 inc = chunkSize / iteration;
 
 	for (uint x = 0; x < iteration; x++)
 	{
 		for (uint z = 0; z < iteration; z++)
 		{
 			SpawnData output;
-
-			float r1 = lerp(input[5].positionWS.y, input[2].positionWS.y, float(x) / float(iteration));
-			float r2 = lerp(input[1].positionWS.y, input[0].positionWS.y, float(x) / float(iteration)); 
-			float y = lerp(r2, r1, float(z) / float(iteration));
-
-			output.positionWS = input[1].positionWS + float3(xInc * x, 0, zInc * z);
+            float2 noise = rand2dTo2d(float2(input[1].positionWS.x + inc.x * x, input[1].positionWS.y + inc.z * z));
+            noise *= float2(inc.x,inc.z);
+            float2 noisePercent = noise / float2(chunkSize.x, chunkSize.z);
+			
+			float r1 = lerp(input[5].positionWS.y, input[2].positionWS.y, float(x) / float(iteration) + noisePercent.x);
+			float r2 = lerp(input[1].positionWS.y, input[0].positionWS.y, float(x) / float(iteration) + noisePercent.x); 
+            float y = lerp(r2, r1, float(z) / float(iteration) + noisePercent.y);
+			
+			output.positionWS = input[1].positionWS + float3(inc.x * x + noise.x, 0, inc.z * z + noise.y);
 			output.positionWS.y = y;
 			output.radius = 0.5f;
             _SpawnBuffer.Append(output);
