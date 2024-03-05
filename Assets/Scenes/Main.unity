@@ -222,7 +222,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 619980801}
-  m_Mesh: {fileID: 1310057073}
+  m_Mesh: {fileID: 1006828061}
 --- !u!114 &619980806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -258,7 +258,7 @@ MonoBehaviour:
   GrassBlade: {fileID: 4300000, guid: 696ee1f4a69d2f442add066d155d15aa, type: 2}
   GrassMaterial: {fileID: 2100000, guid: 815a509e078cc4b43af2350162c58ce8, type: 2}
   Subdivision: 5
---- !u!43 &1310057073
+--- !u!43 &1006828061
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

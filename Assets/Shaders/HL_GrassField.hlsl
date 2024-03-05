@@ -29,14 +29,18 @@ float _Scale;
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
+    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+
     float3 posOffsetWS = _SpawnBuffer[instanceID].positionWS ;
-    float3 posWS = RotateAroundYInDegrees(float4(v.positionOS, 1), instanceID * 12.9898).xyz;
+    float3 posWS = RotateAroundXInDegrees(float4(v.positionOS, 1),  20 * v.uv.y).xyz;
+    
+    posWS = RotateAroundYInDegrees(float4(posWS, 1), instanceID * 78.233).xyz;
+
     posWS *= _Scale;
     posWS += posOffsetWS;
     o.positionWS = posWS;
     o.positionCS = mul(UNITY_MATRIX_MVP, float4(posWS,1));
     o.normalWS = mul(UNITY_MATRIX_M, float4(v.normalOS, 0)).xyz;
-    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 
     return o;
 }
