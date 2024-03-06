@@ -3,7 +3,10 @@ Shader "Procedural/S_GrassField"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _Scale ("Scale", Range(0,1)) = 1
+        _Scale("Scale", Range(0,1)) = 1
+        _Bend("Bend", Range(0,1)) = 0
+        _TopColor("_TopColor", Color) = (1,1,1,1)
+        _BotColor("_BotColor", Color) = (0,0,0,1)
     }
     SubShader
     {
@@ -14,7 +17,7 @@ Shader "Procedural/S_GrassField"
             Tags {"LightMode" = "UniversalForward"}
             Cull off
             HLSLPROGRAM
-            #pragma target 4.5
+            #pragma target 5.0
 
             #pragma vertex vert
             #pragma fragment frag
