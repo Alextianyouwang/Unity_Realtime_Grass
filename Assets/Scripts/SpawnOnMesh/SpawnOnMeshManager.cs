@@ -37,13 +37,13 @@ public class SpawnOnMeshManager : MonoBehaviour
 
     private void OnEnable()
     {
-        PlaneManager.OnShareMesh += GetMesh;
+
         _spawnShader = (ComputeShader)Resources.Load("CS_SpawnOnMesh");
+        TryGetMesh();
         SpawnPoint();
     }
     private void OnDisable()
     {
-        PlaneManager.OnShareMesh -= GetMesh;
 
         _sourceTrianglesBuffer?.Release();
         _sourceVerticesBuffer?.Release();
@@ -51,9 +51,11 @@ public class SpawnOnMeshManager : MonoBehaviour
         _argsBuffer?.Release();
     }
 
-    private void GetMesh(Mesh m) 
+    private void TryGetMesh() 
     {
-        _mesh = m;
+        PlaneManager p = GetComponent<PlaneManager>();
+        if (p != null)
+            _mesh = p._mesh;
     }
 
     private void SpawnPoint() 

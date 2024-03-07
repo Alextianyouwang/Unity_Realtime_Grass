@@ -1,23 +1,21 @@
-using System;
 using UnityEngine;
 
 [ExecuteInEditMode]
+[DefaultExecutionOrder(-100)]
 public class PlaneManager : MonoBehaviour
 {
     private MeshPlaneGenerator _meshGenerator;
     public int numChunk = 10;
     public Vector2 size = Vector2.one * 10;
-
     public float[,] heightMap;
-
-    public static Action<Mesh> OnShareMesh;
+    public Mesh _mesh;
     private void OnEnable()
     {
         _meshGenerator = new MeshPlaneGenerator();
-        
-        Mesh m = _meshGenerator.PlaneMesh(numChunk + 1, size, TryGetHeightMap(numChunk + 1));
-        GetComponent<MeshFilter>().mesh = m;
-        OnShareMesh?.Invoke(m);
+
+        _mesh = _meshGenerator.PlaneMesh(numChunk + 1, size, TryGetHeightMap(numChunk + 1));
+        _mesh.name = $"Procedural Grid {numChunk} * {numChunk}";
+        GetComponent<MeshFilter>().mesh = _mesh;
     }
 
     float[,] TryGetHeightMap(int numVert) 
