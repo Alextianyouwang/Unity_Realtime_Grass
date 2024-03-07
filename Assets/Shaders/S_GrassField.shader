@@ -2,6 +2,8 @@ Shader "Procedural/S_GrassField"
 {
     Properties
     {
+        [KeywordEnum(Off,MainWave,DetailedWave)] _Debug("DebugMode", Float) = 0
+
         _MainTex ("Texture", 2D) = "white" {}
         _Scale("Scale", Range(0,1)) = 1
         _Bend("Bend", Range(0,1)) = 0
@@ -20,6 +22,8 @@ Shader "Procedural/S_GrassField"
         _DetailFrequency("DetailFrequency", Range(0,1)) = 0.5
         _DetailAmplitude("DetailAmplitude", Range(0,1)) = 0.5
 
+
+
     }
     SubShader
     {
@@ -37,6 +41,7 @@ Shader "Procedural/S_GrassField"
 
             #pragma shader_feature _ _USE_MAINWAVE_ON
             #pragma shader_feature _ _USE_DETAIL_ON
+            #pragma shader_feature _DEBUG_OFF _DEBUG_MAINWAVE _DEBUG_DETAILEDWAVE
             
             #include "HL_GrassField.hlsl"
             

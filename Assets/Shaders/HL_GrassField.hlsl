@@ -17,6 +17,7 @@ struct VertexOutput
     float2 uv : TEXCOORD0;
     float3 normalWS : TEXCOORD1;
     float3 positionWS : TEXCOORD2;
+    float4 debug : TEXCOORD3;
    
     
 };
@@ -55,15 +56,15 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS ;
     
     float wave;
-    #if _USE_MAINWAVE_ON
-        wave = SinWaveWithNoise(spawnPosWS.xz, _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) * _WindAmplitude * 20;
+    #if  _USE_MAINWAVE_ON
+        wave = SinWaveWithNoise(spawnPosWS.xz, _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
     #else
         wave = 0;
     #endif
     
     float detail;
     #if _USE_DETAIL_ON
-        detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) * _DetailAmplitude * 20;
+        detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
     #else
         detail = 0;
     #endif
@@ -72,13 +73,16 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float2 rotatedWindDir = Rotate2D(float2(1, -1), _WindDirection * 360);
     float rand = rand1dTo1d(instanceID * 78.233);
     pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
-        v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave + detail))).xyz;
+        v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 +  detail * _DetailAmplitude * 20))).
+    xyz;
 
     pos *= _Scale;
     pos += spawnPosWS;
     o.positionWS = pos;
     o.positionCS = TransformObjectToHClip(pos);
     o.normalWS = TransformObjectToWorldNormal(v.normalOS);
+    o.debug = float4(wave, detail, 0, 0);
+    
     
     return o;
 }
@@ -86,6 +90,15 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 float4 frag(VertexOutput v) : SV_Target
 {
     float4 color = lerp(_BotColor,_TopColor ,v.uv.y);
+    
+#if _DEBUG_OFF
+        return color;
+#elif _DEBUG_MAINWAVE
+        return v.debug.x;
+#elif _DEBUG_DETAILEDWAVE
+        return v.debug.y;
+#else 
     return color;
+#endif
 }
 #endif
