@@ -5,6 +5,7 @@ Shader "Procedural/S_GrassField"
         _MainTex ("Texture", 2D) = "white" {}
         _Scale("Scale", Range(0,1)) = 1
         _Bend("Bend", Range(0,1)) = 0
+        _RandomBendOffset("RandomBendOffset", Range(0,1)) = 0
         _TopColor("TopColor", Color) = (1,1,1,1)
         _BotColor("BotColor", Color) = (0,0,0,1)
         _WindSpeed("WindSpeed", Range(0,1)) = 0.5
@@ -12,6 +13,9 @@ Shader "Procedural/S_GrassField"
         _WindDirection("WindDirection", Range(0,1)) = 0
         _WindNoiseFrequency("WindNoiseFrequency", Range(0,1)) = 0.5
         _WindNoiseWeight("WindNoiseWeight", Range(0,1)) = 0.5
+        _DetailSpeed("DetailSpeed", Range(0,1)) = 0.5
+        _DetailWeight("DetailWeight", Range(0,1)) = 0.5
+        _DetailFrequency("DetailFrequency", Range(0,1)) = 0.5
     }
     SubShader
     {

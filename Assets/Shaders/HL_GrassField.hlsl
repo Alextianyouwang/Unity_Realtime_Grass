@@ -27,16 +27,23 @@ struct SpawnData
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
-float _Scale, _Bend, _WindSpeed, _WindFrequency, _WindNoiseWeight, _WindDirection, _WindNoiseFrequency;
+float _Scale, _Bend, _WindSpeed, _WindFrequency, _WindNoiseWeight, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,
+_DetailSpeed, _DetailWeight, _DetailFrequency;
 float4 _TopColor, _BotColor;
 
-float SinWaveWithNoise(float2 uv)
+float Perlin(float2 uv)
 {
-    float2 rotatedUV = RotateAroundYInDegrees(float4(uv.x, 0, uv.y, 1), _WindDirection * 360).xz;
-    float noise = (perlinNoise(rotatedUV * _WindNoiseFrequency, float2(12.9898, 78.233))) *  _WindNoiseWeight * 10;
-    float wave = sin((rotatedUV.x + rotatedUV.y + noise + _Time.y * _WindSpeed * 10) * _WindFrequency);
-    return wave * 2 - 1;
+    return perlinNoise(uv, float2(12.9898, 78.233));
 }
+
+float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWeight, float waveSpeed, float waveFreq)
+{
+    float2 rotatedUV = Rotate2D(uv,direction * 360);
+    float noise = Perlin(rotatedUV * noiseFreq) *  noiseWeight * 10;
+    float wave = sin((rotatedUV.x + rotatedUV.y + noise - _Time.y * waveSpeed * 10) * waveFreq);
+    return wave;
+}
+
 
 
 
@@ -45,18 +52,20 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     VertexOutput o;
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 
-    float3 posOffsetWS = _SpawnBuffer[instanceID].positionWS ;
-    float wave = SinWaveWithNoise(posOffsetWS.xz);
+    float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS ;
+    float wave = SinWaveWithNoise(spawnPosWS.xz, _WindDirection, _WindNoiseFrequency, _WindNoiseWeight, _WindSpeed, _WindFrequency);
+    float detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) * _DetailWeight * 5;
     
-    float3 posWS = RotateAroundXInDegrees(float4(v.positionOS, 1), _Bend * 90 * v.uv.y * wave * 2).xyz;
-    posWS = RotateAroundYInDegrees(float4(posWS, 1), instanceID * 78.233).xyz;
+    float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), instanceID * 78.233).xyz;
+    float2 rotatedWindDir = Rotate2D(float2(1, -1), _WindDirection * 360);
+    float rand = rand1dTo1d(instanceID * 78.233);
+    pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
+        v.uv.y * (_Bend * 90 * (wave + 0.5 + detail) + rand * _RandomBendOffset * 20)).xyz;
 
-    
-
-    posWS *= _Scale;
-    posWS += posOffsetWS;
-    o.positionWS = posWS;
-    o.positionCS = TransformObjectToHClip(posWS);
+    pos *= _Scale;
+    pos += spawnPosWS;
+    o.positionWS = pos;
+    o.positionCS = TransformObjectToHClip(pos);
     o.normalWS = TransformObjectToWorldNormal(v.normalOS);
     
     return o;
