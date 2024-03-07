@@ -27,8 +27,8 @@ struct SpawnData
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
-float _Scale, _Bend, _WindSpeed, _WindFrequency, _WindNoiseWeight, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,
-_DetailSpeed, _DetailWeight, _DetailFrequency;
+float _Scale, _Bend, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,_WindAmplitude,
+_DetailSpeed, _DetailAmplitude, _DetailFrequency;
 float4 _TopColor, _BotColor;
 
 float Perlin(float2 uv)
@@ -53,14 +53,26 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 
     float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS ;
-    float wave = SinWaveWithNoise(spawnPosWS.xz, _WindDirection, _WindNoiseFrequency, _WindNoiseWeight, _WindSpeed, _WindFrequency);
-    float detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) * _DetailWeight * 5;
+    
+    float wave;
+    #if _USE_MAINWAVE_ON
+        wave = SinWaveWithNoise(spawnPosWS.xz, _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) * _WindAmplitude * 20;
+    #else
+        wave = 0;
+    #endif
+    
+    float detail;
+    #if _USE_DETAIL_ON
+        detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) * _DetailAmplitude * 20;
+    #else
+        detail = 0;
+    #endif
     
     float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), instanceID * 78.233).xyz;
     float2 rotatedWindDir = Rotate2D(float2(1, -1), _WindDirection * 360);
     float rand = rand1dTo1d(instanceID * 78.233);
     pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
-        v.uv.y * (_Bend * 90 * (wave + 0.5 + detail) + rand * _RandomBendOffset * 20)).xyz;
+        v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave + detail))).xyz;
 
     pos *= _Scale;
     pos += spawnPosWS;

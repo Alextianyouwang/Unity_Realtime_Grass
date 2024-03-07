@@ -11,8 +11,12 @@ Material:
   m_Shader: {fileID: 4800000, guid: 5f92866d22f7e714f851dc1213ee0c71, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_ValidKeywords:
+  - _USE_DETAIL_ON
+  - _USE_MAINWAVE_ON
+  m_InvalidKeywords:
+  - USE_MAINWAVE_ON_ON
+  - _USE_MAINWAVE_ON_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -29,13 +33,23 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Bend: 0.151
-    - _Scale: 1
-    - _WindDirection: 0.927
+    - USE_MAINWAVE_ON: 1
+    - _Bend: 0.291
+    - _DetailAmplitude: 0.365
+    - _DetailFrequency: 1
+    - _DetailSpeed: 0.059
+    - _DetailWeight: 0.175
+    - _RandomBendOffset: 0.232
+    - _Scale: 0.491
+    - _USE_DETAIL_ON: 1
+    - _USE_MAINWAVE_ON: 1
+    - _WindAmplitude: 0.507
+    - _WindDirection: 0
     - _WindFrequency: 0.268
-    - _WindNoiseFrequency: 0.593
+    - _WindNoiseAmplitude: 1
+    - _WindNoiseFrequency: 0.345
     - _WindNoiseWeight: 1
-    - _WindSpeed: 0.631
+    - _WindSpeed: 0.793
     m_Colors:
     - _BotColor: {r: 0, g: 0.12875928, b: 0.254717, a: 1}
     - _TopColor: {r: 0, g: 1, b: 0.5407865, a: 1}
