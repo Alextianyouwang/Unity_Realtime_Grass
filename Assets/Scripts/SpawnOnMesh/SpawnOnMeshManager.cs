@@ -19,7 +19,7 @@ public class SpawnOnMeshManager : MonoBehaviour
     public Mesh GrassBlade;
     public Material GrassMaterial;
 
-    [Range (1,5)]
+    [Range (1,10)]
     public int Subdivision = 2;
 
     struct SourceVertex

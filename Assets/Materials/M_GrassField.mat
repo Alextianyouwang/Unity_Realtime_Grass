@@ -29,9 +29,16 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Bend: 0.096
+    - _Bend: 0.007
     - _Scale: 1
+    - _WindDirection: 0
+    - _WindFrequency: 1
+    - _WindNoiseFrequency: 1
+    - _WindNoiseWeight: 1
+    - _WindSpeed: 0.253
     m_Colors:
     - _BotColor: {r: 0, g: 0.12875928, b: 0.254717, a: 1}
     - _TopColor: {r: 0, g: 1, b: 0.5407865, a: 1}
+    - _WindDirection: {r: 1, g: 1, b: 0, a: 0}
+    - _WindNoiseFrequency: {r: 0.3, g: 0.3, b: 0, a: 0}
   m_BuildTextureStacks: []
