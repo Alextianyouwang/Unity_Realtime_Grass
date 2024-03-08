@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 [ExecuteInEditMode]
 public class VolumeSpawner : MonoBehaviour
@@ -6,15 +7,16 @@ public class VolumeSpawner : MonoBehaviour
     public Vector3[] Volumes;
     public float SideLenght = 5;
     public int Segments = 10;
-
     private void OnEnable()
     {
         SpawnPoint();
     }
+
     private void Update()
     {
         SpawnPoint();
     }
+
     private void SpawnPoint() 
     {
         int i = 0;
@@ -34,6 +36,11 @@ public class VolumeSpawner : MonoBehaviour
                 }
             }
         }
+    }
+    private void OnDrawGizmos()
+    {
+        foreach (Vector3 v in Volumes)
+            Gizmos.DrawSphere(v, 0.2f);
     }
 
 }

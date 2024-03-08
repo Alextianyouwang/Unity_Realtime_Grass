@@ -3,11 +3,12 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class GPUCullingTester : MonoBehaviour
 {
-    private ComputeShader Culler;
+    public bool UseCulling = false;
     public VolumeSpawner VolumeSpawner;
     public Camera Camera;
     public Mesh TestMesh;
     public Material RenderMaterial;
+
     private ComputeBuffer _posBuffer;
     private ComputeBuffer _voteBuffer;
     private ComputeBuffer _scanBuffer;
@@ -16,17 +17,15 @@ public class GPUCullingTester : MonoBehaviour
     private ComputeBuffer _argsBuffer_static;
     
     private Vector3[] _spawnPos;
-    private int[] _voteResult;
-    private int[] _scanResult;
-    private Vector3[] _cullResult;
     private uint[] _args;
+    private Matrix4x4 _matrix_vp;
 
+    private ComputeShader Culler;
 
-
-    public bool UseCulling = false;
     private void OnEnable()
     {
         Culler = (ComputeShader)Resources.Load("CS_GPUCulling");
+
         SetUp();
     }
 
@@ -38,7 +37,6 @@ public class GPUCullingTester : MonoBehaviour
         _compactBuffer?.Release();
         _argsBuffer?.Release();
         _argsBuffer_static?.Release();
-        _voteResult = null;
     }
 
     int CeilToNearestPowerOf2(int value) 
@@ -51,6 +49,7 @@ public class GPUCullingTester : MonoBehaviour
         value = target;
         return value;
     }
+
     private void SetUp() 
     {
         if (VolumeSpawner == null)
@@ -67,25 +66,25 @@ public class GPUCullingTester : MonoBehaviour
             0
             };
         }
+        _matrix_vp = Camera.projectionMatrix * Camera.transform.worldToLocalMatrix;
         _spawnPos = VolumeSpawner.Volumes;
         int scanBufferLength = CeilToNearestPowerOf2(_spawnPos.Length);
-        _voteResult = new int[_spawnPos.Length];
-        _scanResult = new int[scanBufferLength];
-        _cullResult = new Vector3[_spawnPos.Length];
 
-        
-        _posBuffer = new ComputeBuffer(_spawnPos.Length, sizeof(float) * 3);
-        _voteBuffer = new ComputeBuffer(_spawnPos.Length,sizeof (uint));
-        _scanBuffer = new ComputeBuffer(scanBufferLength,sizeof (uint));
+        /* Procedural */
+        _voteBuffer = new ComputeBuffer(_spawnPos.Length, sizeof(uint));
+        /* Procedural */
+        _scanBuffer = new ComputeBuffer(scanBufferLength, sizeof(uint));
+        /* Procedural */
         _compactBuffer = new ComputeBuffer(_spawnPos.Length, sizeof(float) * 3);
+
+        _posBuffer = new ComputeBuffer(_spawnPos.Length, sizeof(float) * 3);
+        _posBuffer.SetData(_spawnPos);
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
         _argsBuffer.SetData(_args);
-
         _argsBuffer_static = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
         _argsBuffer_static.SetData(_args);
 
-        _posBuffer.SetData(_spawnPos);
-
+        Culler.SetMatrix("_Camera_VP", _matrix_vp);
         Culler.SetInt("_InstanceCount", _spawnPos.Length);
 
         Culler.SetBuffer(0, "_SpawnBuffer", _posBuffer);
@@ -107,18 +106,13 @@ public class GPUCullingTester : MonoBehaviour
     {
         if (Culler == null)
             return;
-        if (_posBuffer == null)
-            return;
-        if (_voteBuffer == null)
-            return;
-        if (Camera == null)
-            return;
-        Matrix4x4 V = Camera.transform.worldToLocalMatrix;
-        Matrix4x4 P = Camera.projectionMatrix;
-        Matrix4x4 VP = P * V;
 
+        _spawnPos = VolumeSpawner.Volumes;
+        _posBuffer.SetData(_spawnPos);
+        Culler.SetBuffer(0, "_SpawnBuffer", _posBuffer);
 
-        Culler.SetMatrix("_Camera_VP", VP);
+        _matrix_vp = Camera.projectionMatrix * Camera.transform.worldToLocalMatrix;
+        Culler.SetMatrix("_Camera_VP", _matrix_vp);
 
         Culler.Dispatch(3, 1, 1, 1);
         Culler.Dispatch(0, Mathf.CeilToInt(_spawnPos.Length / 128f), 1, 1);
@@ -130,11 +124,7 @@ public class GPUCullingTester : MonoBehaviour
         else
             RenderMaterial.SetBuffer("_SpawnBuffer", _posBuffer);
 
-        _voteBuffer.GetData(_voteResult);
-        _scanBuffer.GetData(_scanResult);
-        _compactBuffer.GetData(_cullResult);
         Bounds bounds = new Bounds(Vector3.zero, Vector3.one * 100f);
-
         Graphics.DrawMeshInstancedIndirect(TestMesh, 0, RenderMaterial, bounds,
             UseCulling? _argsBuffer :_argsBuffer_static);
 
@@ -142,7 +132,6 @@ public class GPUCullingTester : MonoBehaviour
         foreach (int i in _scanResult)
             indexs += i.ToString() + "/";
         print(indexs);*/
-
     }
 
 
