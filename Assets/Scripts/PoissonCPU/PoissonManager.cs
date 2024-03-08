@@ -20,7 +20,7 @@ public class PoissonManager: MonoBehaviour
     {
         foreach (Vector2 v in samples) 
         {
-            Gizmos.DrawSphere(v, 0.02f);
+            Gizmos.DrawSphere(v, 0.1f);
             //Gizmos.(v, Radius);
         }
     }

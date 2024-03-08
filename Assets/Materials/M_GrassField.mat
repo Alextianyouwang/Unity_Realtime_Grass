@@ -43,8 +43,8 @@ Material:
     - _DetailFrequency: 0.768
     - _DetailSpeed: 0.285
     - _DetailWeight: 0.175
-    - _RandomBendOffset: 0.349
-    - _Scale: 0.491
+    - _RandomBendOffset: 0.174
+    - _Scale: 1
     - _USE_DETAIL_ON: 1
     - _USE_MAINWAVE_ON: 1
     - _WindAmplitude: 0.407

@@ -24,7 +24,6 @@ struct VertexOutput
 struct SpawnData
 {
     float3 positionWS;
-    float radius;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
@@ -69,9 +68,9 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
         detail = 0;
     #endif
     
-    float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), instanceID * 78.233).xyz;
+    float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), rand1dTo1d(spawnPosWS * 78.233) * 360).xyz;
     float2 rotatedWindDir = Rotate2D(float2(1, -1), _WindDirection * 360);
-    float rand = rand1dTo1d(instanceID * 78.233);
+    float rand = rand1dTo1d(spawnPosWS * 78.233);
     pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
         v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 +  detail * _DetailAmplitude * 20))).
     xyz;

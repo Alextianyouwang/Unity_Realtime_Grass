@@ -45,18 +45,6 @@ public class GPUCullingTester : MonoBehaviour
         _argsBuffer?.Release();
         _argsBuffer_static?.Release();
     }
-
-    int CeilToNearestPowerOf2(int value) 
-    {
-        int target = 2;
-
-        while (target < value)
-            target <<= 1;
-
-        value = target;
-        return value;
-    }
-
     private void SetUp() 
     {
         if (VolumeSpawner == null)
@@ -66,8 +54,8 @@ public class GPUCullingTester : MonoBehaviour
      
         _matrix_vp = Camera.projectionMatrix * Camera.transform.worldToLocalMatrix;
         _spawnPos = VolumeSpawner.Volumes;
-        _elementCount = CeilToNearestPowerOf2(_spawnPos.Length);
-        _groupCount = CeilToNearestPowerOf2(_elementCount / 128);
+        _elementCount = Utility.CeilToNearestPowerOf2(_spawnPos.Length);
+        _groupCount = Utility.CeilToNearestPowerOf2(_elementCount / 128);
         _scanResult = new int[_elementCount];
 
         if (TestMesh)
@@ -120,7 +108,6 @@ public class GPUCullingTester : MonoBehaviour
         Culler.SetBuffer(3, "_ArgsBuffer", _argsBuffer);
 
         Culler.SetBuffer(4, "_ArgsBuffer", _argsBuffer);
-        print($"Budget Useage: {_spawnPos.Length / 131072f * 100}%");
 
 
     }

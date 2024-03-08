@@ -169,7 +169,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Width: 10
   Height: 10
-  Radius: 0.238
+  Radius: 0.42
   Iterations: 10
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
