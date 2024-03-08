@@ -1,20 +1,21 @@
-#pragma kernel CSMain
+#pragma kernel Vote
+#pragma kernel Scan
 
 
 
 StructuredBuffer<float3> _SpawnBuffer;
-struct CullResult
-{
-    float3 pos;
-    float isVisible;
-};
-AppendStructuredBuffer<CullResult> _ResultBuffer;
+RWStructuredBuffer<uint> _VoteBuffer;
+RWStructuredBuffer<uint> _ScanBuffer;
 
 uint _InstanceCount;
 float4x4 _Camera_VP;
 
-[numthreads(128,1,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+#define NUM_THREAD_GROUP 64
+
+groupshared int temp[2 * NUM_THREAD_GROUP];
+
+[numthreads(128, 1, 1)]
+void Vote (uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _InstanceCount)
         return;
@@ -27,11 +28,52 @@ void CSMain (uint3 id : SV_DispatchThreadID)
    
 
     
-    float isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z  < -0.1) ? 0 : 1;
-    CullResult result;
-    result.pos = pos;
-    result.isVisible = isInView;
-    _ResultBuffer.Append(result);
+    bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z  < -0.1) ? 0 : 1;
+    _VoteBuffer[id.x] = isInView;
     
+
+}
+[numthreads(NUM_THREAD_GROUP, 1, 1)]
+void Scan(uint3 id : SV_DispatchThreadID,uint3 groupTID : SV_GroupThreadID) 
+{
+    temp[2 * groupTID.x] = _VoteBuffer[2 * id.x];
+    temp[2 * groupTID.x + 1] = _VoteBuffer[2 * id.x + 1];
+    uint d;
+    uint offset = 1;
+    for (d = NUM_THREAD_GROUP; d > 0; d >>= 1)
+    {
+        GroupMemoryBarrierWithGroupSync();
+        if (groupTID.x < d)
+        {
+            int ai = offset * (2 * groupTID.x + 1) - 1;
+            int bi = offset * (2 * groupTID.x + 2) - 1;
+            temp[bi] += temp[ai];
+            
+        }
+        offset *= 2;
+
+    }
+    if (groupTID.x == 0)
+        temp[NUM_THREAD_GROUP * 2 - 1] = 0;
+    
+    for (d = 1; d <= NUM_THREAD_GROUP; d *= 2)
+    {
+        GroupMemoryBarrierWithGroupSync();
+        offset /= 2;
+        if (groupTID.x < d)
+        {
+            int ai = offset * (2 * id.x + 1) - 1;
+            int bi = offset * (2 * id.x + 2) - 1;
+            int t = temp[bi];
+            temp[bi] += temp[ai];
+            temp[ai] = t;
+        }
+
+    }
+    GroupMemoryBarrierWithGroupSync();
+    
+    _ScanBuffer[2 * id.x] = temp[2 * groupTID.x];
+    _ScanBuffer[2 * id.x + 1] = temp[2 * groupTID.x + 1];
+
 
 }

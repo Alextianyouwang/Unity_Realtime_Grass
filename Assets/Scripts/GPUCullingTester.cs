@@ -1,6 +1,5 @@
 
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [ExecuteInEditMode]
@@ -9,15 +8,12 @@ public class GPUCullingTester : MonoBehaviour
     private ComputeShader Culler;
     public GameObject[] TestObjects;
     private ComputeBuffer _posBuffer;
-    private ComputeBuffer _resultBuffer;
+    private ComputeBuffer _voteBuffer;
+    private ComputeBuffer _scanBuffer;
+    private Vector3[] _spawnPos;
+    private int[] _voteResult;
+    private int[] _scanResult;
 
-    private CullResult[] _result;
-
-    struct CullResult
-    {
-        public Vector3 pos;
-        public float isVisible;
-    };
     private void OnEnable()
     {
         Culler = (ComputeShader)Resources.Load("CS_GPUCulling");
@@ -27,29 +23,44 @@ public class GPUCullingTester : MonoBehaviour
     private void OnDisable()
     {
         _posBuffer?.Release();
-        _resultBuffer?.Release();
-        _result = null;
+        _voteBuffer?.Release();
+        _scanBuffer?.Release();
+        _voteResult = null;
     }
 
+    int CeilToNearestPowerOf2(int value) 
+    {
+        int remainder = value % 2;
+        if (remainder != 0)
+            return (value - remainder) * 2;
+        else return value;
+    }
     private void SetUp() 
     {
         if (TestObjects == null)
             return;
         if (TestObjects.Length == 0)
             return;
-        Vector3[] positions = TestObjects.Select(n => n.transform.position).ToArray();
-        _result = new CullResult[positions.Length];
+        _spawnPos = TestObjects.Select(n => n.transform.position).ToArray();
+        int scanBufferLenght = CeilToNearestPowerOf2(_spawnPos.Length);
+        _voteResult = new int[_spawnPos.Length];
+        _scanResult = new int[scanBufferLenght];
 
-        _posBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 3);
-        _resultBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 4, ComputeBufferType.Append);
-        _resultBuffer.SetCounterValue(0);
+        
+        _posBuffer = new ComputeBuffer(_spawnPos.Length, sizeof(float) * 3);
+        _voteBuffer = new ComputeBuffer(_spawnPos.Length,sizeof (uint));
+        _scanBuffer = new ComputeBuffer(scanBufferLenght,sizeof (uint));
   
-        _posBuffer.SetData(positions);
-        Culler.SetInt("_InstanceCount", positions.Length);
+        _posBuffer.SetData(_spawnPos);
+        Culler.SetInt("_InstanceCount", _spawnPos.Length);
 
         Culler.SetBuffer(0, "_SpawnBuffer", _posBuffer);
-        Culler.SetBuffer(0, "_ResultBuffer", _resultBuffer);
-  
+        Culler.SetBuffer(0, "_VoteBuffer", _voteBuffer);
+
+
+        Culler.SetBuffer(1, "_ScanBuffer", _scanBuffer);
+        Culler.SetBuffer(1, "_VoteBuffer", _voteBuffer);
+
     }
     private void Update()
     {
@@ -57,27 +68,32 @@ public class GPUCullingTester : MonoBehaviour
             return;
         if (_posBuffer == null)
             return;
-        if (_resultBuffer == null)
+        if (_voteBuffer == null)
             return;
-        _resultBuffer.SetCounterValue(0);
-
         Matrix4x4 V = Camera.main.transform.worldToLocalMatrix;
         Matrix4x4 P = Camera.main.projectionMatrix;
         Matrix4x4 VP = P * V;
         Culler.SetMatrix("_Camera_VP", VP);
-        Culler.Dispatch(0, 2, 1, 1);
-        _resultBuffer.GetData(_result);
+        Culler.Dispatch(0, 1, 1, 1);
+        Culler.Dispatch(1, 1, 1, 1);
+        _voteBuffer.GetData(_voteResult);
+        _scanBuffer.GetData(_scanResult);
+
+        string indexs = "";
+        foreach (int i in _scanResult)
+            indexs += i.ToString() + "/";
+        print(indexs);
     }
     private void OnDrawGizmos()
     {
-        if (_result == null)
+        if (_voteResult == null)
             return;
-        if (_result.Length == 0)
+        if (_voteResult.Length == 0)
             return;
-        foreach (CullResult c in _result) 
+        for (int i = 0; i< _voteResult.Length; i++)
         {
-            Gizmos.color = c.isVisible == 1 ? Color.green : Color.red;
-            Gizmos.DrawSphere(c.pos, 0.1f);
+            Gizmos.color = _voteResult[i] == 1 ? Color.green : Color.red;
+            Gizmos.DrawSphere(_spawnPos[i], 0.1f);
         }
     }
 
