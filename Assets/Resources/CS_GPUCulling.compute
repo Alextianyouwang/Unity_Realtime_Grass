@@ -1,11 +1,24 @@
 #pragma kernel Vote
 #pragma kernel Scan
+#pragma kernel Compact
+#pragma kernel ClearArgs
 
 
+struct Args
+{
+    uint meshVertCount;
+    uint numOfInstance;
+    uint meshIndexStart;
+    uint meshBaseVertex;
+    uint reserved;
+};
 
 StructuredBuffer<float3> _SpawnBuffer;
 RWStructuredBuffer<uint> _VoteBuffer;
 RWStructuredBuffer<uint> _ScanBuffer;
+RWStructuredBuffer<float3> _CompactBuffer;
+RWStructuredBuffer<Args> _ArgsBuffer;
+
 
 uint _InstanceCount;
 float4x4 _Camera_VP;
@@ -76,4 +89,20 @@ void Scan(uint3 id : SV_DispatchThreadID,uint3 groupTID : SV_GroupThreadID)
     _ScanBuffer[2 * id.x + 1] = temp[2 * groupTID.x + 1];
 
 
+}
+[numthreads(128, 1, 1)]
+void Compact(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _InstanceCount)
+        return;
+    if (_VoteBuffer[id.x] == 1)
+    {
+        InterlockedAdd(_ArgsBuffer[0].numOfInstance, 1);
+        _CompactBuffer[_ScanBuffer[id.x]] = _SpawnBuffer[id.x];
+    }
+}
+[numthreads(1, 1, 1)]
+void ClearArgs(uint3 id : SV_DispatchThreadID)
+{
+    _ArgsBuffer[0].numOfInstance = 0;
 }
