@@ -15,6 +15,7 @@ Material:
   - _DEBUG_OFF
   - _USE_DETAIL_ON
   - _USE_MAINWAVE_ON
+  - _USE_RANDOM_HEIGHT_ON
   m_InvalidKeywords:
   - USE_MAINWAVE_ON_ON
   - _DEBUG__OFF
@@ -36,18 +37,20 @@ Material:
     m_Ints: []
     m_Floats:
     - USE_MAINWAVE_ON: 1
-    - _Bend: 0.317
+    - _Bend: 0.432
     - _DEBUG: 0
     - _Debug: 0
     - _DetailAmplitude: 0.072
     - _DetailFrequency: 0.768
     - _DetailSpeed: 0.285
     - _DetailWeight: 0.175
-    - _RandomBendOffset: 0.174
-    - _Scale: 1
+    - _HeightRandomnessAmplitude: 0.708
+    - _RandomBendOffset: 0.21
+    - _Scale: 0.787
     - _USE_DETAIL_ON: 1
     - _USE_MAINWAVE_ON: 1
-    - _WindAmplitude: 0.407
+    - _USE_RANDOM_HEIGHT_ON: 1
+    - _WindAmplitude: 0.368
     - _WindDirection: 0
     - _WindFrequency: 0.208
     - _WindNoiseAmplitude: 1

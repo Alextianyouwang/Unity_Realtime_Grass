@@ -28,7 +28,8 @@ struct SpawnData
 StructuredBuffer<SpawnData> _SpawnBuffer;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 float _Scale, _Bend, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,_WindAmplitude,
-_DetailSpeed, _DetailAmplitude, _DetailFrequency;
+_DetailSpeed, _DetailAmplitude, _DetailFrequency,
+_HeightRandomnessAmplitude;
 float4 _TopColor, _BotColor;
 
 float Perlin(float2 uv)
@@ -68,21 +69,26 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
         detail = 0;
     #endif
     
+    float heightPerlin;
+    #if _USE_RANDOM_HEIGHT_ON
+        heightPerlin = Perlin(spawnPosWS.xz * 20)*_HeightRandomnessAmplitude;
+    #else
+        heightPerlin = 0;
+    #endif
+    
     float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), rand1dTo1d(spawnPosWS * 78.233) * 360).xyz;
     float2 rotatedWindDir = Rotate2D(float2(1, -1), _WindDirection * 360);
     float rand = rand1dTo1d(spawnPosWS * 78.233);
     pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
-        v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 +  detail * _DetailAmplitude * 20))).
+        v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 + (wave / 2 + 0.75) * detail * _DetailAmplitude * 20))).
     xyz;
 
-    pos *= _Scale;
+    pos *= _Scale + heightPerlin;
     pos += spawnPosWS;
     o.positionWS = pos;
     o.positionCS = TransformObjectToHClip(pos);
     o.normalWS = TransformObjectToWorldNormal(v.normalOS);
     o.debug = float4(wave, detail, 0, 0);
-    
-    
     return o;
 }
 

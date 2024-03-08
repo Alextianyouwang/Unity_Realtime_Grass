@@ -17,10 +17,12 @@ Shader "Procedural/S_GrassField"
         _WindAmplitude("WindAmplitude", Range(0,1)) = 0.5
         _WindNoiseFrequency("WindNoiseFrequency", Range(0,1)) = 0.5
         _WindNoiseAmplitude("WindNoiseAmplitude", Range(0,1)) = 0.5
-        [Toggle(_USE_DETAIL_ON)]_USE_DETAIL_ON("Use_Main_Wave", Float) = 1
+        [Toggle(_USE_DETAIL_ON)]_USE_DETAIL_ON("Use_Detail_Wave", Float) = 1
         _DetailSpeed("DetailSpeed", Range(0,1)) = 0.5
         _DetailFrequency("DetailFrequency", Range(0,1)) = 0.5
         _DetailAmplitude("DetailAmplitude", Range(0,1)) = 0.5
+        [Toggle(_USE_RANDOM_HEIGHT_ON)]_USE_RANDOM_HEIGHT_ON("Use_Random_Height", Float) = 1
+        _HeightRandomnessAmplitude("RandomHeightAmplitude", Range(0,1)) = 0.5
 
 
 
@@ -41,6 +43,7 @@ Shader "Procedural/S_GrassField"
 
             #pragma shader_feature _ _USE_MAINWAVE_ON
             #pragma shader_feature _ _USE_DETAIL_ON
+            #pragma shader_feature _ _USE_RANDOM_HEIGHT_ON
             #pragma shader_feature _DEBUG_OFF _DEBUG_MAINWAVE _DEBUG_DETAILEDWAVE
             
             #include "HL_GrassField.hlsl"
