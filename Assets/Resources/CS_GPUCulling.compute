@@ -1,5 +1,6 @@
 #pragma kernel Vote
-#pragma kernel Scan
+#pragma kernel ScanThreadGroup
+#pragma kernel ScanGroup
 #pragma kernel Compact
 #pragma kernel ClearArgs
 
@@ -16,6 +17,8 @@ struct Args
 StructuredBuffer<float3> _SpawnBuffer;
 RWStructuredBuffer<uint> _VoteBuffer;
 RWStructuredBuffer<uint> _ScanBuffer;
+RWStructuredBuffer<uint> _GroupScanBufferIn;
+RWStructuredBuffer<uint> _GroupScanBufferOut;
 RWStructuredBuffer<float3> _CompactBuffer;
 RWStructuredBuffer<Args> _ArgsBuffer;
 
@@ -24,8 +27,10 @@ uint _InstanceCount;
 float4x4 _Camera_VP;
 
 #define NUM_THREAD_GROUP 64
+#define NUM_GROUP 1024
 
 groupshared int temp[2 * NUM_THREAD_GROUP];
+groupshared int tempGroup[2 * NUM_GROUP];
 
 [numthreads(128, 1, 1)]
 void Vote (uint3 id : SV_DispatchThreadID)
@@ -47,7 +52,7 @@ void Vote (uint3 id : SV_DispatchThreadID)
 
 }
 [numthreads(NUM_THREAD_GROUP, 1, 1)]
-void Scan(uint3 id : SV_DispatchThreadID,uint3 groupTID : SV_GroupThreadID) 
+void ScanThreadGroup(uint3 id : SV_DispatchThreadID, uint3 groupTID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
     temp[2 * groupTID.x] = _VoteBuffer[2 * id.x];
     temp[2 * groupTID.x + 1] = _VoteBuffer[2 * id.x + 1];
@@ -67,7 +72,10 @@ void Scan(uint3 id : SV_DispatchThreadID,uint3 groupTID : SV_GroupThreadID)
 
     }
     if (groupTID.x == 0)
+    {
+        _GroupScanBufferIn[groupID.x] = temp[NUM_THREAD_GROUP * 2 - 1];
         temp[NUM_THREAD_GROUP * 2 - 1] = 0;
+    }
     
     for (d = 1; d <= NUM_THREAD_GROUP; d *= 2)
     {
@@ -75,8 +83,8 @@ void Scan(uint3 id : SV_DispatchThreadID,uint3 groupTID : SV_GroupThreadID)
         offset /= 2;
         if (groupTID.x < d)
         {
-            int ai = offset * (2 * id.x + 1) - 1;
-            int bi = offset * (2 * id.x + 2) - 1;
+            int ai = offset * (2 * groupTID.x + 1) - 1;
+            int bi = offset * (2 * groupTID.x + 2) - 1;
             int t = temp[bi];
             temp[bi] += temp[ai];
             temp[ai] = t;
@@ -90,15 +98,60 @@ void Scan(uint3 id : SV_DispatchThreadID,uint3 groupTID : SV_GroupThreadID)
 
 
 }
+[numthreads(NUM_GROUP, 1, 1)]
+void ScanGroup(uint3 id : SV_DispatchThreadID, uint3 groupTID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    tempGroup[2 * groupTID.x] = _GroupScanBufferIn[2 * id.x];
+    tempGroup[2 * groupTID.x + 1] = _GroupScanBufferIn[2 * id.x + 1];
+    uint d;
+    uint offset = 1;
+    for (d = NUM_GROUP; d > 0; d >>= 1)
+    {
+        GroupMemoryBarrierWithGroupSync();
+        if (groupTID.x < d)
+        {
+            int ai = offset * (2 * groupTID.x + 1) - 1;
+            int bi = offset * (2 * groupTID.x + 2) - 1;
+            tempGroup[bi] += tempGroup[ai];
+            
+        }
+        offset *= 2;
+
+    }
+    if (id.x == 0)
+        tempGroup[NUM_GROUP * 2 - 1] = 0;
+    
+    for (d = 1; d <= NUM_GROUP; d *= 2)
+    {
+        GroupMemoryBarrierWithGroupSync();
+        offset /= 2;
+        if (id.x < d)
+        {
+            int ai = offset * (2 * groupTID.x + 1) - 1;
+            int bi = offset * (2 * groupTID.x + 2) - 1;
+            int t = tempGroup[bi];
+            tempGroup[bi] += tempGroup[ai];
+            tempGroup[ai] = t;
+        }
+
+    }
+    GroupMemoryBarrierWithGroupSync();
+    
+    _GroupScanBufferOut[2 * id.x] = tempGroup[2 * groupTID.x];
+    _GroupScanBufferOut[2 * id.x + 1] = tempGroup[2 * groupTID.x + 1];
+
+
+}
 [numthreads(128, 1, 1)]
-void Compact(uint3 id : SV_DispatchThreadID)
+void Compact(uint3 id : SV_DispatchThreadID, uint3 groupID : SV_GroupID)
 {
     if (id.x >= _InstanceCount)
         return;
+    int groupSum = _GroupScanBufferOut[groupID.x];
     if (_VoteBuffer[id.x] == 1)
     {
         InterlockedAdd(_ArgsBuffer[0].numOfInstance, 1);
-        _CompactBuffer[_ScanBuffer[id.x]] = _SpawnBuffer[id.x];
+        _CompactBuffer[_ScanBuffer[id.x] + groupSum] = _SpawnBuffer[id.x];
     }
 }
 [numthreads(1, 1, 1)]

@@ -49,7 +49,7 @@ Shader "Procedural/S_GrassField"
             
             float4 frag(VertexOutput v) : SV_Target
             {
-                float4 color = float4 (v.normalWS,1);
+                float4 color = float4 (v.normalWS/2 + 0.5,1);
                 return color;
             }
             ENDHLSL
