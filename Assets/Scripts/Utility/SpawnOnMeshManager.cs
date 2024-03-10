@@ -1,13 +1,14 @@
 using UnityEngine;
 [ExecuteInEditMode]
+[DefaultExecutionOrder(-99)]
 public class SpawnOnMeshManager : MonoBehaviour
 {
     private ComputeShader _spawnShader;
 
     private ComputeBuffer _sourceVerticesBuffer;
     private ComputeBuffer _sourceTrianglesBuffer;
-    private ComputeBuffer _spawnBuffer;
     private ComputeBuffer _argsBuffer;
+    public ComputeBuffer SpawnBuffer;
 
     private SourceVertex[] _sourceVertices;
     private SpawnData[] _spawnPositions;
@@ -46,7 +47,7 @@ public class SpawnOnMeshManager : MonoBehaviour
 
         _sourceTrianglesBuffer?.Release();
         _sourceVerticesBuffer?.Release();
-        _spawnBuffer?.Release();
+        SpawnBuffer?.Release();
         _argsBuffer?.Release();
     }
 
@@ -54,7 +55,7 @@ public class SpawnOnMeshManager : MonoBehaviour
     {
         PlaneManager p = GetComponent<PlaneManager>();
         if (p != null)
-            _mesh = p._mesh;
+            _mesh = p.PlaneMesh;
     }
 
     private void SpawnPoint() 
@@ -93,8 +94,8 @@ public class SpawnOnMeshManager : MonoBehaviour
         _sourceTrianglesBuffer.SetData(_sourceTriangles);
         _sourceVerticesBuffer = new ComputeBuffer(_sourceVertices.Length, sizeof(float) * 8);
         _sourceVerticesBuffer.SetData(_sourceVertices);
-        _spawnBuffer = new ComputeBuffer(_spawnPositions.Length, sizeof(float) * 3, ComputeBufferType.Append);
-        _spawnBuffer.SetCounterValue(0);
+        SpawnBuffer = new ComputeBuffer(_spawnPositions.Length, sizeof(float) * 3, ComputeBufferType.Append);
+        SpawnBuffer.SetCounterValue(0);
 
         if (TestMesh) 
         {
@@ -117,12 +118,12 @@ public class SpawnOnMeshManager : MonoBehaviour
 
         _spawnShader.SetBuffer(0, "_SourceVerticesBuffer", _sourceVerticesBuffer);
         _spawnShader.SetBuffer(0, "_SourceTrianglesBuffer", _sourceTrianglesBuffer);
-        _spawnShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
+        _spawnShader.SetBuffer(0, "_SpawnBuffer", SpawnBuffer);
         if (RenderingMaterial)
-            RenderingMaterial.SetBuffer("_SpawnBuffer", _spawnBuffer);
+            RenderingMaterial.SetBuffer("_SpawnBuffer", SpawnBuffer);
 
         _spawnShader.Dispatch(0, Mathf.CeilToInt(_quadCount / 128f), 1, 1);
-        _spawnBuffer.GetData(_spawnPositions);
+        SpawnBuffer.GetData(_spawnPositions);
     }
 
     private void Update()

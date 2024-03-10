@@ -1,5 +1,6 @@
 using UnityEngine;
 [ExecuteInEditMode]
+[DefaultExecutionOrder(-98)]
 public class TileManager : MonoBehaviour
 {
     private TileData _tileData;
@@ -8,6 +9,7 @@ public class TileManager : MonoBehaviour
     public int TileGridDimention;
     public Vector2 TileGridCenterXZ;
     public Material RenderMaterial;
+
     private void OnEnable()
     {
         SetupTileGrid();
@@ -21,6 +23,7 @@ public class TileManager : MonoBehaviour
     {
         DrawTileVisual();
     }
+
     void SetupTileGrid() 
     {
         _tileData = new TileData(TileGridCenterXZ, TileGridDimention, TileSize);

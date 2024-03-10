@@ -96,7 +96,8 @@ public class TileVisualizer
     }
     public void DrawIndirect() 
     {
-        Graphics.DrawProceduralIndirect(_material, new Bounds(Vector3.zero, Vector3.one * 1000), MeshTopology.Triangles, _argsBuffer,0,null,null,UnityEngine.Rendering.ShadowCastingMode.Off,false);
+        Bounds cullBound = new Bounds(Vector3.zero, Vector3.one * _tileDimentions * _instancesData[0].size);
+        Graphics.DrawProceduralIndirect(_material, cullBound, MeshTopology.Triangles, _argsBuffer,0,null,null,UnityEngine.Rendering.ShadowCastingMode.Off,false);
     }
     public void ReleaseBuffer() 
     {

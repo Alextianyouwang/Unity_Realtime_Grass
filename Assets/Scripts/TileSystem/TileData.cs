@@ -12,8 +12,6 @@ public class TileData
         TileGridDimension = _dimension;
         TileGridCenterXZ = _center;
     }
-
-
     public void ConstructTileGrid() 
     {
         Tile[] tiles = new Tile[TileGridDimension * TileGridDimension];

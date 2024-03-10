@@ -75,7 +75,7 @@ public class GrassField : MonoBehaviour
     {
         PlaneManager p = GetComponent<PlaneManager>();
         if (p != null)
-            _mesh = p._mesh;
+            _mesh = p.PlaneMesh;
     }
     private void SpawnPoint()
     {

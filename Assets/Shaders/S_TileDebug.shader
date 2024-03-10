@@ -2,19 +2,20 @@ Shader "Procedural/S_TileDebug"
 {
     Properties
     {
+        _Alpha ("Alpha", Range(0,1)) = 0.5
     }
     SubShader
     {
-        Tags {"RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline"}
+        Tags {"RenderType" = "Transparent" "Queue" = "Transparent" "RenderPipeline" = "UniversalRenderPipeline"}
         Pass 
         {
-            Name "ForwardLit"
-            Tags {"LightMode" = "UniversalForward"}
+            Name "Unlit"
             Cull off
+            Ztest off
+            Blend SrcAlpha OneMinusSrcAlpha
             HLSLPROGRAM
             #pragma target 5.0
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+
 
             #pragma vertex vert
             #pragma fragment frag
@@ -37,6 +38,7 @@ Shader "Procedural/S_TileDebug"
             StructuredBuffer<InstanceData> _InstanceDataBuffer;
             StructuredBuffer<int> _TriangleBuffer;
             StructuredBuffer<float3> _VertBuffer;
+            float _Alpha;
 
             
             VertexOutput vert( uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
@@ -51,7 +53,7 @@ Shader "Procedural/S_TileDebug"
             
             half4 frag(VertexOutput v) : SV_Target
             {
-                return  half4 (v.color,1);
+                return  half4 (v.color,_Alpha);
             }
             ENDHLSL
         }

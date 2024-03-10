@@ -3,6 +3,7 @@ Shader "Procedural/S_MeshIndirectSimple"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _Scale("Scale", Range(0,1)) = 1
     }
     SubShader
     {
@@ -31,11 +32,12 @@ Shader "Procedural/S_MeshIndirectSimple"
             
             StructuredBuffer<float3> _SpawnBuffer;
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex); float4 _MainTex_ST;
+            float _Scale;
             
             VertexOutput vert(VertexInput v, uint instanceID : SV_InstanceID)
             {
                 VertexOutput o;
-                o.positionWS = v.positionOS + _SpawnBuffer[instanceID];
+                o.positionWS = v.positionOS * _Scale + _SpawnBuffer[instanceID];
                 o.positionCS = TransformObjectToHClip(o.positionWS);
                 o.normalWS = TransformObjectToWorldNormal(v.normalOS);
                 return o;
