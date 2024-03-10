@@ -181,7 +181,7 @@ public class GrassField : MonoBehaviour
         _cullShader.SetBuffer(3, "_ArgsBuffer", _argsBuffer);
 
         _cullShader.SetBuffer(4, "_ArgsBuffer", _argsBuffer);
-        print($"Budget Useage: {_spawnData.Length / 262144 * 100}%");
+        print($"Budget Useage: {_spawnData.Length / 262144f * 100}%");
 
     }
 

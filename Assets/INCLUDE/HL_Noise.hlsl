@@ -80,7 +80,7 @@ float rand2dTo1d(float2 value, float2 dotDir = float2(12.9898, 78.233))
     return random;
 }
 
-float rand1dTo1d(float3 value, float mutator = 0.546)
+float rand1dTo1d(float value, float mutator = 0.546)
 {
     float random = frac(sin(value + mutator) * 143758.5453);
     return random;
@@ -152,7 +152,7 @@ void Rand2dTo1d_float(float2 Value, out float Out)
     rand2dTo1d(Value, Out);
 }
 
-void Rand1dTo1d_float(float3 Value, out float Out)
+void Rand1dTo1d_float(float Value, out float Out)
 {
     rand1dTo1d(Value, Out);
 }
@@ -243,7 +243,7 @@ void PerlinNoise_float(float2 Value, float2 Period, out float Out)
     Out = perlinNoise(Value, Period) + 0.5;
 }
 
-void PerlinNoise_float(float2 Value, float2 Period, float Persistance, float Roughness, float Octaves, out float Out)
+void PerlinNoise_float(float2 Value, float Period, float Persistance, float Roughness, float Octaves, out float Out)
 {
     Out = sampleLayeredNoise(Value, Period, Persistance, Roughness, Octaves) + 0.5;
 

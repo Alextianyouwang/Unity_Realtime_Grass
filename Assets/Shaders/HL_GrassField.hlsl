@@ -51,7 +51,6 @@ float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWe
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
-    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 
     float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS ;
     
@@ -76,18 +75,17 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
         heightPerlin = 0;
     #endif
     
-    float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), rand1dTo1d(spawnPosWS * 78.233) * 360).xyz;
+    float rand = rand3dTo1d(spawnPosWS * 78.233);
+    float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), rand * 360).xyz;
     float2 rotatedWindDir = Rotate2D(float2(1, -1), _WindDirection * 360);
-    float rand = rand1dTo1d(spawnPosWS * 78.233);
     pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
-        v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 + (wave / 2 + 0.75) * detail * _DetailAmplitude * 20))).
-    xyz;
-
+        v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 + (wave / 2 + 0.75) * detail * _DetailAmplitude * 20))).xyz;
     pos *= _Scale + heightPerlin;
     pos += spawnPosWS;
     o.positionWS = pos;
     o.positionCS = TransformObjectToHClip(pos);
     o.normalWS = TransformObjectToWorldNormal(v.normalOS);
+    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.debug = float4(wave, detail, 0, 0);
     return o;
 }

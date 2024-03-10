@@ -39,10 +39,10 @@ public class MeshPlaneGenerator
     void FillTriangle(int index, int numVertY) 
     {
         int topLeft = index + 1;
-        int botLeft = index + numVertY;
+        int botRight = index + numVertY;
         int topRight = index + numVertY + 1;
 
-        triangles[triStart] = botLeft;
+        triangles[triStart] = botRight;
         triangles[triStart + 1] = index;
         triangles[triStart + 2] = topRight;
         triangles[triStart + 3] = topRight;

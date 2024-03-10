@@ -7,13 +7,20 @@ public class TileManager : MonoBehaviour
     public float TileSize;
     public int TileGridDimention;
     public Vector2 TileGridCenterXZ;
-    public GameObject TileVisual;
+    public Material RenderMaterial;
     private void OnEnable()
     {
         SetupTileGrid();
         SetupTileVisual();
     }
-
+    private void OnDisable()
+    {
+        CleanupTileVisual();
+    }
+    private void Update()
+    {
+        DrawTileVisual();
+    }
     void SetupTileGrid() 
     {
         _tileData = new TileData(TileGridCenterXZ, TileGridDimention, TileSize);
@@ -24,7 +31,19 @@ public class TileManager : MonoBehaviour
     {
         if (_tileData == null)
             return;
-        _tileVisualizer = new TileVisualizer(_tileData.TileGrid, _tileData.TileGridDimension, TileVisual);
+        _tileVisualizer = new TileVisualizer(_tileData.TileGrid,RenderMaterial, _tileData.TileGridDimension);
         _tileVisualizer.VisualizeTiles();
+    }
+    void DrawTileVisual()
+    {
+        if (_tileVisualizer == null)
+            return;
+        _tileVisualizer.DrawIndirect();
+    }
+    void CleanupTileVisual() 
+    {
+        if (_tileVisualizer == null)
+            return;
+        _tileVisualizer.ReleaseBuffer();
     }
 }

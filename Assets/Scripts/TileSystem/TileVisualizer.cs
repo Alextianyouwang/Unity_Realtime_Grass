@@ -3,32 +3,106 @@ using UnityEngine;
 public class TileVisualizer 
 {
     private Tile[] _tiles;
-    private GameObject _visualObj;
+    private Material _material;
     private int _tileDimentions;
-    private bool _hasDrawVisual = false;
 
-    public TileVisualizer(Tile[] _t, int _dimention , GameObject _visual) 
+    private ComputeBuffer _instanceDataBuffer;
+    private ComputeBuffer _vertBuffer;
+    private ComputeBuffer _triangleBuffer;
+    private ComputeBuffer _argsBuffer;
+
+    private int[] _triangles;
+    private Vector3[] _vertices;
+    private InstanceData[] _instancesData;
+    private uint[] _args;
+
+    struct InstanceData 
     {
-        _tiles = _t;
-        _visualObj = _visual;
-        _tileDimentions = _dimention;
+        public Vector3 position;
+        public Vector3 color;
+        public float size;
     }
 
-    public void VisualizeTiles() 
+    public TileVisualizer(Tile[] _t,Material _m, int _dimention) 
     {
-        if (_hasDrawVisual)
-            return;
-        _hasDrawVisual = true;
+        _tiles = _t;
+        _material = _m;
+        _tileDimentions = _dimention;
+    }
+    public void VisualizeTiles()
+    {
+
+        SetInstanceData();
+        GenerateQuadInfo();
+        InitializeShader();
+    }
+    private void GenerateQuadInfo() 
+    {
+        _triangles = new int[6];
+        _triangles[0] = 0;
+        _triangles[1] = 3;
+        _triangles[2] = 2;
+        _triangles[3] = 2;
+        _triangles[4] = 1;
+        _triangles[5] = 0;
+        _vertices = new Vector3[4];
+        _vertices[0] = new Vector3(-0.5f, 0, -0.5f);
+        _vertices[1] = new Vector3(0.5f, 0, -0.5f);
+        _vertices[2] = new Vector3(0.5f, 0, 0.5f);
+        _vertices[3] = new Vector3(-0.5f, 0, 0.5f);
+    }
+
+
+    private void SetInstanceData() 
+    {
+        _instancesData = new InstanceData[_tileDimentions * _tileDimentions];
         for (int x = 0; x < _tileDimentions; x++)
         {
             for (int y = 0; y < _tileDimentions; y++)
             {
                 Tile currentTile = _tiles[x * _tileDimentions + y];
                 Vector3 posSize = currentTile.GetTilePosSize();
-                GameObject g = GameObject.Instantiate(_visualObj);
-                g.transform.position = new Vector3 (posSize.x, 0, posSize.y);
-                g.transform.localScale = Vector3.one * 0.99f * posSize.z / 10 ;
+                Color col = Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
+                _instancesData[x * _tileDimentions + y] = new InstanceData()
+                {
+                    position = new Vector3(posSize.x, 0, posSize.y),
+                    color = new Vector3(col.r, col.g, col.b),
+                    size = posSize.z
+                };
+
             }
         }
+    }
+    private void InitializeShader() 
+    {
+        _instanceDataBuffer = new ComputeBuffer(_tileDimentions * _tileDimentions, sizeof(float) * 7);
+        _instanceDataBuffer.SetData(_instancesData);
+        _vertBuffer = new ComputeBuffer(4, sizeof(float) * 3);
+        _vertBuffer.SetData(_vertices);
+        _triangleBuffer = new ComputeBuffer(6, sizeof(float));
+        _triangleBuffer.SetData(_triangles);
+        _args = new uint[] {
+            6,
+            (uint)_tileDimentions * (uint)_tileDimentions,
+            0,
+            0
+        };
+        _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 4,ComputeBufferType.IndirectArguments);
+        _argsBuffer.SetData(_args);
+        _material.SetBuffer("_InstanceDataBuffer", _instanceDataBuffer);
+        _material.SetBuffer("_VertBuffer", _vertBuffer);
+        _material.SetBuffer("_TriangleBuffer", _triangleBuffer);
+     
+    }
+    public void DrawIndirect() 
+    {
+        Graphics.DrawProceduralIndirect(_material, new Bounds(Vector3.zero, Vector3.one * 1000), MeshTopology.Triangles, _argsBuffer,0,null,null,UnityEngine.Rendering.ShadowCastingMode.Off,false);
+    }
+    public void ReleaseBuffer() 
+    {
+        _triangleBuffer?.Dispose();
+        _vertBuffer?.Dispose(); 
+        _instanceDataBuffer?.Dispose();
+        _argsBuffer?.Dispose();
     }
 }
