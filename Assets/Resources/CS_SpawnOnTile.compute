@@ -3,9 +3,9 @@ RWTexture2D<float4> Result;
 
 uint _NumTiles;
 uint _Subdivisions;
-StructuredBuffer<float2> _VertBuffer;
+StructuredBuffer<float3> _VertBuffer;
 
-RWStructuredBuffer<float3> _SpawnBuffer;
+AppendStructuredBuffer<float3> _SpawnBuffer;
 
 #include "../INCLUDE/HL_Noise.hlsl"
 
@@ -17,24 +17,24 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         return;
     
     int vertStart = id.x * 4;
-    float2 verts[4];
+    float3 verts[4];
     [unroll]for (int i = 0; i < 4; i++)
         verts[i] = _VertBuffer[vertStart + i];
     
     
     uint iteration = _Subdivisions;
 
-    float2 chunkSize = verts[2] - verts[0];
-    float2 inc = chunkSize / iteration;
+    float3 chunkSize = verts[2] - verts[0];
+    float3 inc = chunkSize / iteration;
 
     for (uint x = 0; x < iteration; x++)
     {
         for (uint z = 0; z < iteration; z++)
         {
-            float2 noise = rand2dTo2d(float2(verts[0].x + inc.x * x, verts[0].y + inc.y * z));
-            noise *= float2(inc.x, inc.y);
-            float3 pos = float3(verts[0].x + inc.x * x + noise.x, 0, verts[0].y + inc.y * z + noise.y);
-            _SpawnBuffer[id.x * iteration * iteration + (x * iteration + z)] = pos;
+            float2 noise = rand2dTo2d(float2(verts[0].x + inc.x * x, verts[0].z + inc.z * z));
+            noise *= float2(inc.x, inc.z);
+            float3 pos = float3(verts[0].x + inc.x * x + noise.x, verts[0].y, verts[0].z + inc.z * z + noise.y);
+            _SpawnBuffer.Append(pos);
         }
     }
 

@@ -61,13 +61,13 @@ public class TileVisualizer
             for (int y = 0; y < _tileDimentions; y++)
             {
                 Tile currentTile = _tiles[x * _tileDimentions + y];
-                Vector3 posSize = currentTile.GetTilePosSize();
+                Vector4 posSize = currentTile.GetTilePosSize();
                 Color col = Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
                 _instancesData[x * _tileDimentions + y] = new InstanceData()
                 {
-                    position = new Vector3(posSize.x, 0, posSize.y),
+                    position = new Vector3(posSize.x, posSize.y, posSize.z),
                     color = new Vector3(col.r, col.g, col.b),
-                    size = posSize.z
+                    size = posSize.w
                 };
 
             }

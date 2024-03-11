@@ -7,12 +7,17 @@ public class TileData
     public Vector2 TileGridCenterXZ { get; private set; }
     public Tile[] TileGrid { get; private set; }
 
-    private Vector2[] _tileVerts;
-    public TileData(Vector2 _center, int _dimension, float _tileSize)
+    private Texture2D _heightMap;
+    private float _tileHeightMult;
+
+    private Vector3[] _tileVerts;
+    public TileData(Vector2 _center, int _dimension, float _tileSize, Texture2D _tex,float _heightMult)
     {
         TileSize = _tileSize;  
         TileGridDimension = _dimension;
         TileGridCenterXZ = _center;
+        _heightMap = _tex;
+        _tileHeightMult = _heightMult;
     }
     public void ConstructTileGrid()
     {
@@ -25,20 +30,26 @@ public class TileData
             for (int y = 0; y < TileGridDimension; y++)
             {
                 Vector2 tilePos = botLeftCorner + new Vector2(TileSize * x, TileSize * y);
-                tiles[x * TileGridDimension + y] = new Tile(TileSize, tilePos);
+                if (_heightMap) 
+                {
+                    float height = _heightMap.GetPixel(x, y).r * _tileHeightMult;
+                    tiles[x * TileGridDimension + y] = new Tile(TileSize,height, tilePos);
+                }   
+                else
+                    tiles[x * TileGridDimension + y] = new Tile(TileSize, 0, tilePos);
             }
         }
         TileGrid = tiles;
     }
-    public Vector2[] GetTileVerts() 
+    public Vector3[] GetTileVerts() 
     {
         if (TileGrid == null)
             return null;
-        _tileVerts = new Vector2[TileGridDimension * TileGridDimension * 4];
+        _tileVerts = new Vector3[TileGridDimension * TileGridDimension * 4];
         int i = 0;
         foreach (Tile t in TileGrid) 
         {
-            Vector2[] corners = t.GetTileCorners();
+            Vector3[] corners = t.GetTileCorners();
             for (int j = 0;j < 4;j++)
                 _tileVerts[i + j] = corners[j];
              i+=4;
@@ -51,25 +62,27 @@ public class TileData
 public class Tile 
 {
     private float _tileSize;
+    private float _tileHeight;
     private Vector2 _tilePosition;
 
-    public Tile(float _tSize, Vector2 _tPos) 
+    public Tile(float _tSize, float _tHeight,Vector2 _tPos) 
     {
         _tileSize = _tSize;
         _tilePosition = _tPos;
+        _tileHeight = _tHeight;
     }
 
-    public Vector3 GetTilePosSize() 
+    public Vector4 GetTilePosSize() 
     {
-        return new Vector3(_tilePosition.x, _tilePosition.y, _tileSize);
+        return new Vector4(_tilePosition.x, _tileHeight, _tilePosition.y, _tileSize);
     }
-    public Vector2[] GetTileCorners() 
+    public Vector3[] GetTileCorners() 
     {
-        Vector2[] corners = new Vector2[4];
-        corners[0] = _tilePosition - Vector2.one * _tileSize / 2;
-        corners[1] = _tilePosition + new Vector2 (1,-1) * _tileSize / 2;
-        corners[2] = _tilePosition + Vector2.one * _tileSize / 2;
-        corners[3] = _tilePosition + new Vector2(-1,1) * _tileSize / 2;
+        Vector3[] corners = new Vector3[4];
+        corners[0] = new Vector3(_tilePosition.x - _tileSize / 2, _tileHeight, _tilePosition.y - _tileSize / 2);
+        corners[1] = new Vector3(_tilePosition.x + _tileSize / 2, _tileHeight, _tilePosition.y - _tileSize / 2);
+        corners[2] = new Vector3(_tilePosition.x + _tileSize / 2, _tileHeight, _tilePosition.y + _tileSize / 2);
+        corners[3] = new Vector3(_tilePosition.x - _tileSize / 2, _tileHeight, _tilePosition.y + _tileSize / 2);
         return corners;
     }
 

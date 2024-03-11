@@ -32,11 +32,12 @@ public class TileFunctions
             return;
         int tileCount = _tileData.TileGridDimension * _tileData.TileGridDimension;
         int instancePerTile = _spawnSubivisions * _spawnSubivisions;
-        _vertBuffer = new ComputeBuffer(tileCount * 4, sizeof(float) * 2);
+        _vertBuffer = new ComputeBuffer(tileCount * 4, sizeof(float) * 3);
         _vertBuffer.SetData(_tileData.GetTileVerts());
 
         _spawnPos = new Vector3[tileCount * instancePerTile];
-        _spawnBuffer = new ComputeBuffer(tileCount * instancePerTile, sizeof(float) * 3);
+        _spawnBuffer = new ComputeBuffer(tileCount * instancePerTile, sizeof(float) * 3,ComputeBufferType.Append);
+        _spawnBuffer.SetCounterValue(0);
         _spawnBuffer.SetData(_spawnPos);
 
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
@@ -66,6 +67,7 @@ public class TileFunctions
             || _argsBuffer == null
             )
             return;
+        _spawnBuffer.SetCounterValue(0);
         Bounds bounds = new Bounds(Vector3.zero, Vector3.one * 100f);
         Graphics.DrawMeshInstancedIndirect(_spawnMesh, 0, _spawnMeshMaterial, bounds, _argsBuffer,
             0, null, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);

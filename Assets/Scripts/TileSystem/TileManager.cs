@@ -6,6 +6,8 @@ public class TileManager : MonoBehaviour
     private TileData _tileData;
     private TileVisualizer _tileVisualizer;
     private TileFunctions _tileFunctions;
+    public Texture2D TileHeightmap;
+    public float TileHeightMultiplier = 1;
     public float TileSize;
     public int TileGridDimension;
     public Vector2 TileGridCenterXZ;
@@ -34,7 +36,10 @@ public class TileManager : MonoBehaviour
  
     void SetupTileGrid() 
     {
-        _tileData = new TileData(TileGridCenterXZ, TileGridDimension, TileSize);
+        if (TileHeightmap)
+            _tileData = new TileData(TileGridCenterXZ, TileHeightmap.width, TileSize, TileHeightmap,TileHeightMultiplier);
+        else
+            _tileData = new TileData(TileGridCenterXZ, TileGridDimension, TileSize, null, TileHeightMultiplier);
         _tileData.ConstructTileGrid();
     }
     void SetupTileFunctions()
