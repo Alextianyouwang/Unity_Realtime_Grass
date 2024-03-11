@@ -13,6 +13,7 @@ public class TileFunctions
     private ComputeBuffer _argsBuffer;
     private uint[] _args;
     private Vector3[] _spawnPos;
+    private int _tileCount;
 
     public TileFunctions(Mesh _mesh, Material _mat, TileData _t, int _div) 
     {
@@ -30,31 +31,33 @@ public class TileFunctions
            || _spawnMeshMaterial == null
            )
             return;
-        int tileCount = _tileData.TileGridDimension * _tileData.TileGridDimension;
+        _tileCount = _tileData.TileGridDimension * _tileData.TileGridDimension;
         int instancePerTile = _spawnSubivisions * _spawnSubivisions;
-        _vertBuffer = new ComputeBuffer(tileCount * 4, sizeof(float) * 3);
+        _vertBuffer = new ComputeBuffer(_tileCount * 4, sizeof(float) * 3);
         _vertBuffer.SetData(_tileData.GetTileVerts());
 
-        _spawnPos = new Vector3[tileCount * instancePerTile];
-        _spawnBuffer = new ComputeBuffer(tileCount * instancePerTile, sizeof(float) * 3,ComputeBufferType.Append);
+        _spawnPos = new Vector3[_tileCount * instancePerTile];
+        _spawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 3,ComputeBufferType.Append);
         _spawnBuffer.SetCounterValue(0);
         _spawnBuffer.SetData(_spawnPos);
 
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
         _args = new uint[] {
             _spawnMesh.GetIndexCount(0),
-            (uint)(tileCount * instancePerTile),
+            (uint)(_tileCount * instancePerTile),
             _spawnMesh.GetIndexStart(0),
             _spawnMesh.GetBaseVertex(0),
             0
         };
         _argsBuffer.SetData(_args);
 
-        _spawnOnTileShader.SetInt("_NumTiles", tileCount);
+        _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
         _spawnOnTileShader.SetInt("_Subdivisions", _spawnSubivisions);
         _spawnOnTileShader.SetBuffer(0, "_VertBuffer", _vertBuffer);
         _spawnOnTileShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
-        _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(tileCount / 128f), 1, 1);
+        _spawnOnTileShader.SetBuffer(0, "_ArgsBuffer", _argsBuffer);
+        _spawnOnTileShader.SetBuffer(1, "_ArgsBuffer", _argsBuffer);
+        _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
         _spawnMeshMaterial.SetBuffer("_SpawnBuffer", _spawnBuffer);
 
     }
@@ -68,9 +71,17 @@ public class TileFunctions
             )
             return;
         _spawnBuffer.SetCounterValue(0);
-        Bounds bounds = new Bounds(Vector3.zero, Vector3.one * 100f);
+        _spawnOnTileShader.Dispatch(1, 1, 1, 1);
+        Matrix4x4 camera_vp = Camera.main.projectionMatrix * Camera.main.transform.worldToLocalMatrix;
+        _spawnOnTileShader.SetMatrix("_Camera_VP", camera_vp);
+
+        _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
+
+        Bounds bounds = new Bounds(Vector3.zero, Vector3.one * 256f);
         Graphics.DrawMeshInstancedIndirect(_spawnMesh, 0, _spawnMeshMaterial, bounds, _argsBuffer,
             0, null, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
+
+
     }
 
     public void ReleaseBuffer() 

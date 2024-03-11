@@ -1,11 +1,24 @@
 #pragma kernel CSMain
-RWTexture2D<float4> Result;
+#pragma kernel ResetArgs
 
 uint _NumTiles;
 uint _Subdivisions;
+float4x4 _Camera_VP;
+
 StructuredBuffer<float3> _VertBuffer;
 
 AppendStructuredBuffer<float3> _SpawnBuffer;
+
+
+struct Args
+{
+    uint meshVertCount;
+    uint numOfInstance;
+    uint meshIndexStart;
+    uint meshBaseVertex;
+    uint reserved;
+};
+RWStructuredBuffer<Args> _ArgsBuffer;
 
 #include "../INCLUDE/HL_Noise.hlsl"
 
@@ -26,6 +39,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     float3 chunkSize = verts[2] - verts[0];
     float3 inc = chunkSize / iteration;
+    
 
     for (uint x = 0; x < iteration; x++)
     {
@@ -34,8 +48,24 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             float2 noise = rand2dTo2d(float2(verts[0].x + inc.x * x, verts[0].z + inc.z * z));
             noise *= float2(inc.x, inc.z);
             float3 pos = float3(verts[0].x + inc.x * x + noise.x, verts[0].y, verts[0].z + inc.z * z + noise.y);
-            _SpawnBuffer.Append(pos);
+            
+            float4 posCS = mul(_Camera_VP, float4(pos, 1));
+            float3 posNDS = posCS.xyz / posCS.w;
+            posNDS.z = -posCS.w;
+            bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || posNDS.z > 50.0) ? 0 : 1;
+            if (isInView)
+            {
+                InterlockedAdd(_ArgsBuffer[0].numOfInstance, 1);
+                _SpawnBuffer.Append(pos);
+            }
+            
         }
     }
 
+}
+
+[numthreads(1, 1, 1)]
+void ResetArgs(uint3 id : SV_DispatchThreadID)
+{
+    _ArgsBuffer[0].numOfInstance = 0;
 }
