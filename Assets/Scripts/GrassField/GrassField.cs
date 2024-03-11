@@ -117,7 +117,7 @@ public class GrassField : MonoBehaviour
         _spawnBuffer_spawn.SetCounterValue(0);
 
         _spawnShader.SetMatrix("_LocalToWorld", transform.localToWorldMatrix);
-        _spawnShader.SetInt("_NumTriangles", _quadCount);
+        _spawnShader.SetInt("_NumQuad", _quadCount);
         _spawnShader.SetInt("_Subdivisions", Subdivision);
 
         _spawnShader.SetBuffer(0, "_SourceVerticesBuffer", _sourceVerticesBuffer_spawn);

@@ -8,7 +8,7 @@ public class SpawnOnMeshManager : MonoBehaviour
     private ComputeBuffer _sourceVerticesBuffer;
     private ComputeBuffer _sourceTrianglesBuffer;
     private ComputeBuffer _argsBuffer;
-    public ComputeBuffer SpawnBuffer;
+    private ComputeBuffer _spawnBuffer;
 
     private SourceVertex[] _sourceVertices;
     private SpawnData[] _spawnPositions;
@@ -47,7 +47,7 @@ public class SpawnOnMeshManager : MonoBehaviour
 
         _sourceTrianglesBuffer?.Release();
         _sourceVerticesBuffer?.Release();
-        SpawnBuffer?.Release();
+        _spawnBuffer?.Release();
         _argsBuffer?.Release();
     }
 
@@ -94,8 +94,8 @@ public class SpawnOnMeshManager : MonoBehaviour
         _sourceTrianglesBuffer.SetData(_sourceTriangles);
         _sourceVerticesBuffer = new ComputeBuffer(_sourceVertices.Length, sizeof(float) * 8);
         _sourceVerticesBuffer.SetData(_sourceVertices);
-        SpawnBuffer = new ComputeBuffer(_spawnPositions.Length, sizeof(float) * 3, ComputeBufferType.Append);
-        SpawnBuffer.SetCounterValue(0);
+        _spawnBuffer = new ComputeBuffer(_spawnPositions.Length, sizeof(float) * 3, ComputeBufferType.Append);
+        _spawnBuffer.SetCounterValue(0);
 
         if (TestMesh) 
         {
@@ -113,17 +113,17 @@ public class SpawnOnMeshManager : MonoBehaviour
  
 
         _spawnShader.SetMatrix("_LocalToWorld", transform.localToWorldMatrix);
-        _spawnShader.SetInt("_NumTriangles", _quadCount);
+        _spawnShader.SetInt("_NumQuad", _quadCount);
         _spawnShader.SetInt("_Subdivisions", Subdivision);
 
         _spawnShader.SetBuffer(0, "_SourceVerticesBuffer", _sourceVerticesBuffer);
         _spawnShader.SetBuffer(0, "_SourceTrianglesBuffer", _sourceTrianglesBuffer);
-        _spawnShader.SetBuffer(0, "_SpawnBuffer", SpawnBuffer);
+        _spawnShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
         if (RenderingMaterial)
-            RenderingMaterial.SetBuffer("_SpawnBuffer", SpawnBuffer);
+            RenderingMaterial.SetBuffer("_SpawnBuffer", _spawnBuffer);
+        RenderingMaterial.SetColor("_ChunkColor", Color.white);
 
         _spawnShader.Dispatch(0, Mathf.CeilToInt(_quadCount / 128f), 1, 1);
-        SpawnBuffer.GetData(_spawnPositions);
     }
 
     private void Update()

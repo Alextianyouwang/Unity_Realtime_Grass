@@ -1,0 +1,33 @@
+#pragma kernel CSMain
+
+#include "../INCLUDE/HL_Noise.hlsl"
+
+
+uint _NumPointPerSide;
+float _Increment;
+float _Xoffset;
+float _Yoffset;
+float4x4 _LocalToWorld;
+
+struct SpawnData
+{
+    float3 positionWS;
+};
+RWStructuredBuffer<SpawnData> _SpawnDataBuffer;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _NumPointPerSide || id.y >= _NumPointPerSide)
+        return;
+    
+    float3 pos = float3(id.x,0, id.y) * _Increment + float3(_Xoffset,0, _Yoffset);
+    float2 noise = rand2dTo2d(pos.xz) * _Increment;
+    pos.xz += noise;
+    
+    SpawnData o;
+    o.positionWS = mul(_LocalToWorld, float4(pos,1)).xyz;
+    
+    _SpawnDataBuffer[id.x * _NumPointPerSide + id.y] = o;
+   
+}

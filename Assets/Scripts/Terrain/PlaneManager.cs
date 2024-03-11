@@ -5,16 +5,17 @@ using UnityEngine;
 public class PlaneManager : MonoBehaviour
 {
     private MeshPlaneGenerator _meshGenerator;
-    public int numChunk = 10;
+    public int NumChunk = 5;
+    public int QuadPerChunk = 10;
     public Vector2 size = Vector2.one * 10;
     public float[,] heightMap;
     public Mesh PlaneMesh;
     private void OnEnable()
     {
         _meshGenerator = new MeshPlaneGenerator();
-
-        PlaneMesh = _meshGenerator.PlaneMesh(numChunk + 1, size, TryGetHeightMap(numChunk + 1));
-        PlaneMesh.name = $"Procedural Grid {numChunk} * {numChunk}";
+        int totalChunk = QuadPerChunk * NumChunk;
+        PlaneMesh = _meshGenerator.PlaneMesh(totalChunk + 1, size, TryGetHeightMap(totalChunk + 1));
+        PlaneMesh.name = $"Procedural Grid {totalChunk} * {totalChunk}";
         GetComponent<MeshFilter>().mesh = PlaneMesh;
     }
 

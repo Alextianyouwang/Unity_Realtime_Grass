@@ -22,7 +22,7 @@ struct TempVertex {
 	float2 uv;
 	float3 normalWS;
 };
-uint _NumTriangles;
+uint _NumQuad;
 uint _Subdivisions = 2;
 float4x4 _LocalToWorld;
 
@@ -38,7 +38,7 @@ TempVertex ConvertToWS(SourceVertex i) {
 [numthreads(128,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-	if (id.x >= _NumTriangles)
+	if (id.x >= _NumQuad)
 		return;
 
 	int triStart = id.x * 6;
