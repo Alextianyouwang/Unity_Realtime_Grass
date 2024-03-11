@@ -168,11 +168,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TileSize: 0.5
-  TileGridDimension: 100
+  TileGridDimension: 200
   TileGridCenterXZ: {x: 0, y: 0}
   DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
-  SpawnMesh: {fileID: 4300000, guid: 19e6c15522128ae49b60270e1ac4575a, type: 2}
-  SpawnMeshMaterial: {fileID: 2100000, guid: d3848c282b8930b479dff5478320ebb7, type: 2}
+  SpawnMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  SpawnMeshMaterial: {fileID: 2100000, guid: c241a132619fcad4b92fd89f85c8dff7, type: 2}
   SpawnSubivisions: 3
 --- !u!1 &1252235612
 GameObject:

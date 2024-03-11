@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_MeshIndirectSimple
+  m_Name: M_DMII_Large
   m_Shader: {fileID: 4800000, guid: 69f4ab77a567a1a46affcde337d7d7f5, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -29,7 +29,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Scale: 0.021
+    - _Scale: 0.7
     - _USE_CHUNKID_ON: 0
     m_Colors: []
   m_BuildTextureStacks: []

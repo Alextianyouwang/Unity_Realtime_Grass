@@ -131,8 +131,6 @@ public class GPUCullingTester : MonoBehaviour
         else
             RenderMaterial.SetBuffer("_SpawnBuffer", _posBuffer);
 
-        RenderMaterial.SetColor("_ChunkColor", Color.white);
-
         Bounds bounds = new Bounds(Vector3.zero, Vector3.one * 100f);
         Graphics.DrawMeshInstancedIndirect(TestMesh, 0, RenderMaterial, bounds,
             UseCulling? _argsBuffer :_argsBuffer_static);

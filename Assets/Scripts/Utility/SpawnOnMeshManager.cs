@@ -121,7 +121,6 @@ public class SpawnOnMeshManager : MonoBehaviour
         _spawnShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
         if (RenderingMaterial)
             RenderingMaterial.SetBuffer("_SpawnBuffer", _spawnBuffer);
-        RenderingMaterial.SetColor("_ChunkColor", Color.white);
 
         _spawnShader.Dispatch(0, Mathf.CeilToInt(_quadCount / 128f), 1, 1);
     }
