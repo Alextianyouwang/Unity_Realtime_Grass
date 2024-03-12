@@ -28,6 +28,10 @@ RWStructuredBuffer<Args> _ArgsBuffer;
 RWStructuredBuffer<float4> _NoiseBuffer;
 
 #include "../INCLUDE/HL_Noise.hlsl"
+float3 TriangleAverage(float3 a, float3 b, float3 c)
+{
+    return (a + b + c) / 3.0;
+}
 
 int2 GetCellCoord (uint i) 
 {
@@ -35,13 +39,67 @@ int2 GetCellCoord (uint i)
    return centerCoord;
 }
 
+
+
 uint GetOffsetedIndex(uint i, int2 offset)
 {
     int index = i + offset.x * _NumTilesPerSide + offset.y;
-    return ((uint)
-    index <= _NumTiles - 1 && index >= 0) ?
+    return (index <= _NumTiles - 1 && index >= 0) ?
     (uint) index:
     i;
+}
+float3 GetVertAtCurrentTile(uint index, int vertIndex)
+{
+    return _VertBuffer[index * 4 + vertIndex];
+}
+
+
+void GetVertsAtCurrentTile(uint index, out float3 verts[4]) 
+{
+    int vertStart = index * 4;
+    [unroll]
+    for (int i = 0; i < 4; i++)
+        verts[i] = _VertBuffer[vertStart + i];
+}
+
+void GetNeighborAveragedVerts(uint index, out float3 verts[4])
+{
+    uint neighborIndex[8];
+    int i = 0;
+    [unroll]
+    for (int x = 0; x < 3; x++)
+    {
+        [unroll]
+        for (int y = 0; y < 3; y++)
+        {
+            if (x == 1 && y == 1)
+                continue;
+            neighborIndex[i] = GetOffsetedIndex(index, int2(x, y));
+            i++;
+        }
+    }
+    
+    // BotLeft
+    float3 vblt0 =GetVertAtCurrentTile(neighborIndex[0], 2);
+    float3 vbl1 = GetVertAtCurrentTile(neighborIndex[3], 3);
+    float3 vbl3 = GetVertAtCurrentTile(neighborIndex[1], 1);
+    verts[0] = TriangleAverage(vblt0, vbl1, vbl3);
+    // BotRight
+    float vbr0 = GetVertAtCurrentTile(neighborIndex[3], 2);
+    float vbr1 = GetVertAtCurrentTile(neighborIndex[5], 3);
+    float vbr2 = GetVertAtCurrentTile(neighborIndex[6], 0);
+    verts[1] = TriangleAverage(vbr0, vbr1, vbr2);
+    // TopRight
+    float vtr1 = GetVertAtCurrentTile(neighborIndex[6], 3);
+    float vtr2 = GetVertAtCurrentTile(neighborIndex[7], 0);
+    float vtr3 = GetVertAtCurrentTile(neighborIndex[4], 1);
+    verts[2] = TriangleAverage(vtr1, vtr2, vtr3);
+    // TopLeft
+    float vtl0 = GetVertAtCurrentTile(neighborIndex[1], 2);
+    float vtl2 = GetVertAtCurrentTile(neighborIndex[4], 0);
+    float vtl3 = GetVertAtCurrentTile(neighborIndex[2], 1);
+    verts[3] = TriangleAverage(vtl0, vtl2, vtl3);
+
 }
 
 [numthreads(128,1,1)]
@@ -50,11 +108,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     if (id.x >= _NumTiles )
         return;
     
-    int vertStart = id.x * 4;
     float3 verts[4];
-    [unroll]for (int i = 0; i < 4; i++)
-        verts[i] = _VertBuffer[vertStart + i];
-    
+    GetVertsAtCurrentTile(id.x,verts);
+    float3 avgVerts[4];
+
+    GetNeighborAveragedVerts(id.x, avgVerts);
     
     uint iteration = _Subdivisions;
 
@@ -72,7 +130,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         {
             float2 noise = rand2dTo2d(float2(verts[0].x + inc.x * x, verts[0].z + inc.z * z));
             noise *= float2(inc.x, inc.z);
-            float3 pos = float3(verts[0].x + inc.x * x + noise.x, verts[0].y, verts[0].z + inc.z * z + noise.y);
+            float2 noisePercent = noise / float2(chunkSize.x, chunkSize.z);
+            float r1 = lerp(avgVerts[3].y, avgVerts[2].y, float(x) / float(iteration) + noisePercent.x);
+            float r2 = lerp(avgVerts[0].y, avgVerts[1].y, float(x) / float(iteration) + noisePercent.x);
+            float y = lerp(r2, r1, float(z) / float(iteration) + noisePercent.y);
+            float3 pos = float3(verts[0].x + inc.x * x + noise.x, y, verts[0].z + inc.z * z + noise.y);
+            
             
             float3 posVS = mul(_Camera_V, float4(pos, 1)).xyz;
             float4 posCS = mul(_Camera_P, float4(posVS, 1));
