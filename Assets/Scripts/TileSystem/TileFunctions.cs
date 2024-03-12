@@ -11,22 +11,26 @@ public class TileFunctions
     private ComputeShader _spawnOnTileShader;
     private ComputeBuffer _vertBuffer;
     private ComputeBuffer _spawnBuffer;
+    private ComputeBuffer _noiseBuffer;
     private ComputeBuffer _argsBuffer;
+    private Vector4[] _noises; 
     private uint[] _args;
     private SpawnData[] _spawnData;
     private int _tileCount;
+    private Camera _randerCam;
 
     struct SpawnData
     {
         float3 positionWS;
     };
 
-    public TileFunctions(Mesh _mesh, Material _mat, TileData _t, int _div) 
+    public TileFunctions(Mesh _mesh, Material _mat, TileData _t, int _div, Camera _cam) 
     {
         _spawnMesh = _mesh;
         _spawnMeshMaterial = _mat;
         _tileData = _t;
        _spawnSubivisions = _div;
+        _randerCam = _cam;
     }
 
     public void SetupTileCompute()
@@ -47,6 +51,10 @@ public class TileFunctions
         _spawnBuffer.SetCounterValue(0);
         _spawnBuffer.SetData(_spawnData);
 
+        _noises = new Vector4[_tileCount];
+        _noiseBuffer = new ComputeBuffer(_tileCount, sizeof(float) * 4);
+        _noiseBuffer.SetData(_noises);
+
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
         _args = new uint[] {
             _spawnMesh.GetIndexCount(0),
@@ -59,9 +67,12 @@ public class TileFunctions
 
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
         _spawnOnTileShader.SetInt("_Subdivisions", _spawnSubivisions);
+        _spawnOnTileShader.SetInt("_NumTilesPerSide", _tileData.TileGridDimension);
    
         _spawnOnTileShader.SetBuffer(0, "_VertBuffer", _vertBuffer);
         _spawnOnTileShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
+        _spawnOnTileShader.SetBuffer(0, "_NoiseBuffer", _noiseBuffer);
+
         _spawnOnTileShader.SetBuffer(0, "_ArgsBuffer", _argsBuffer);
         _spawnOnTileShader.SetBuffer(1, "_ArgsBuffer", _argsBuffer);
     }
@@ -76,12 +87,13 @@ public class TileFunctions
             return;
         _spawnBuffer.SetCounterValue(0);
         _spawnOnTileShader.Dispatch(1, 1, 1, 1);
-        Matrix4x4 camera_vp = Camera.main.projectionMatrix * Camera.main.transform.worldToLocalMatrix;
+        Matrix4x4 camera_vp = _randerCam. projectionMatrix * _randerCam.transform.worldToLocalMatrix;
         _spawnOnTileShader.SetMatrix("_Camera_VP", camera_vp);
-
+        _spawnOnTileShader.SetFloat("_Time", Time.time);
 
         _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
         _spawnMeshMaterial.SetBuffer("_SpawnBuffer", _spawnBuffer);
+
 
 
         Bounds bounds = new Bounds(Vector3.zero, Vector3.one * 256f);
@@ -91,10 +103,16 @@ public class TileFunctions
 
     }
 
+    public ComputeBuffer ShareNoiseBuffer() 
+    {
+        return _noiseBuffer;
+    }
+
     public void ReleaseBuffer() 
     {
         _vertBuffer?.Dispose();
         _argsBuffer?.Dispose();
         _spawnBuffer?.Dispose();
+        _noiseBuffer?.Dispose();
     }
 }

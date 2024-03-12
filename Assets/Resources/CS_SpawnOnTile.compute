@@ -2,7 +2,9 @@
 #pragma kernel ResetArgs
 
 uint _NumTiles;
+uint _NumTilesPerSide;
 uint _Subdivisions;
+float _Time;
 float4x4 _Camera_VP;
 
 StructuredBuffer<float3> _VertBuffer;
@@ -22,6 +24,7 @@ struct Args
     uint reserved;
 };
 RWStructuredBuffer<Args> _ArgsBuffer;
+RWStructuredBuffer<float4> _NoiseBuffer;
 
 #include "../INCLUDE/HL_Noise.hlsl"
 
@@ -43,6 +46,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 chunkSize = verts[2] - verts[0];
     float3 inc = chunkSize / iteration;
     
+    int2 tileCoord = int2(ceil(id.x / _NumTilesPerSide), id.x % _NumTilesPerSide);
+    float tileNoise = perlinNoise((tileCoord - _Time * 100) * 0.01, float2(12.9898, 78.233));
+    
+    _NoiseBuffer[id.x] = float4(tileNoise,0,0,0);
 
     for (uint x = 0; x < iteration; x++)
     {

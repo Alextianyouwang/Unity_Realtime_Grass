@@ -1,5 +1,5 @@
 using UnityEngine;
-[ExecuteInEditMode]
+[ExecuteAlways]
 [DefaultExecutionOrder(-98)]
 public class TileManager : MonoBehaviour
 {
@@ -11,11 +11,15 @@ public class TileManager : MonoBehaviour
     public float TileSize;
     public int TileGridDimension;
     public Vector2 TileGridCenterXZ;
-    public Material DebugMaterial;
+    public Camera RenderCam;
 
     public Mesh SpawnMesh;
     public Material SpawnMeshMaterial;
     public int SpawnSubivisions = 3;
+
+    public bool ShowDebugView = true;
+    public Material DebugMaterial;
+
 
     private void OnEnable()
     {
@@ -30,7 +34,8 @@ public class TileManager : MonoBehaviour
     }
     private void Update()
     {
-        DrawDebugView();
+        if (ShowDebugView)
+            DrawDebugView();
         SpawnObjectIndirect();
     }
  
@@ -46,7 +51,9 @@ public class TileManager : MonoBehaviour
     {
         if (_tileData == null)
             return;
-        _tileFunctions = new TileFunctions(SpawnMesh, SpawnMeshMaterial, _tileData, SpawnSubivisions);
+        if (RenderCam == null)
+            return;
+        _tileFunctions = new TileFunctions(SpawnMesh, SpawnMeshMaterial, _tileData, SpawnSubivisions,RenderCam);
         _tileFunctions.SetupTileCompute();
     }
     void SpawnObjectIndirect()
@@ -60,7 +67,6 @@ public class TileManager : MonoBehaviour
         if (_tileFunctions == null)
             return;
         _tileFunctions.ReleaseBuffer();
-
     }
     void SetupTileDebug() 
     {
@@ -73,6 +79,9 @@ public class TileManager : MonoBehaviour
     {
         if (_tileVisualizer == null)
             return;
+        if (_tileFunctions == null)
+            return;
+        _tileVisualizer.GetNoiseBuffer(_tileFunctions.ShareNoiseBuffer());
         _tileVisualizer.DrawIndirect();
     }
     void CleanupTileVisual() 

@@ -9,6 +9,7 @@ public class TileVisualizer
     private ComputeBuffer _instanceDataBuffer;
     private ComputeBuffer _vertBuffer;
     private ComputeBuffer _triangleBuffer;
+    private ComputeBuffer _noiseBuffer;
     private ComputeBuffer _argsBuffer;
 
     private int[] _triangles;
@@ -28,6 +29,10 @@ public class TileVisualizer
         _tiles = _t;
         _material = _m;
         _tileDimentions = _dimention;
+    }
+    public void GetNoiseBuffer(ComputeBuffer _noise) 
+    {
+        _noiseBuffer = _noise;
     }
     public void VisualizeTiles()
     {
@@ -73,6 +78,7 @@ public class TileVisualizer
             }
         }
     }
+
     private void InitializeShader() 
     {
         _instanceDataBuffer = new ComputeBuffer(_tileDimentions * _tileDimentions, sizeof(float) * 7);
@@ -90,13 +96,16 @@ public class TileVisualizer
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 4,ComputeBufferType.IndirectArguments);
         _argsBuffer.SetData(_args);
 
-     
+        _material.SetInt("_TileDimension", _tileDimentions);
+
     }
     public void DrawIndirect() 
     {
         _material.SetBuffer("_InstanceDataBuffer", _instanceDataBuffer);
         _material.SetBuffer("_VertBuffer", _vertBuffer);
         _material.SetBuffer("_TriangleBuffer", _triangleBuffer);
+        if (_noiseBuffer != null)
+            _material.SetBuffer("_NoiseBuffer", _noiseBuffer);
         Bounds cullBound = new Bounds(Vector3.zero, Vector3.one * _tileDimentions * _instancesData[0].size);
         Graphics.DrawProceduralIndirect(_material, cullBound, MeshTopology.Triangles, _argsBuffer,0,null,null,UnityEngine.Rendering.ShadowCastingMode.Off,false);
     }
@@ -105,6 +114,7 @@ public class TileVisualizer
         _triangleBuffer?.Dispose();
         _vertBuffer?.Dispose(); 
         _instanceDataBuffer?.Dispose();
+        _noiseBuffer?.Dispose();
         _argsBuffer?.Dispose();
     }
 }

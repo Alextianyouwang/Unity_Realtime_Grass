@@ -2,6 +2,7 @@ Shader "Procedural/S_TileDebug"
 {
     Properties
     {
+        [KeywordEnum (RandomID,Noise)] _Debug ("Debug View",Float) = 0
         _Alpha ("Alpha", Range(0,1)) = 0.5
     }
     SubShader
@@ -18,7 +19,7 @@ Shader "Procedural/S_TileDebug"
 
             #pragma vertex vert
             #pragma fragment frag
-
+            #pragma shader_feature _ _DEBUG_RANDOMID _DEBUG_NOISE
             
             #include "UnityCG.cginc"
 
@@ -37,7 +38,9 @@ Shader "Procedural/S_TileDebug"
             StructuredBuffer<InstanceData> _InstanceDataBuffer;
             StructuredBuffer<int> _TriangleBuffer;
             StructuredBuffer<float3> _VertBuffer;
+            StructuredBuffer<float4> _NoiseBuffer;
             float _Alpha;
+            int _TileDimension;
 
             
             VertexOutput vert( uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
@@ -46,7 +49,12 @@ Shader "Procedural/S_TileDebug"
                 InstanceData i = _InstanceDataBuffer[instanceID];
                 o.positionWS = _VertBuffer[_TriangleBuffer[vertexID]] * i.size + i.position;
                 o.positionCS = mul(UNITY_MATRIX_VP, float4(o.positionWS, 1));
+#if _DEBUG_RANDOMID
                 o.color = _InstanceDataBuffer[instanceID].color;
+#elif _DEBUG_NOISE
+                o.color = _NoiseBuffer[instanceID].rrr;
+#endif
+
                 return o;
             }
             
