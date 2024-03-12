@@ -5,7 +5,8 @@ uint _NumTiles;
 uint _NumTilesPerSide;
 uint _Subdivisions;
 float _Time;
-float4x4 _Camera_VP;
+float4x4 _Camera_V;
+float4x4 _Camera_P;
 
 StructuredBuffer<float3> _VertBuffer;
 struct SpawnData
@@ -28,6 +29,20 @@ RWStructuredBuffer<float4> _NoiseBuffer;
 
 #include "../INCLUDE/HL_Noise.hlsl"
 
+int2 GetCellCoord (uint i) 
+{
+    int2 centerCoord = int2(ceil(i / _NumTilesPerSide), i % _NumTilesPerSide);
+   return centerCoord;
+}
+
+uint GetOffsetedIndex(uint i, int2 offset)
+{
+    int index = i + offset.x * _NumTilesPerSide + offset.y;
+    return ((uint)
+    index <= _NumTiles - 1 && index >= 0) ?
+    (uint) index:
+    i;
+}
 
 [numthreads(128,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -46,7 +61,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 chunkSize = verts[2] - verts[0];
     float3 inc = chunkSize / iteration;
     
-    int2 tileCoord = int2(ceil(id.x / _NumTilesPerSide), id.x % _NumTilesPerSide);
+    int2 tileCoord = GetCellCoord(id.x);
     float tileNoise = perlinNoise((tileCoord - _Time * 100) * 0.01, float2(12.9898, 78.233));
     
     _NoiseBuffer[id.x] = float4(tileNoise,0,0,0);
@@ -59,10 +74,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             noise *= float2(inc.x, inc.z);
             float3 pos = float3(verts[0].x + inc.x * x + noise.x, verts[0].y, verts[0].z + inc.z * z + noise.y);
             
-            float4 posCS = mul(_Camera_VP, float4(pos, 1));
+            float3 posVS = mul(_Camera_V, float4(pos, 1)).xyz;
+            float4 posCS = mul(_Camera_P, float4(posVS, 1));
             float3 posNDS = posCS.xyz / posCS.w;
             posNDS.z = -posCS.w;
-            bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || posNDS.z > 50.0) ? 0 : 1;
+            bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || posNDS.z / dot(normalize(posVS), float3(0,0,1)) > 50.0) ? 0 : 1;
             if (isInView)
             {
                 InterlockedAdd(_ArgsBuffer[0].numOfInstance, 1);

@@ -87,8 +87,8 @@ public class TileFunctions
             return;
         _spawnBuffer.SetCounterValue(0);
         _spawnOnTileShader.Dispatch(1, 1, 1, 1);
-        Matrix4x4 camera_vp = _randerCam. projectionMatrix * _randerCam.transform.worldToLocalMatrix;
-        _spawnOnTileShader.SetMatrix("_Camera_VP", camera_vp);
+        _spawnOnTileShader.SetMatrix("_Camera_V", _randerCam.transform.worldToLocalMatrix);
+        _spawnOnTileShader.SetMatrix("_Camera_P", _randerCam.projectionMatrix);
         _spawnOnTileShader.SetFloat("_Time", Time.time);
 
         _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
