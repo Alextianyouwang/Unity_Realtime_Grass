@@ -169,7 +169,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TileHeightmap: {fileID: 2800000, guid: 63f1c5025aa35a54da6277c0affa1c86, type: 3}
   TileHeightMultiplier: 100
-  TileSize: 0.5
+  TileSize: 0.390625
   TileGridDimension: 256
   TileGridCenterXZ: {x: 0, y: 0}
   DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
@@ -306,13 +306,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 583219401}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.105362326, z: -0, w: -0.9944339}
-  m_LocalPosition: {x: 7.5, y: 3.17, z: -8.62}
+  m_LocalRotation: {x: -0, y: 0.08503723, z: -0, w: -0.99637777}
+  m_LocalPosition: {x: 8.28, y: 3.17, z: -10.88}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -372.096, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -369.756, z: 0}
 --- !u!1 &1252235612
 GameObject:
   m_ObjectHideFlags: 0

@@ -11,7 +11,6 @@ Shader "Procedural/S_TileDebug"
         {
             Name "Unlit"
             Cull off
-            Ztest off
             Blend SrcAlpha OneMinusSrcAlpha
             HLSLPROGRAM
             #pragma target 5.0

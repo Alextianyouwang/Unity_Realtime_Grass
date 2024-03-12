@@ -89,13 +89,14 @@ public class TileVisualizer
         };
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 4,ComputeBufferType.IndirectArguments);
         _argsBuffer.SetData(_args);
-        _material.SetBuffer("_InstanceDataBuffer", _instanceDataBuffer);
-        _material.SetBuffer("_VertBuffer", _vertBuffer);
-        _material.SetBuffer("_TriangleBuffer", _triangleBuffer);
+
      
     }
     public void DrawIndirect() 
     {
+        _material.SetBuffer("_InstanceDataBuffer", _instanceDataBuffer);
+        _material.SetBuffer("_VertBuffer", _vertBuffer);
+        _material.SetBuffer("_TriangleBuffer", _triangleBuffer);
         Bounds cullBound = new Bounds(Vector3.zero, Vector3.one * _tileDimentions * _instancesData[0].size);
         Graphics.DrawProceduralIndirect(_material, cullBound, MeshTopology.Triangles, _argsBuffer,0,null,null,UnityEngine.Rendering.ShadowCastingMode.Off,false);
     }

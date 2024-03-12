@@ -64,9 +64,6 @@ public class TileFunctions
         _spawnOnTileShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
         _spawnOnTileShader.SetBuffer(0, "_ArgsBuffer", _argsBuffer);
         _spawnOnTileShader.SetBuffer(1, "_ArgsBuffer", _argsBuffer);
-        _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
-        _spawnMeshMaterial.SetBuffer("_SpawnBuffer", _spawnBuffer);
-
     }
 
     public void DrawIndirect()
@@ -82,7 +79,10 @@ public class TileFunctions
         Matrix4x4 camera_vp = Camera.main.projectionMatrix * Camera.main.transform.worldToLocalMatrix;
         _spawnOnTileShader.SetMatrix("_Camera_VP", camera_vp);
 
+
         _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
+        _spawnMeshMaterial.SetBuffer("_SpawnBuffer", _spawnBuffer);
+
 
         Bounds bounds = new Bounds(Vector3.zero, Vector3.one * 256f);
         Graphics.DrawMeshInstancedIndirect(_spawnMesh, 0, _spawnMeshMaterial, bounds, _argsBuffer,
