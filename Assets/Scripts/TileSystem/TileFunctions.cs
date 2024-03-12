@@ -3,34 +3,39 @@ using UnityEngine;
 
 public class TileFunctions 
 {
+    private TileData _tileData;
+
     private Mesh _spawnMesh;
     private Material _spawnMeshMaterial;
-    private int _spawnSubivisions;
-    private TileData _tileData;
+    private Camera _randerCam;
 
     private ComputeShader _spawnOnTileShader;
     private ComputeBuffer _vertBuffer;
     private ComputeBuffer _spawnBuffer;
     private ComputeBuffer _noiseBuffer;
     private ComputeBuffer _argsBuffer;
+
     private Vector4[] _noises; 
     private uint[] _args;
     private SpawnData[] _spawnData;
     private int _tileCount;
-    private Camera _randerCam;
+
+    private bool _smoothPlacement;
+    private int _spawnSubivisions;
 
     struct SpawnData
     {
         float3 positionWS;
     };
 
-    public TileFunctions(Mesh _mesh, Material _mat, TileData _t, int _div, Camera _cam) 
+    public TileFunctions(Mesh _mesh, Material _mat, TileData _t, int _div, Camera _cam,bool _smooth) 
     {
         _spawnMesh = _mesh;
         _spawnMeshMaterial = _mat;
         _tileData = _t;
        _spawnSubivisions = _div;
         _randerCam = _cam;
+        _smoothPlacement = _smooth;
     }
 
     public void SetupTileCompute()
@@ -68,6 +73,7 @@ public class TileFunctions
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
         _spawnOnTileShader.SetInt("_Subdivisions", _spawnSubivisions);
         _spawnOnTileShader.SetInt("_NumTilesPerSide", _tileData.TileGridDimension);
+        _spawnOnTileShader.SetBool("_SmoothPlacement", _smoothPlacement);
    
         _spawnOnTileShader.SetBuffer(0, "_VertBuffer", _vertBuffer);
         _spawnOnTileShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);

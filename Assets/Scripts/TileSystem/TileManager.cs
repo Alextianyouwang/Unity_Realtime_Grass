@@ -16,6 +16,7 @@ public class TileManager : MonoBehaviour
     public Mesh SpawnMesh;
     public Material SpawnMeshMaterial;
     public int SpawnSubivisions = 3;
+    public bool SmoothPlacement = true;
 
     public bool ShowDebugView = true;
     public Material DebugMaterial;
@@ -53,7 +54,7 @@ public class TileManager : MonoBehaviour
             return;
         if (RenderCam == null)
             return;
-        _tileFunctions = new TileFunctions(SpawnMesh, SpawnMeshMaterial, _tileData, SpawnSubivisions,RenderCam);
+        _tileFunctions = new TileFunctions(SpawnMesh, SpawnMeshMaterial, _tileData, SpawnSubivisions,RenderCam,SmoothPlacement);
         _tileFunctions.SetupTileCompute();
     }
     void SpawnObjectIndirect()
