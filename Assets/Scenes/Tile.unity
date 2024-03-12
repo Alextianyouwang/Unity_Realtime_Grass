@@ -170,7 +170,7 @@ MonoBehaviour:
   TileHeightmap: {fileID: 2800000, guid: f85006b7c3cee704885ab378ab950cbf, type: 3}
   TileHeightMultiplier: 100
   TileSize: 0.390625
-  TileGridDimension: 256
+  TileGridDimension: 11
   TileGridCenterXZ: {x: 0, y: 0}
   RenderCam: {fileID: 583219404}
   SpawnMesh: {fileID: 4300000, guid: 696ee1f4a69d2f442add066d155d15aa, type: 2}
@@ -308,13 +308,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 583219401}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.2276943, z: -0, w: -0.9737327}
-  m_LocalPosition: {x: 9, y: 5.9, z: -8.5}
+  m_LocalRotation: {x: -0, y: 0.07464447, z: -0, w: -0.9972102}
+  m_LocalPosition: {x: 7.06, y: 2.52, z: 2.92}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -386.323, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -368.562, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
