@@ -6,8 +6,11 @@ uint _Subdivisions;
 float4x4 _Camera_VP;
 
 StructuredBuffer<float3> _VertBuffer;
-
-AppendStructuredBuffer<float3> _SpawnBuffer;
+struct SpawnData
+{
+    float3 positionWS;
+};
+AppendStructuredBuffer<SpawnData> _SpawnBuffer;
 
 
 struct Args
@@ -56,7 +59,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             if (isInView)
             {
                 InterlockedAdd(_ArgsBuffer[0].numOfInstance, 1);
-                _SpawnBuffer.Append(pos);
+                SpawnData o;
+                o.positionWS = pos;
+                _SpawnBuffer.Append(o);
             }
             
         }

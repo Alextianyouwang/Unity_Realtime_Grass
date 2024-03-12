@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine;
 
 public class TileFunctions 
@@ -12,8 +13,13 @@ public class TileFunctions
     private ComputeBuffer _spawnBuffer;
     private ComputeBuffer _argsBuffer;
     private uint[] _args;
-    private Vector3[] _spawnPos;
+    private SpawnData[] _spawnData;
     private int _tileCount;
+
+    struct SpawnData
+    {
+        float3 positionWS;
+    };
 
     public TileFunctions(Mesh _mesh, Material _mat, TileData _t, int _div) 
     {
@@ -36,10 +42,10 @@ public class TileFunctions
         _vertBuffer = new ComputeBuffer(_tileCount * 4, sizeof(float) * 3);
         _vertBuffer.SetData(_tileData.GetTileVerts());
 
-        _spawnPos = new Vector3[_tileCount * instancePerTile];
+        _spawnData = new SpawnData[_tileCount * instancePerTile];
         _spawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 3,ComputeBufferType.Append);
         _spawnBuffer.SetCounterValue(0);
-        _spawnBuffer.SetData(_spawnPos);
+        _spawnBuffer.SetData(_spawnData);
 
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
         _args = new uint[] {
@@ -53,6 +59,7 @@ public class TileFunctions
 
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
         _spawnOnTileShader.SetInt("_Subdivisions", _spawnSubivisions);
+   
         _spawnOnTileShader.SetBuffer(0, "_VertBuffer", _vertBuffer);
         _spawnOnTileShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
         _spawnOnTileShader.SetBuffer(0, "_ArgsBuffer", _argsBuffer);
