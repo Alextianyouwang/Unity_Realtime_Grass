@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 8b7dd0809c7c6498789fa32a61eaa6cb, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.60577905, g: 0.5495826, b: 0.6456542, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -259,7 +259,7 @@ Camera:
   m_GameObject: {fileID: 583219401}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 2
+  m_ClearFlags: 1
   m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
@@ -309,13 +309,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 583219401}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.43570894, z: -0, w: -0.90008765}
-  m_LocalPosition: {x: 34.66, y: 7, z: -67.5}
+  m_LocalRotation: {x: -0, y: 0.07454398, z: -0, w: -0.9972177}
+  m_LocalPosition: {x: 27.6, y: 9, z: -43.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -411.661, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -368.55, z: 0}
 --- !u!1 &818673441
 GameObject:
   m_ObjectHideFlags: 0
@@ -427,13 +427,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 818673441}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalRotation: {x: -0.55298316, y: -0.06792922, z: 0.7388803, w: -0.37901348}
   m_LocalPosition: {x: 10.103572, y: -16.902277, z: 4.533514}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 31.303, y: -63.654, z: 214.582}
 --- !u!1 &1814955405
 GameObject:
   m_ObjectHideFlags: 0
