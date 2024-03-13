@@ -9,7 +9,7 @@ public class TileManager : MonoBehaviour
     public Texture2D TileHeightmap;
     public float TileHeightMultiplier = 1;
     public float TileSize;
-    public int TileGridDimension;
+    public int TileGridDimension = 512;
     public Vector2 TileGridCenterXZ;
     public Camera RenderCam;
 

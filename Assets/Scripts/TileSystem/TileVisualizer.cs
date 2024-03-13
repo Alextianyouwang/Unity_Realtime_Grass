@@ -51,10 +51,10 @@ public class TileVisualizer
         _triangles[4] = 1;
         _triangles[5] = 0;
         _vertices = new Vector3[4];
-        _vertices[0] = new Vector3(-0.5f, 0, -0.5f);
-        _vertices[1] = new Vector3(0.5f, 0, -0.5f);
-        _vertices[2] = new Vector3(0.5f, 0, 0.5f);
-        _vertices[3] = new Vector3(-0.5f, 0, 0.5f);
+        _vertices[0] = new Vector3(-0.45f, 0, -0.45f);
+        _vertices[1] = new Vector3(0.45f, 0, -0.45f);
+        _vertices[2] = new Vector3(0.45f, 0, 0.45f);
+        _vertices[3] = new Vector3(-0.45f, 0, 0.45f);
     }
 
 
@@ -96,11 +96,14 @@ public class TileVisualizer
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 4,ComputeBufferType.IndirectArguments);
         _argsBuffer.SetData(_args);
 
-        _material.SetInt("_TileDimension", _tileDimentions);
+        if (_material)
+            _material.SetInt("_TileDimension", _tileDimentions);
 
     }
     public void DrawIndirect() 
     {
+        if (_material == null)
+            return;
         _material.SetBuffer("_InstanceDataBuffer", _instanceDataBuffer);
         _material.SetBuffer("_VertBuffer", _vertBuffer);
         _material.SetBuffer("_TriangleBuffer", _triangleBuffer);

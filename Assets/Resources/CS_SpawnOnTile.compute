@@ -65,7 +65,7 @@ void GetVertsAtCurrentTile(uint index, out float3 verts[4])
 
 void GetNeighborAveragedVerts(uint index, out float3 verts[4])
 {
-    int2 coord = GetCellCoord(index);
+    uint2 coord = GetCellCoord(index);
     if (coord.x >= _NumTilesPerSide - 1 || coord.y >= _NumTilesPerSide - 1
     || coord.x <=0 || coord.y <= 0)
     {
