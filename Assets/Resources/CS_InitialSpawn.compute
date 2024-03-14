@@ -136,21 +136,20 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 int _ChunkIndexX;
 int _ChunkIndexY;
+int _ChunkPerSide;
 
 RWStructuredBuffer<SpawnData> _ChunkSpawnBuffer;
 [numthreads(128, 1, 1)]
 void GetChunkBuffer(uint3 id : SV_DispatchThreadID)
 {
-    int numTilePerChunkSide = _NumTilesPerSide / 4;
-    int numTilePerChunk = numTilePerChunkSide * numTilePerChunkSide;
+    int numTilePerChunkSide = _NumTilesPerSide / _ChunkPerSide;
+    uint numTilePerChunk = numTilePerChunkSide * numTilePerChunkSide;
     int instancePerTile = _Subdivisions * _Subdivisions;
     if (id.x >= (uint) numTilePerChunk * (uint)instancePerTile)
         return;
     int startIndex = (numTilePerChunkSide * _ChunkIndexX * _NumTilesPerSide + numTilePerChunkSide * _ChunkIndexY) * instancePerTile;
-    for (int i = 0; i < instancePerTile; i++)
-    {
-        _ChunkSpawnBuffer[id.x + i] = _SpawnBuffer[startIndex + id.x % numTilePerChunkSide * _NumTilesPerSide + id.x + i ];
-        
-    }
     
+    uint tileStart = id.x * instancePerTile;
+    for (int i = 0; i <  instancePerTile; i++)
+        _ChunkSpawnBuffer[tileStart + i] = _SpawnBuffer[startIndex + tileStart + i + (id.x / numTilePerChunkSide) * (_NumTilesPerSide - numTilePerChunkSide) * instancePerTile];
 }
