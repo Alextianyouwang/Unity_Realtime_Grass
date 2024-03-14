@@ -1,4 +1,5 @@
 #pragma kernel CSMain
+#pragma kernel GetChunkBuffer
 
 uint _NumTiles;
 uint _NumTilesPerSide;
@@ -10,7 +11,12 @@ struct SpawnData
 {
     float3 positionWS;
 };
-AppendStructuredBuffer<SpawnData> _SpawnBuffer;
+RWStructuredBuffer<SpawnData> _SpawnBuffer;
+
+int _ChunkIndexX;
+int _ChunkIndexY;
+
+RWStructuredBuffer<SpawnData> _ChunkSpawnBuffer;
 
 #include "../INCLUDE/HL_Noise.hlsl"
 float3 TriangleAverage(float3 a, float3 b, float3 c)
@@ -126,8 +132,26 @@ void CSMain (uint3 id : SV_DispatchThreadID)
          
             SpawnData o;
             o.positionWS = pos;
-            _SpawnBuffer.Append(o);
+            _SpawnBuffer[x * iteration + z + id.x * iteration * iteration] = o;
         }
     }
 
+}
+
+
+[numthreads(128, 1, 1)]
+void GetChunkBuffer(uint3 id : SV_DispatchThreadID)
+{
+    int numTilePerChunkSide = _NumTilesPerSide / 4;
+    int numTilePerChunk = numTilePerChunkSide * numTilePerChunkSide;
+    int instancePerTile = _Subdivisions * _Subdivisions;
+    if (id.x >= (uint)numTilePerChunk)
+        return;
+    int startIndex = (numTilePerChunkSide * _ChunkIndexX * _NumTilesPerSide + numTilePerChunkSide * _ChunkIndexY) * instancePerTile;
+    for (int i = 0; i < instancePerTile; i++)
+    {
+        _ChunkSpawnBuffer[id.x + i] = _SpawnBuffer[startIndex + id.x + id.x / numTilePerChunkSide * _NumTilesPerSide + i];
+        
+    }
+    
 }

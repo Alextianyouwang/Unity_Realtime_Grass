@@ -23,7 +23,6 @@ public class TileChunkDispatcher
         float3 positionWS;
     };
 
-    private Vector4[] _noises;
     private uint[] _args;
     private SpawnData[] _spawnData;
     private int _tileCount;
@@ -56,8 +55,7 @@ public class TileChunkDispatcher
         _vertBuffer.SetData(_tileData.GetTileVerts());
 
         _spawnData = new SpawnData[_tileCount * instancePerTile];
-        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 3, ComputeBufferType.Append);
-        _rawSpawnBuffer.SetCounterValue(0);
+        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 3);
         _rawSpawnBuffer.SetData(_spawnData);
 
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
@@ -83,7 +81,39 @@ public class TileChunkDispatcher
     public void InitializeChunks() 
     {
         _chunks = new TileChunk[1];
-        _chunks[0] = new TileChunk(_spawnMesh,_spawnMeshMaterial, _tileData,_spawnSubivisions,_randerCam,_smoothPlacement, new Vector2(0, 0),_rawSpawnBuffer,_argsBuffer);
+        int chunkDimension = _tileData.TileGridDimension / 4;
+        int totalInstancePerChunk = chunkDimension * chunkDimension * _spawnSubivisions * _spawnSubivisions;
+
+        SpawnData[] spawnDatas = new SpawnData[totalInstancePerChunk];
+        ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 3);
+        chunkBuffer.SetData(spawnDatas);
+        _spawnOnTileShader.SetInt("_ChunkIndexX", 0);
+        _spawnOnTileShader.SetInt("_ChunkIndexY", 0);
+        _spawnOnTileShader.SetBuffer(1, "_SpawnBuffer", _rawSpawnBuffer);
+        _spawnOnTileShader.SetBuffer(1, "_ChunkSpawnBuffer", chunkBuffer);
+        _spawnOnTileShader.Dispatch(1, Mathf.CeilToInt(totalInstancePerChunk / 128f), 1, 1);
+
+        ComputeBuffer chunkArgsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
+        _args = new uint[] {
+            _spawnMesh.GetIndexCount(0),
+            (uint)(totalInstancePerChunk),
+            _spawnMesh.GetIndexStart(0),
+            _spawnMesh.GetBaseVertex(0),
+            0
+        };
+        chunkArgsBuffer.SetData(_args);
+        _chunks[0] = new TileChunk(_spawnMesh, _spawnMeshMaterial, _tileData, _spawnSubivisions, _randerCam, _smoothPlacement, new Vector2(0, 0), chunkBuffer, chunkArgsBuffer);
+
+        for (int x = 0; x < 4; x++)
+        {
+            for (int y = 0; y < 4; y++) 
+            {
+              
+
+            }
+        }
+
+
     }
 
     public void DispatchTileChunksDrawCall() 

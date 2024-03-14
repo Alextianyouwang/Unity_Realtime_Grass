@@ -5,7 +5,6 @@ public class TileManager : MonoBehaviour
 {
     private TileData _tileData;
     private TileVisualizer _tileVisualizer;
-    private TileChunk_Single _tileFunctions;
     private TileChunkDispatcher _tileChunkDispatcher;
     public Texture2D TileHeightmap;
     public float TileHeightMultiplier = 1;
@@ -55,8 +54,6 @@ public class TileManager : MonoBehaviour
             return;
         if (RenderCam == null)
             return;
-        /*_tileFunctions = new TileChunk_Single(SpawnMesh, SpawnMeshMaterial, _tileData, SpawnSubivisions,RenderCam,SmoothPlacement,new Vector2(0,0));
-        _tileFunctions.SetupTileCompute();*/
 
         _tileChunkDispatcher = new TileChunkDispatcher(SpawnMesh, SpawnMeshMaterial, _tileData, SpawnSubivisions, RenderCam, SmoothPlacement);
         _tileChunkDispatcher.InitialSpawn();
@@ -64,15 +61,12 @@ public class TileManager : MonoBehaviour
     }
     void SpawnObjectIndirect()
     {
-  
-        //_tileFunctions.DrawIndirect();
+
         _tileChunkDispatcher.DispatchTileChunksDrawCall();
     }
     void CleanupTileFunction()
     {
-        if (_tileFunctions == null)
-            return;
-        _tileFunctions.ReleaseBuffer();
+        _tileChunkDispatcher.ReleaseBuffer();
     }
 
 
@@ -88,8 +82,6 @@ public class TileManager : MonoBehaviour
     {
         if (_tileVisualizer == null)
             return;
-
-        //_tileVisualizer.GetNoiseBuffer(_tileFunctions.ShareNoiseBuffer());
         _tileVisualizer.DrawIndirect();
     }
     void CleanupTileVisual() 
@@ -97,9 +89,6 @@ public class TileManager : MonoBehaviour
         if (_tileVisualizer == null)
             return;
         _tileVisualizer.ReleaseBuffer();
-
-        //_tileChunkDispatcher.ReleaseBuffer();
-
     }
 
 }
