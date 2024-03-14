@@ -26,7 +26,7 @@ struct SpawnData
     float3 positionWS;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
-float3 _ChunkColor;
+float3 _ChunkColor,_LOD_Color;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 float _Scale, _Bend, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,_WindAmplitude,
 _DetailSpeed, _DetailAmplitude, _DetailFrequency,
@@ -103,6 +103,8 @@ float4 frag(VertexOutput v) : SV_Target
         return v.debug.y;
 #elif _DEBUG_CHUNKID
     return _ChunkColor.xyzz;
+#elif _DEBUG_LOD
+    return _LOD_Color.xyzz;
 #else 
     return color;
 #endif

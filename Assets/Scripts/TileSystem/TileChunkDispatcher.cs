@@ -10,7 +10,7 @@ public class TileChunkDispatcher
     private ComputeBuffer _rawSpawnBuffer; 
     private ComputeBuffer _vertBuffer;
 
-    private Mesh _spawnMesh;
+    private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
     private Camera _randerCam;
 
@@ -18,32 +18,30 @@ public class TileChunkDispatcher
     {
         float3 positionWS;
     };
-
-    private uint[] _args;
     private SpawnData[] _spawnData;
     private int _tileCount;
 
     private bool _smoothPlacement;
     private int _spawnSubivisions;
+    private int _chunksPerSide;
+    private float _lodDist_01;
+    private float _lodDist_12;
 
-    public TileChunkDispatcher(Mesh _mesh, Material _mat, TileData _t, int _div, Camera _cam, bool _smooth)
+    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, int spawnSubD, Camera renderCam, bool smoothPlacement, int chunkPerSide, float lodDist, float lodDist_12)
     {
-        _spawnMesh = _mesh;
-        _spawnMeshMaterial = _mat;
-        _tileData = _t;
-        _spawnSubivisions = _div;
-        _randerCam = _cam;
-        _smoothPlacement = _smooth;
+        _spawnMesh = spawnMesh;
+        _spawnMeshMaterial = spawmMeshMat;
+        _tileData = tileData;
+        _spawnSubivisions = spawnSubD;
+        _randerCam = renderCam;
+        _smoothPlacement = smoothPlacement;
+        _chunksPerSide = chunkPerSide;
+        _lodDist_01 = lodDist;
+        _lodDist_12 = lodDist_12;
     }
 
     public void InitialSpawn()
     {
-        if (
-           _spawnMesh == null
-           || _spawnMeshMaterial == null
-           )
-            return;
-
         _spawnOnTileShader = (ComputeShader)Resources.Load("CS_InitialSpawn");
         _tileCount = _tileData.TileGridDimension * _tileData.TileGridDimension;
         int instancePerTile = _spawnSubivisions * _spawnSubivisions;
@@ -66,33 +64,28 @@ public class TileChunkDispatcher
 
     public void InitializeChunks() 
     {
-        int chunkPerSide =
-            _tileData.TileGridDimension % 4 == 0 ? 4 :
-            _tileData.TileGridDimension % 3 == 0 ? 3 : 1;
-
-
-        Chunks = new TileChunk[chunkPerSide * chunkPerSide];
-        int chunkDimension = _tileData.TileGridDimension / chunkPerSide;
+        Chunks = new TileChunk[_chunksPerSide * _chunksPerSide];
+        int chunkDimension = _tileData.TileGridDimension / _chunksPerSide;
         int totalInstancePerChunk = chunkDimension * chunkDimension * _spawnSubivisions * _spawnSubivisions;
-        float chunkSize = _tileData.TileGridDimension * _tileData.TileSize / chunkPerSide;
-        Vector2 botLeft = _tileData.TileGridCenterXZ - chunkSize * chunkPerSide * Vector2.one / 2 + Vector2.one * chunkSize / 2;
+        float chunkSize = _tileData.TileGridDimension * _tileData.TileSize / _chunksPerSide;
+        Vector2 botLeft = _tileData.TileGridCenterXZ - chunkSize * _chunksPerSide * Vector2.one / 2 + Vector2.one * chunkSize / 2;
         
-        for (int x = 0; x < chunkPerSide; x++)
+        for (int x = 0; x < _chunksPerSide; x++)
         {
-            for (int y = 0; y < chunkPerSide; y++) 
+            for (int y = 0; y < _chunksPerSide; y++) 
             {
                 SpawnData[] spawnDatas = new SpawnData[totalInstancePerChunk];
                 ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 3);
                 chunkBuffer.SetData(spawnDatas);
                 _spawnOnTileShader.SetInt("_ChunkIndexX", x);
                 _spawnOnTileShader.SetInt("_ChunkIndexY", y);
-                _spawnOnTileShader.SetInt("_ChunkPerSide", chunkPerSide);
+                _spawnOnTileShader.SetInt("_ChunkPerSide", _chunksPerSide);
                 _spawnOnTileShader.SetBuffer(1, "_SpawnBuffer", _rawSpawnBuffer);
                 _spawnOnTileShader.SetBuffer(1, "_ChunkSpawnBuffer", chunkBuffer);
                 _spawnOnTileShader.Dispatch(1, Mathf.CeilToInt(totalInstancePerChunk / 128f), 1, 1);
                 Bounds b = new Bounds( new Vector3 (botLeft.x + chunkSize* x,0,botLeft.y + chunkSize * y) ,Vector3.one * chunkSize);
-                Chunks[x * chunkPerSide + y] = new TileChunk(_spawnMesh, _spawnMeshMaterial, _randerCam, chunkBuffer, (ComputeShader)Resources.Load("CS_GrassCulling"),b);
-                Chunks[x * chunkPerSide + y].Setup();
+                Chunks[x * _chunksPerSide + y] = new TileChunk(_spawnMesh, _spawnMeshMaterial, _randerCam, chunkBuffer, (ComputeShader)Resources.Load("CS_GrassCulling"),b,_lodDist_01,_lodDist_12);
+                Chunks[x * _chunksPerSide + y].Setup();
             }
         }
     }

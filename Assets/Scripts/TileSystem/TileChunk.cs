@@ -4,7 +4,7 @@ public class TileChunk
 {
     public Bounds ChunkBounds { get; private set; }
 
-    private Mesh _spawnMesh;
+    private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
     private MaterialPropertyBlock _mpb;
     private Camera _randerCam;
@@ -18,27 +18,32 @@ public class TileChunk
     private ComputeBuffer _groupScanInBuffer;
     private ComputeBuffer _groupScanOutBuffer;
     private ComputeBuffer _compactBuffer;
-    private ComputeBuffer _argsBuffer;
+    private ComputeBuffer[] _argsBuffer;
 
     private int _elementCount;
     private int _groupCount;
 
     private Color _chunkColor;
+    private Bounds _fieldBounds;
+    private float _lodDist_01;
+    private float _lodDist_12;
 
     struct SpawnData
     {
         Vector3 positionWS;
     };
 
-    public TileChunk(Mesh _mesh, Material _mat,  Camera _cam, ComputeBuffer _initialBuffer,ComputeShader _cull,Bounds _bounds) 
+    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,ComputeShader cullShader,Bounds chunkBounds,float lodDist,float lodDist_12) 
     {
-        _spawnMesh = _mesh;
-        _spawnMeshMaterial = _mat;
-        _randerCam = _cam;
-        _spawnBuffer = _initialBuffer;
-        _cullShader = _cull;
-        ChunkBounds = _bounds;
+        _spawnMesh = spawnMesh;
+        _spawnMeshMaterial = spawmMeshMat;
+        _randerCam = renderCam;
+        _spawnBuffer = initialBuffer;
+        _cullShader = cullShader;
+        ChunkBounds = chunkBounds;
         _mpb = new MaterialPropertyBlock();
+        _lodDist_01 = lodDist;
+        _lodDist_12 = lodDist_12;
     }
 
     public void Setup() 
@@ -54,15 +59,20 @@ public class TileChunk
         _groupScanOutBuffer = new ComputeBuffer(_groupCount, sizeof(int));
 
         _compactBuffer = new ComputeBuffer(_elementCount, sizeof(float) * 3);
-        _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
-        uint[] _args = new uint[] {
-            _spawnMesh.GetIndexCount(0),
+        _argsBuffer = new ComputeBuffer[_spawnMesh.Length];
+        for(int i = 0; i< _spawnMesh.Length; i++)
+        {
+            _argsBuffer[i] = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
+            uint[] _args = new uint[] {
+            _spawnMesh[i].GetIndexCount(0),
             0,
-            _spawnMesh.GetIndexStart(0),
-            _spawnMesh.GetBaseVertex(0),
+            _spawnMesh[i].GetIndexStart(0),
+            _spawnMesh[i].GetBaseVertex(0),
             0
         };
-        _argsBuffer.SetData(_args);
+            _argsBuffer[i].SetData(_args);
+        }
+        
 
         _cullShader.SetInt("_InstanceCount", _spawnBuffer.count);
 
@@ -81,10 +91,15 @@ public class TileChunk
         _cullShader.SetBuffer(3, "_VoteBuffer", _voteBuffer);
         _cullShader.SetBuffer(3, "_ScanBuffer", _scanBuffer);
         _cullShader.SetBuffer(3, "_GroupScanBufferOut", _groupScanOutBuffer);
-        _cullShader.SetBuffer(3, "_ArgsBuffer", _argsBuffer);
-
-        _cullShader.SetBuffer(4, "_ArgsBuffer", _argsBuffer);
+        for (int i = 0; i < _spawnMesh.Length; i++) 
+        {
+            _cullShader.SetBuffer(3, $"_ArgsBuffer{i}", _argsBuffer[i]);
+            _cullShader.SetBuffer(4, $"_ArgsBuffer{i}", _argsBuffer[i]);
+        }
+           
         _chunkColor = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
+
+        _fieldBounds = new Bounds(Vector3.zero, Vector3.one * 200);
     }
 
 
@@ -107,8 +122,30 @@ public class TileChunk
 
         _mpb.SetBuffer("_SpawnBuffer",_compactBuffer);
         _mpb.SetColor("_ChunkColor",_chunkColor);
-        Graphics.DrawMeshInstancedIndirect(_spawnMesh, 0, _spawnMeshMaterial,new Bounds (Vector3.zero,Vector3.one * 200), _argsBuffer,
-            0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
+
+        float dist = Vector3.Distance(_randerCam.transform.position, ChunkBounds.center);
+        if (dist < _lodDist_01)
+        {
+            Graphics.DrawMeshInstancedIndirect(_spawnMesh[0], 0, _spawnMeshMaterial, _fieldBounds, _argsBuffer[0],
+          0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
+            _mpb.SetColor("_LOD_Color", Color.green);
+
+        }
+        else if (dist >= _lodDist_01 && dist <= _lodDist_12)
+        {
+            Graphics.DrawMeshInstancedIndirect(_spawnMesh[1], 0, _spawnMeshMaterial, _fieldBounds, _argsBuffer[1],
+         0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
+            _mpb.SetColor("_LOD_Color", Color.blue);
+
+        }
+        else  if (dist > _lodDist_12)
+        {
+            Graphics.DrawMeshInstancedIndirect(_spawnMesh[2], 0, _spawnMeshMaterial, _fieldBounds, _argsBuffer[2],
+           0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
+            _mpb.SetColor("_LOD_Color", Color.yellow);
+
+        }
+
     }
     
 
@@ -119,8 +156,11 @@ public class TileChunk
         _scanBuffer?.Dispose();
         _groupScanInBuffer?.Dispose();
         _groupScanOutBuffer?.Dispose();
-        _compactBuffer?.Dispose();  
-        _argsBuffer?.Dispose();
+        _compactBuffer?.Dispose();
+        if (_argsBuffer != null) 
+            foreach (ComputeBuffer arg in _argsBuffer) 
+                arg?.Dispose();
+    
         _cullShader = null;
     }
 }

@@ -10,13 +10,14 @@ public class TileData
     private Texture2D _heightMap;
     private float _tileHeightMult;
     private Vector3[] _tileVerts;
-    public TileData(Vector2 _center, int _dimension, float _tileSize, Texture2D _tex,float _heightMult)
+    public TileData(Vector2 tileGridCenterXZ, int tileGridDimension, float tileSize, Texture2D heightMap,float tileHeightMult)
     {
-        TileSize = _tileSize;  
-        TileGridDimension = _dimension;
-        TileGridCenterXZ = _center;
-        _heightMap = _tex;
-        _tileHeightMult = _heightMult;
+      
+        TileSize = tileSize;  
+        TileGridDimension = tileGridDimension;
+        TileGridCenterXZ = tileGridCenterXZ;
+        _heightMap = heightMap;
+        _tileHeightMult = tileHeightMult;
     }
     public void ConstructTileGrid()
     {
@@ -64,11 +65,11 @@ public class Tile
     private float _tileHeight;
     private Vector2 _tilePosition;
 
-    public Tile(float _tSize, float _tHeight,Vector2 _tPos) 
+    public Tile(float tileSize, float tileHeight,Vector2 tilePosition) 
     {
-        _tileSize = _tSize;
-        _tilePosition = _tPos;
-        _tileHeight = _tHeight;
+        _tileSize = tileSize;
+        _tilePosition = tilePosition;
+        _tileHeight = tileHeight;
     }
 
     public Vector4 GetTilePosSize() 

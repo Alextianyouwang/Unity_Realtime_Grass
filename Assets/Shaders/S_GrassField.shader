@@ -2,7 +2,7 @@ Shader "Procedural/S_GrassField"
 {
     Properties
     {
-        [KeywordEnum(Off,MainWave,DetailedWave,ChunkID)] _Debug("DebugMode", Float) = 0
+        [KeywordEnum(Off,MainWave,DetailedWave,ChunkID,LOD)] _Debug("DebugMode", Float) = 0
 
         _MainTex ("Texture", 2D) = "white" {}
         _Scale("Scale", Range(0,1)) = 1
@@ -44,7 +44,7 @@ Shader "Procedural/S_GrassField"
             #pragma shader_feature _ _USE_MAINWAVE_ON
             #pragma shader_feature _ _USE_DETAIL_ON
             #pragma shader_feature _ _USE_RANDOM_HEIGHT_ON
-            #pragma shader_feature _DEBUG_OFF _DEBUG_MAINWAVE _DEBUG_DETAILEDWAVE _DEBUG_CHUNKID
+            #pragma shader_feature _DEBUG_OFF _DEBUG_MAINWAVE _DEBUG_DETAILEDWAVE _DEBUG_CHUNKID _DEBUG_LOD
             
             #include "HL_GrassField.hlsl"
             

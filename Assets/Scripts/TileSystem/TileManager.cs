@@ -13,10 +13,13 @@ public class TileManager : MonoBehaviour
     public Vector2 TileGridCenterXZ;
     public Camera RenderCam;
 
-    public Mesh SpawnMesh;
+    public Mesh[] SpawnMesh;
     public Material SpawnMeshMaterial;
     public int SpawnSubivisions = 3;
     public bool SmoothPlacement = true;
+    public int ChunksPerSide = 4;
+    public float LOD_Threshold_01 = 20;
+    public float LOD_Threshold_12 = 40;
 
     public bool ShowDebugView = true;
     public Material DebugMaterial;
@@ -56,9 +59,12 @@ public class TileManager : MonoBehaviour
             return;
         if (SpawnMesh == null)
             return;
+        foreach (Mesh m in SpawnMesh)
+            if (m == null)
+                return;
         if (SpawnMeshMaterial == null) 
             return;
-        _tileChunkDispatcher = new TileChunkDispatcher(SpawnMesh, SpawnMeshMaterial, _tileData, SpawnSubivisions, RenderCam, SmoothPlacement);
+        _tileChunkDispatcher = new TileChunkDispatcher(SpawnMesh, SpawnMeshMaterial, _tileData, SpawnSubivisions, RenderCam, SmoothPlacement,ChunksPerSide, LOD_Threshold_01,LOD_Threshold_12);
         _tileChunkDispatcher.InitialSpawn();
         _tileChunkDispatcher.InitializeChunks();
     }
