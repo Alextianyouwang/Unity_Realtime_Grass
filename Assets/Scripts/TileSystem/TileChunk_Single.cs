@@ -1,7 +1,7 @@
 using Unity.Mathematics;
 using UnityEngine;
 
-public class TileFunctions 
+public class TileChunk_Single
 {
     private TileData _tileData;
 
@@ -19,6 +19,7 @@ public class TileFunctions
     private uint[] _args;
     private SpawnData[] _spawnData;
     private int _tileCount;
+    private Vector2 _renderOffsets;
 
     private bool _smoothPlacement;
     private int _spawnSubivisions;
@@ -28,7 +29,7 @@ public class TileFunctions
         float3 positionWS;
     };
 
-    public TileFunctions(Mesh _mesh, Material _mat, TileData _t, int _div, Camera _cam,bool _smooth) 
+    public TileChunk_Single(Mesh _mesh, Material _mat, TileData _t, int _div, Camera _cam,bool _smooth, Vector2 _offsets) 
     {
         _spawnMesh = _mesh;
         _spawnMeshMaterial = _mat;
@@ -36,6 +37,7 @@ public class TileFunctions
        _spawnSubivisions = _div;
         _randerCam = _cam;
         _smoothPlacement = _smooth;
+        _renderOffsets = _offsets;
     }
 
     public void SetupTileCompute()
