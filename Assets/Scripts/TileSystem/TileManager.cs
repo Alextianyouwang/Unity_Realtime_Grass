@@ -8,7 +8,7 @@ public class TileManager : MonoBehaviour
     private TileChunkDispatcher _tileChunkDispatcher;
     public Texture2D TileHeightmap;
     public float TileHeightMultiplier = 1;
-    public float TileSize;
+    public float TileSize = 39.0625f;
     public int TileGridDimension = 512;
     public Vector2 TileGridCenterXZ;
     public Camera RenderCam;
@@ -54,22 +54,26 @@ public class TileManager : MonoBehaviour
             return;
         if (RenderCam == null)
             return;
-
+        if (SpawnMesh == null)
+            return;
+        if (SpawnMeshMaterial == null) 
+            return;
         _tileChunkDispatcher = new TileChunkDispatcher(SpawnMesh, SpawnMeshMaterial, _tileData, SpawnSubivisions, RenderCam, SmoothPlacement);
         _tileChunkDispatcher.InitialSpawn();
         _tileChunkDispatcher.InitializeChunks();
     }
     void SpawnObjectIndirect()
     {
-
+        if (_tileChunkDispatcher == null)
+            return;
         _tileChunkDispatcher.DispatchTileChunksDrawCall();
     }
     void CleanupTileFunction()
     {
+        if (_tileChunkDispatcher == null)
+            return;
         _tileChunkDispatcher.ReleaseBuffer();
     }
-
-
 
     void SetupTileDebug() 
     {

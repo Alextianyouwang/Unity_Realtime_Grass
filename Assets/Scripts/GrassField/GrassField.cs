@@ -21,7 +21,6 @@ public class GrassField : MonoBehaviour
     private ComputeBuffer _compactBuffer_cull;
     private ComputeBuffer _argsBuffer_static;
     private uint[] _args;
-    private Matrix4x4 _matrix_vp;
     private int _elementCount;
     private int _groupCount;
 
@@ -131,7 +130,6 @@ public class GrassField : MonoBehaviour
 
     private void InitializeShader_cull() 
     {
-        _matrix_vp = Camera.main.projectionMatrix * Camera.main.transform.worldToLocalMatrix;
         _elementCount =Utility.CeilToNearestPowerOf2(_spawnData.Length);
         _groupCount = Utility.CeilToNearestPowerOf2(_elementCount / 128);
         if (GrassMesh)
@@ -160,7 +158,7 @@ public class GrassField : MonoBehaviour
         /* Procedural */
         _compactBuffer_cull = new ComputeBuffer(_spawnData.Length, sizeof(float) * 3);
 
-        _cullShader.SetMatrix("_Camera_VP", _matrix_vp);
+
         _cullShader.SetInt("_InstanceCount", _spawnData.Length);
 
         _cullShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer_spawn);
@@ -197,9 +195,8 @@ public class GrassField : MonoBehaviour
 
         if (UseCulling) 
         {
-            _matrix_vp = Camera.main.projectionMatrix * Camera.main.transform.worldToLocalMatrix;
-            _cullShader.SetMatrix("_Camera_VP", _matrix_vp);
-
+            _cullShader.SetMatrix("_Camera_V", Camera.main.transform.worldToLocalMatrix);
+            _cullShader.SetMatrix("_Camera_P", Camera.main.projectionMatrix);
             _cullShader.Dispatch(4, 1, 1, 1);
             _cullShader.Dispatch(0, Mathf.CeilToInt(_spawnData.Length / 128f), 1, 1);
             _cullShader.Dispatch(1, _groupCount, 1, 1);

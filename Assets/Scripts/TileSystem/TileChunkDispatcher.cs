@@ -7,10 +7,8 @@ public class TileChunkDispatcher
     private TileData _tileData;
 
     private ComputeShader _spawnOnTileShader;
-    private ComputeShader _cullShader;
     private ComputeBuffer _rawSpawnBuffer; 
     private ComputeBuffer _vertBuffer;
-    private ComputeBuffer _argsBuffer;
 
     private Mesh _spawnMesh;
     private Material _spawnMeshMaterial;
@@ -56,16 +54,6 @@ public class TileChunkDispatcher
         _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 3);
         _rawSpawnBuffer.SetData(_spawnData);
 
-        _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
-        _args = new uint[] {
-            _spawnMesh.GetIndexCount(0),
-            (uint)(_tileCount * instancePerTile),
-            _spawnMesh.GetIndexStart(0),
-            _spawnMesh.GetBaseVertex(0),
-            0
-        };
-        _argsBuffer.SetData(_args);
-
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
         _spawnOnTileShader.SetInt("_Subdivisions", _spawnSubivisions);
         _spawnOnTileShader.SetInt("_NumTilesPerSide", _tileData.TileGridDimension);
@@ -86,9 +74,6 @@ public class TileChunkDispatcher
         _chunks = new TileChunk[chunkPerSide * chunkPerSide];
         int chunkDimension = _tileData.TileGridDimension / chunkPerSide;
         int totalInstancePerChunk = chunkDimension * chunkDimension * _spawnSubivisions * _spawnSubivisions;
-        float inc = _tileData.TileGridDimension * _tileData.TileSize / chunkPerSide;
-        Vector2 botLeft = _tileData.TileGridCenterXZ - ( chunkPerSide - 0.5f) * Vector2.one * inc ;
-
         for (int x = 0; x < chunkPerSide; x++)
         {
             for (int y = 0; y < chunkPerSide; y++) 
@@ -103,16 +88,8 @@ public class TileChunkDispatcher
                 _spawnOnTileShader.SetBuffer(1, "_ChunkSpawnBuffer", chunkBuffer);
                 _spawnOnTileShader.Dispatch(1, Mathf.CeilToInt(totalInstancePerChunk / 128f), 1, 1);
 
-                ComputeBuffer chunkArgsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
-                _args = new uint[] {
-            _spawnMesh.GetIndexCount(0),
-            (uint)totalInstancePerChunk,
-            _spawnMesh.GetIndexStart(0),
-            _spawnMesh.GetBaseVertex(0),
-            0
-        };
-                chunkArgsBuffer.SetData(_args);
-                _chunks[x * chunkPerSide + y] = new TileChunk(_spawnMesh, _spawnMeshMaterial, _randerCam, chunkBuffer, chunkArgsBuffer);
+                _chunks[x * chunkPerSide + y] = new TileChunk(_spawnMesh, _spawnMeshMaterial, _randerCam, chunkBuffer);
+                _chunks[x * chunkPerSide + y].Setup();
             }
         }
     }
@@ -120,7 +97,7 @@ public class TileChunkDispatcher
     public void DispatchTileChunksDrawCall() 
     {
         foreach (TileChunk t in _chunks)
-            t.DrawIndirect();
+            t?.DrawIndirect();
 
     }
 
@@ -128,11 +105,9 @@ public class TileChunkDispatcher
     public void ReleaseBuffer()
     {
         _vertBuffer?.Dispose();
-        _argsBuffer?.Dispose();
         _rawSpawnBuffer?.Dispose();
         foreach (TileChunk t in _chunks)
-            t.ReleaseBuffer();
-
+            t?.ReleaseBuffer();
     }
 }
 

@@ -9,7 +9,6 @@ public class TileData
 
     private Texture2D _heightMap;
     private float _tileHeightMult;
-
     private Vector3[] _tileVerts;
     public TileData(Vector2 _center, int _dimension, float _tileSize, Texture2D _tex,float _heightMult)
     {
