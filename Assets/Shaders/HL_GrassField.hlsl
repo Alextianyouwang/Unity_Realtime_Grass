@@ -26,6 +26,7 @@ struct SpawnData
     float3 positionWS;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
+float3 _ChunkColor;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 float _Scale, _Bend, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,_WindAmplitude,
 _DetailSpeed, _DetailAmplitude, _DetailFrequency,
@@ -54,25 +55,25 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 
     float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS ;
     
-    float wave;
+   
     #if  _USE_MAINWAVE_ON
-        wave = SinWaveWithNoise(spawnPosWS.xz, _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
+        float wave = SinWaveWithNoise(spawnPosWS.xz, _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
     #else
-        wave = 0;
+        float wave = 0;
     #endif
     
-    float detail;
+    
     #if _USE_DETAIL_ON
-        detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
+        float detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
     #else
-        detail = 0;
+        float detail = 0;
     #endif
     
-    float heightPerlin;
+    
     #if _USE_RANDOM_HEIGHT_ON
-        heightPerlin = Perlin(spawnPosWS.xz * 20)*_HeightRandomnessAmplitude;
+        float heightPerlin = Perlin(spawnPosWS.xz * 20)*_HeightRandomnessAmplitude;
     #else
-        heightPerlin = 0;
+        float heightPerlin  = 0;
     #endif
     
     float rand = rand3dTo1d(spawnPosWS * 78.233);
@@ -100,6 +101,8 @@ float4 frag(VertexOutput v) : SV_Target
         return v.debug.x;
 #elif _DEBUG_DETAILEDWAVE
         return v.debug.y;
+#elif _DEBUG_CHUNKID
+    return _ChunkColor.xyzz;
 #else 
     return color;
 #endif

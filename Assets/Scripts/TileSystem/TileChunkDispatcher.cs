@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class TileChunkDispatcher
 {
-    private TileChunk[] _chunks;
+    public TileChunk[] Chunks { get; private set; }
     private TileData _tileData;
 
     private ComputeShader _spawnOnTileShader;
@@ -71,9 +71,12 @@ public class TileChunkDispatcher
             _tileData.TileGridDimension % 3 == 0 ? 3 : 1;
 
 
-        _chunks = new TileChunk[chunkPerSide * chunkPerSide];
+        Chunks = new TileChunk[chunkPerSide * chunkPerSide];
         int chunkDimension = _tileData.TileGridDimension / chunkPerSide;
         int totalInstancePerChunk = chunkDimension * chunkDimension * _spawnSubivisions * _spawnSubivisions;
+        float chunkSize = _tileData.TileGridDimension * _tileData.TileSize / chunkPerSide;
+        Vector2 botLeft = _tileData.TileGridCenterXZ - chunkSize * chunkPerSide * Vector2.one / 2 + Vector2.one * chunkSize / 2;
+        
         for (int x = 0; x < chunkPerSide; x++)
         {
             for (int y = 0; y < chunkPerSide; y++) 
@@ -87,16 +90,16 @@ public class TileChunkDispatcher
                 _spawnOnTileShader.SetBuffer(1, "_SpawnBuffer", _rawSpawnBuffer);
                 _spawnOnTileShader.SetBuffer(1, "_ChunkSpawnBuffer", chunkBuffer);
                 _spawnOnTileShader.Dispatch(1, Mathf.CeilToInt(totalInstancePerChunk / 128f), 1, 1);
-
-                _chunks[x * chunkPerSide + y] = new TileChunk(_spawnMesh, _spawnMeshMaterial, _randerCam, chunkBuffer);
-                _chunks[x * chunkPerSide + y].Setup();
+                Bounds b = new Bounds( new Vector3 (botLeft.x + chunkSize* x,0,botLeft.y + chunkSize * y) ,Vector3.one * chunkSize);
+                Chunks[x * chunkPerSide + y] = new TileChunk(_spawnMesh, _spawnMeshMaterial, _randerCam, chunkBuffer, (ComputeShader)Resources.Load("CS_GrassCulling"),b);
+                Chunks[x * chunkPerSide + y].Setup();
             }
         }
     }
 
     public void DispatchTileChunksDrawCall() 
     {
-        foreach (TileChunk t in _chunks)
+        foreach (TileChunk t in Chunks)
             t?.DrawIndirect();
 
     }
@@ -106,7 +109,7 @@ public class TileChunkDispatcher
     {
         _vertBuffer?.Dispose();
         _rawSpawnBuffer?.Dispose();
-        foreach (TileChunk t in _chunks)
+        foreach (TileChunk t in Chunks)
             t?.ReleaseBuffer();
     }
 }

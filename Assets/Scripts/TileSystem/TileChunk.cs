@@ -1,9 +1,8 @@
-
-using Unity.Mathematics;
 using UnityEngine;
 
 public class TileChunk
 {
+    public Bounds ChunkBounds { get; private set; }
 
     private Mesh _spawnMesh;
     private Material _spawnMeshMaterial;
@@ -24,18 +23,21 @@ public class TileChunk
     private int _elementCount;
     private int _groupCount;
 
+    private Color _chunkColor;
+
     struct SpawnData
     {
-        float3 positionWS;
+        Vector3 positionWS;
     };
 
-    public TileChunk(Mesh _mesh, Material _mat,  Camera _cam, ComputeBuffer _initialBuffer) 
+    public TileChunk(Mesh _mesh, Material _mat,  Camera _cam, ComputeBuffer _initialBuffer,ComputeShader _cull,Bounds _bounds) 
     {
         _spawnMesh = _mesh;
         _spawnMeshMaterial = _mat;
         _randerCam = _cam;
         _spawnBuffer = _initialBuffer;
-
+        _cullShader = _cull;
+        ChunkBounds = _bounds;
         _mpb = new MaterialPropertyBlock();
     }
 
@@ -82,6 +84,7 @@ public class TileChunk
         _cullShader.SetBuffer(3, "_ArgsBuffer", _argsBuffer);
 
         _cullShader.SetBuffer(4, "_ArgsBuffer", _argsBuffer);
+        _chunkColor = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
     }
 
 
@@ -102,9 +105,9 @@ public class TileChunk
         _cullShader.Dispatch(2, 1, 1, 1);
         _cullShader.Dispatch(3, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);
 
-        _mpb.SetBuffer("_SpawnBuffer", _compactBuffer);
-        Bounds bounds = new Bounds(Vector3.zero, Vector3.one * 200);
-        Graphics.DrawMeshInstancedIndirect(_spawnMesh, 0, _spawnMeshMaterial,bounds, _argsBuffer,
+        _mpb.SetBuffer("_SpawnBuffer",_compactBuffer);
+        _mpb.SetColor("_ChunkColor",_chunkColor);
+        Graphics.DrawMeshInstancedIndirect(_spawnMesh, 0, _spawnMeshMaterial,new Bounds (Vector3.zero,Vector3.one * 200), _argsBuffer,
             0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
     }
     

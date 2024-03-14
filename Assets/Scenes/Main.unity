@@ -175,7 +175,7 @@ MonoBehaviour:
   RenderCam: {fileID: 583219404}
   SpawnMesh: {fileID: 4300000, guid: 696ee1f4a69d2f442add066d155d15aa, type: 2}
   SpawnMeshMaterial: {fileID: 2100000, guid: 815a509e078cc4b43af2350162c58ce8, type: 2}
-  SpawnSubivisions: 3
+  SpawnSubivisions: 4
   SmoothPlacement: 1
   ShowDebugView: 1
   DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
@@ -310,7 +310,7 @@ Transform:
   m_GameObject: {fileID: 583219401}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.07454398, z: -0, w: -0.9972177}
-  m_LocalPosition: {x: 8.6, y: 4.41, z: -79.4}
+  m_LocalPosition: {x: 23.6, y: 6, z: -61.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

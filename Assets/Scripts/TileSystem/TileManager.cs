@@ -95,4 +95,18 @@ public class TileManager : MonoBehaviour
         _tileVisualizer.ReleaseBuffer();
     }
 
+    private void OnDrawGizmos()
+    {
+        if (_tileChunkDispatcher == null)
+            return;
+        if (_tileChunkDispatcher.Chunks == null)
+            return;
+        foreach (TileChunk c in _tileChunkDispatcher.Chunks) 
+        {
+            if (c == null)
+                continue;
+            Gizmos.DrawWireCube(c.ChunkBounds.center, c.ChunkBounds.size);
+        }
+    }
+
 }
