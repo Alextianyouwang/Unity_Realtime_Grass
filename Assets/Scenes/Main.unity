@@ -162,7 +162,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 119619943}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 383013453dda13b4c8dd631c3fb97f87, type: 3}
   m_Name: 
@@ -185,7 +185,7 @@ MonoBehaviour:
   LOD_Threshold_12: 125
   MaxRenderDistance: 200
   DensityFalloffThreshold: 10
-  ShowDebugView: 0
+  ShowDebugView: 1
   DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
 --- !u!1 &583219401
 GameObject:

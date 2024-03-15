@@ -4,6 +4,7 @@ public class TileChunkDispatcher
 {
     public TileChunk[] Chunks { get; private set; }
     private TileData _tileData;
+    private TileClumpParser _tileClumpParser;
 
     private ComputeShader _spawnOnTileShader;
     private ComputeBuffer _rawSpawnBuffer; 
@@ -17,6 +18,7 @@ public class TileChunkDispatcher
     {
         Vector3 positionWS;
         float hash;
+        Vector4 clumpInfo;
     };
     private SpawnData[] _spawnData;
     private int _tileCount;
@@ -24,8 +26,9 @@ public class TileChunkDispatcher
     private bool _smoothPlacement;
     private int _spawnSubivisions;
     private int _chunksPerSide;
+    private int _tilePerClump;
 
-    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, int spawnSubD, Camera renderCam, bool smoothPlacement, int chunkPerSide)
+    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, int spawnSubD, Camera renderCam, bool smoothPlacement, int chunkPerSide, int tilePerClump)
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -34,7 +37,9 @@ public class TileChunkDispatcher
         _renderCam = renderCam;
         _smoothPlacement = smoothPlacement;
         _chunksPerSide = chunkPerSide;
+        _tilePerClump = tilePerClump;
     }
+
 
     public void InitialSpawn()
     {
@@ -45,7 +50,7 @@ public class TileChunkDispatcher
         _vertBuffer.SetData(_tileData.GetTileVerts());
 
         _spawnData = new SpawnData[_tileCount * instancePerTile];
-        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 4);
+        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 8);
         _rawSpawnBuffer.SetData(_spawnData);
 
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
@@ -58,8 +63,22 @@ public class TileChunkDispatcher
         _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
     }
 
+
+    public ComputeBuffer ProcessWithClumpData() 
+    {
+        _tileClumpParser = new TileClumpParser(
+            _rawSpawnBuffer,
+            _tilePerClump,
+            _tileData.TileGridDimension,
+            _tileData.TileSize,
+            _tileData.TileGridCenterXZ - Vector2.one * _tileData.TileGridDimension * _tileData.TileSize * 0.5f
+            );
+        _tileClumpParser.ParseClump();
+        return _tileClumpParser.ShareSpawnBuffer();
+    }
     public void InitializeChunks() 
     {
+        _rawSpawnBuffer =  ProcessWithClumpData();
         Chunks = new TileChunk[_chunksPerSide * _chunksPerSide];
         int chunkDimension = _tileData.TileGridDimension / _chunksPerSide;
         int totalInstancePerChunk = chunkDimension * chunkDimension * _spawnSubivisions * _spawnSubivisions;
@@ -71,7 +90,7 @@ public class TileChunkDispatcher
             for (int y = 0; y < _chunksPerSide; y++) 
             {
                 SpawnData[] spawnDatas = new SpawnData[totalInstancePerChunk];
-                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 4);
+                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 8);
                 chunkBuffer.SetData(spawnDatas);
                 _spawnOnTileShader.SetInt("_ChunkIndexX", x);
                 _spawnOnTileShader.SetInt("_ChunkIndexY", y);
@@ -85,18 +104,20 @@ public class TileChunkDispatcher
                     _spawnMeshMaterial, 
                     _renderCam, 
                     chunkBuffer, 
+                    // Still don't know whats the difference between using a single compute shader
+                    // and using multiple instanced compute shaders, currently go with the second.
                     (ComputeShader)Resources.Load("CS_GrassCulling"),
                     b);
                 Chunks[x * _chunksPerSide + y].Setup();
             }
         }
     }
+
     public void DispatchTileChunksDrawCall() 
     {
         foreach (TileChunk t in Chunks)
             t?.DrawIndirect();
     }
-
 
     public void ReleaseBuffer()
     {
@@ -104,6 +125,7 @@ public class TileChunkDispatcher
         _rawSpawnBuffer?.Dispose();
         foreach (TileChunk t in Chunks)
             t?.ReleaseBuffer();
+        _tileClumpParser?.ReleaseBuffer();
     }
 }
 

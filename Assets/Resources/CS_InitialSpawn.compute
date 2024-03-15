@@ -10,6 +10,7 @@ struct SpawnData
 {
     float3 positionWS;
     float hash;
+    float4 clumpInfo;
 };
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
 
@@ -102,9 +103,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     if (id.x >= _NumTiles )
         return;
     
-        float3 verts[4];
-    GetVertsAtCurrentTile(id.x, verts);
-
+    float3 verts[4];
     GetNeighborAveragedVerts(id.x, verts);
     
     uint iteration = _Subdivisions;
@@ -129,6 +128,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             SpawnData o;
             o.positionWS = pos;
             o.hash = rand3dTo1d(pos * 78.233);
+            o.clumpInfo = float4(0, 0, 0,0);
             _SpawnBuffer[x * iteration + z + id.x * iteration * iteration] = o;
         }
     }

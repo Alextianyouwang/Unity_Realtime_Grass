@@ -16,6 +16,7 @@ public class TileManager : MonoBehaviour
     public int SpawnSubivisions = 3;
     public bool SmoothPlacement = true;
     public int ChunksPerSide = 4;
+    public int TilePerClump = 8;
     public float LOD_Threshold_01 = 45;
     public float LOD_Threshold_12 = 125;
     public float MaxRenderDistance = 200;
@@ -86,7 +87,8 @@ public class TileManager : MonoBehaviour
             SpawnSubivisions, 
             RenderCam, 
             SmoothPlacement,
-            ChunksPerSide);
+            ChunksPerSide,
+            TilePerClump);
         _tileChunkDispatcher.InitialSpawn();
         _tileChunkDispatcher.InitializeChunks();
     }

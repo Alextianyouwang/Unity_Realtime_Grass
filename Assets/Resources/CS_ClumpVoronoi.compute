@@ -1,0 +1,94 @@
+
+#pragma kernel InitializeClumpCenter
+#pragma kernel CreateVoronoi
+
+struct SpawnData
+{
+    float3 positionWS;
+    float hash;
+    float4 clumpInfo;
+};
+StructuredBuffer<SpawnData> _SpawnBuffer;
+RWStructuredBuffer<SpawnData> _ClumpEnabledSpawnBuffer;
+RWStructuredBuffer<float2> _ClumpCenterBuffer;
+
+#include "../INCLUDE/HL_Noise.hlsl"
+
+float _ClumpIncrement;
+uint _ClumpMaxCount;
+uint _ClumpPerSide;
+float _CornerX;
+float _CornerY;
+
+uint _InstanceMaxCount;
+
+[numthreads(128,1,1)]
+void InitializeClumpCenter(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _ClumpMaxCount)
+        return;
+    
+    int xCoord = id.x / _ClumpPerSide;
+    int yCoord = id.x % _ClumpPerSide;
+    
+    float2 clumpPosXZ = float2(_CornerX + xCoord * _ClumpIncrement, _CornerX + yCoord * _ClumpIncrement);
+    float2 noise = rand2dTo2d(clumpPosXZ) * _ClumpIncrement;
+    clumpPosXZ += noise;
+    _ClumpCenterBuffer[id.x] = clumpPosXZ;
+
+}
+
+int2 GetBelongedClump(float2 pos)
+{
+    int x = floor((pos.x - _CornerX) / _ClumpIncrement);
+    int y = floor((pos.y - _CornerY) / _ClumpIncrement);
+    return int2(x,y);
+
+}
+
+uint GetOffsetedIndex(uint2 i, int2 offset)
+{
+    i += offset;
+    i.x = i.x >= 0 ? i.x : 0;
+    i.y = i.y >= 0 ? i.y : 0;
+    i.x = i.x <= _ClumpPerSide - 1 ? i.x : _ClumpPerSide - 1;
+    i.y = i.y <= _ClumpPerSide - 1 ? i.y : _ClumpPerSide - 1;
+    int index = i.x * _ClumpPerSide + i.y;
+    return (uint) index;
+}
+
+[numthreads(128, 1, 1)]
+void CreateVoronoi(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _InstanceMaxCount)
+        return;
+    
+   float2 samplePos = _SpawnBuffer[id.x].positionWS.xz;
+   
+   int closestClump = 0;
+   float closestDist = 100000;
+     [unroll]
+   for (int x = -1; x <= 1; x++)
+   {
+       [unroll]
+       for (int y = -1; y <= 1; y++)
+       {
+           int currentClump = GetOffsetedIndex(GetBelongedClump(samplePos), int2(x, y));
+           float2 clumpPos = _ClumpCenterBuffer[currentClump];
+           float dist = distance(clumpPos, samplePos);
+           if (dist < closestDist)
+           {
+               closestDist = dist;
+               closestClump = currentClump;
+           }
+           
+       }
+   }
+   float2 clumpPos = _ClumpCenterBuffer[closestClump];
+    SpawnData o;
+    o.positionWS = _SpawnBuffer[id.x].positionWS;
+    o.hash = _SpawnBuffer[id.x].hash;
+    o.clumpInfo = float4(clumpPos.xy, closestDist, rand2dTo1d(clumpPos * 78.233));
+    _ClumpEnabledSpawnBuffer[id.x] = o;
+    
+}

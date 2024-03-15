@@ -15,6 +15,7 @@ struct SpawnData
 {
     float3 positionWS;
     float hash;
+    float4 clumpInfo;
 };
 
 StructuredBuffer<SpawnData> _SpawnBuffer;
@@ -59,7 +60,6 @@ void Vote (uint3 id : SV_DispatchThreadID)
     float3 posVS = mul(_Camera_V, float4(pos, 1)).xyz;
     float4 posCS = mul(_Camera_P, float4(posVS, 1));
     float3 posNDS = posCS.xyz / posCS.w;
-    
     posNDS.z = -posCS.w;
 
     float dist = posNDS.z / dot(normalize(posVS), float3(0, 0, 1));

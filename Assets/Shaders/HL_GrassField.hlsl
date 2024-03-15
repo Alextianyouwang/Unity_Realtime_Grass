@@ -18,6 +18,7 @@ struct VertexOutput
     float3 normalWS : TEXCOORD1;
     float3 positionWS : TEXCOORD2;
     float4 debug : TEXCOORD3;
+    float4 clumpInfo : TEXCOORD4;
    
     
 };
@@ -25,6 +26,7 @@ struct SpawnData
 {
     float3 positionWS;
     float hash;
+    float4 clumpInfo;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 float3 _ChunkColor,_LOD_Color;
@@ -90,6 +92,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.normalWS = TransformObjectToWorldNormal(v.normalOS);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.debug = float4(wave, detail, _SpawnBuffer[instanceID].hash, 0);
+    o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
     return o;
 }
 
@@ -104,10 +107,13 @@ float4 frag(VertexOutput v) : SV_Target
 #elif _DEBUG_DETAILEDWAVE
         return v.debug.y;
 #elif _DEBUG_CHUNKID
-    return _ChunkColor.xyzz;
+        return _ChunkColor.xyzz;
 #elif _DEBUG_LOD
-    return _LOD_Color.xyzz;
+        return _LOD_Color.xyzz;
+#elif _DEBUG_CLUMPCELL
+        return v.clumpInfo.wwzz;
 #else 
+
     return color;
 #endif
 }
