@@ -1,7 +1,4 @@
-using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 public class TileChunkDispatcher
 {
@@ -27,9 +24,6 @@ public class TileChunkDispatcher
     private bool _smoothPlacement;
     private int _spawnSubivisions;
     private int _chunksPerSide;
-
-    private RenderTexture _depthTex;
-
 
     public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, int spawnSubD, Camera renderCam, bool smoothPlacement, int chunkPerSide)
     {
@@ -62,9 +56,6 @@ public class TileChunkDispatcher
         _spawnOnTileShader.SetBuffer(0, "_VertBuffer", _vertBuffer);
         _spawnOnTileShader.SetBuffer(0, "_SpawnBuffer", _rawSpawnBuffer);
         _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
-
-        //_depthTex = RenderTexture.GetTemporary(_renderCam.pixelWidth, _renderCam.pixelHeight, 0, RenderTextureFormat.R16, RenderTextureReadWrite.Linear);
-
     }
 
     public void InitializeChunks() 
@@ -95,22 +86,15 @@ public class TileChunkDispatcher
                     _renderCam, 
                     chunkBuffer, 
                     (ComputeShader)Resources.Load("CS_GrassCulling"),
-                    b,
-                    _depthTex);
+                    b);
                 Chunks[x * _chunksPerSide + y].Setup();
             }
         }
     }
     public void DispatchTileChunksDrawCall() 
     {
-        /*CommandBuffer depthBuffer = new CommandBuffer();
-        depthBuffer.name = "GetDephtTexture";
-        depthBuffer.Blit(Shader.GetGlobalTexture("_CameraDepthTexture"), _depthTex);
-        Graphics.ExecuteCommandBuffer(depthBuffer);
-        depthBuffer.Release();*/
         foreach (TileChunk t in Chunks)
             t?.DrawIndirect();
-
     }
 
 
@@ -120,8 +104,6 @@ public class TileChunkDispatcher
         _rawSpawnBuffer?.Dispose();
         foreach (TileChunk t in Chunks)
             t?.ReleaseBuffer();
-
-        _depthTex?.Release();
     }
 }
 

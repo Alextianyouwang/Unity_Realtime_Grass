@@ -25,16 +25,13 @@ public class TileChunk
 
     private Color _chunkColor;
     private Bounds _fieldBounds;
-
-    private RenderTexture _depthTex;
-
     struct SpawnData
     {
         Vector3 positionWS;
         float hash;
     };
 
-    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,ComputeShader cullShader,Bounds chunkBounds,RenderTexture depthTex) 
+    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,ComputeShader cullShader,Bounds chunkBounds) 
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -43,7 +40,6 @@ public class TileChunk
         _cullShader = cullShader;
         ChunkBounds = chunkBounds;
         _mpb = new MaterialPropertyBlock();
-        _depthTex = depthTex;
     }
 
     public void Setup() 
@@ -114,10 +110,6 @@ public class TileChunk
             || _argsBuffer == null
             )
             return;
-
-        /*_cullShader.SetInt("_ScreenW", _renderCam.pixelWidth);
-        _cullShader.SetInt("_ScreenH", _renderCam.pixelHeight);
-        _cullShader.SetTexture(0,"_DepthTex", _depthTex);*/
 
         _cullShader.SetMatrix("_Camera_P", _renderCam.projectionMatrix);
         _cullShader.SetMatrix("_Camera_V",_renderCam.transform.worldToLocalMatrix);
