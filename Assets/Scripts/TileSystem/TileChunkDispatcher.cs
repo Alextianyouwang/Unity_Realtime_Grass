@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class TileChunkDispatcher
 {
@@ -57,6 +58,11 @@ public class TileChunkDispatcher
         _spawnOnTileShader.SetBuffer(0, "_VertBuffer", _vertBuffer);
         _spawnOnTileShader.SetBuffer(0, "_SpawnBuffer", _rawSpawnBuffer);
         _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
+        /*RenderTexture gbuffer0 = RenderTexture.GetTemporary(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+        CommandBuffer commandBuffer = new CommandBuffer();
+        commandBuffer.Blit(BuiltinRenderTextureType.Depth, gbuffer0);
+        Graphics.ExecuteCommandBuffer(commandBuffer);
+        Debug.Log(gbuffer0.width);*/
     }
 
     public void InitializeChunks() 

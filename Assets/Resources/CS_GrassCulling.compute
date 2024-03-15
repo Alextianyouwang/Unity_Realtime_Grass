@@ -62,7 +62,8 @@ void Vote (uint3 id : SV_DispatchThreadID)
     posNDS.z = -posCS.w;
 
     float dist = posNDS.z / dot(normalize(posVS), float3(0, 0, 1));
-    float remap = invLerp(_DensityFalloffDist, _MaxRenderDist, dist);
+    float remap = saturate(invLerp(_DensityFalloffDist, _MaxRenderDist, dist));
+    remap = pow(remap, 0.5);
    
     
     bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || dist > _MaxRenderDist) ? 0:1;
