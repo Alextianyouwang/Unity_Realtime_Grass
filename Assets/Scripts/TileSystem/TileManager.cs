@@ -3,9 +3,7 @@ using UnityEngine;
 [DefaultExecutionOrder(-98)]
 public class TileManager : MonoBehaviour
 {
-    private TileData _tileData;
-    private TileVisualizer _tileVisualizer;
-    private TileChunkDispatcher _tileChunkDispatcher;
+
     public Texture2D TileHeightmap;
     public float TileHeightMultiplier = 1;
     public float TileSize = 39.0625f;
@@ -18,18 +16,34 @@ public class TileManager : MonoBehaviour
     public int SpawnSubivisions = 3;
     public bool SmoothPlacement = true;
     public int ChunksPerSide = 4;
-    public float LOD_Threshold_01 = 20;
-    public float LOD_Threshold_12 = 40;
+    public float LOD_Threshold_01 = 45;
+    public float LOD_Threshold_12 = 125;
+    public float MaxRenderDistance = 200;
+    public float DensityFalloffThreshold = 10;
 
     public bool ShowDebugView = true;
     public Material DebugMaterial;
 
 
+    private TileData _tileData;
+    private TileVisualizer _tileVisualizer;
+    private TileChunkDispatcher _tileChunkDispatcher;
+    public static float _LOD_Threshold_01;
+    public static float _LOD_Threshold_12;
+    public static float _MaxRenderDistance;
+    public static float _DensityFalloffThreshold;
+
+
     private void OnEnable()
     {
+        _LOD_Threshold_01 = LOD_Threshold_01;
+        _LOD_Threshold_12 = LOD_Threshold_12;
+        _MaxRenderDistance = MaxRenderDistance;
+        _DensityFalloffThreshold = DensityFalloffThreshold;
         SetupTileGrid();
         SetupTileDebug();
         SetupTileFunctions();
+   
     }
     private void OnDisable()
     {
@@ -64,7 +78,14 @@ public class TileManager : MonoBehaviour
                 return;
         if (SpawnMeshMaterial == null) 
             return;
-        _tileChunkDispatcher = new TileChunkDispatcher(SpawnMesh, SpawnMeshMaterial, _tileData, SpawnSubivisions, RenderCam, SmoothPlacement,ChunksPerSide, LOD_Threshold_01,LOD_Threshold_12);
+        _tileChunkDispatcher = new TileChunkDispatcher(
+            SpawnMesh, 
+            SpawnMeshMaterial, 
+            _tileData, 
+            SpawnSubivisions, 
+            RenderCam, 
+            SmoothPlacement,
+            ChunksPerSide);
         _tileChunkDispatcher.InitialSpawn();
         _tileChunkDispatcher.InitializeChunks();
     }

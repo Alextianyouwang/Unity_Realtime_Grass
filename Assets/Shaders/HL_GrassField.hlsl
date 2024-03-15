@@ -24,6 +24,7 @@ struct VertexOutput
 struct SpawnData
 {
     float3 positionWS;
+    float hash;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 float3 _ChunkColor,_LOD_Color;
@@ -54,6 +55,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     VertexOutput o;
 
     float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS ;
+    float hash = _SpawnBuffer[instanceID].hash ;
     
    
     #if  _USE_MAINWAVE_ON
@@ -87,7 +89,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.positionCS = TransformObjectToHClip(pos);
     o.normalWS = TransformObjectToWorldNormal(v.normalOS);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-    o.debug = float4(wave, detail, 0, 0);
+    o.debug = float4(wave, detail, _SpawnBuffer[instanceID].hash, 0);
     return o;
 }
 

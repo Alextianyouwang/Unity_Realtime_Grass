@@ -25,15 +25,14 @@ public class TileChunk
 
     private Color _chunkColor;
     private Bounds _fieldBounds;
-    private float _lodDist_01;
-    private float _lodDist_12;
 
     struct SpawnData
     {
         Vector3 positionWS;
+        float hash;
     };
 
-    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,ComputeShader cullShader,Bounds chunkBounds,float lodDist,float lodDist_12) 
+    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,ComputeShader cullShader,Bounds chunkBounds) 
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -42,8 +41,6 @@ public class TileChunk
         _cullShader = cullShader;
         ChunkBounds = chunkBounds;
         _mpb = new MaterialPropertyBlock();
-        _lodDist_01 = lodDist;
-        _lodDist_12 = lodDist_12;
     }
 
     public void Setup() 
@@ -58,7 +55,7 @@ public class TileChunk
         _groupScanInBuffer = new ComputeBuffer(_groupCount, sizeof(int));
         _groupScanOutBuffer = new ComputeBuffer(_groupCount, sizeof(int));
 
-        _compactBuffer = new ComputeBuffer(_elementCount, sizeof(float) * 3);
+        _compactBuffer = new ComputeBuffer(_elementCount, sizeof(float) * 4);
         _argsBuffer = new ComputeBuffer[_spawnMesh.Length];
         for(int i = 0; i< _spawnMesh.Length; i++)
         {
@@ -75,6 +72,8 @@ public class TileChunk
         
 
         _cullShader.SetInt("_InstanceCount", _spawnBuffer.count);
+        _cullShader.SetFloat("_MaxRenderDist", TileManager._MaxRenderDistance);
+        _cullShader.SetFloat("_DensityFalloffDist", TileManager._DensityFalloffThreshold);
 
         _cullShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
         _cullShader.SetBuffer(0, "_VoteBuffer", _voteBuffer);
@@ -124,21 +123,21 @@ public class TileChunk
         _mpb.SetColor("_ChunkColor",_chunkColor);
 
         float dist = Vector3.Distance(_randerCam.transform.position, ChunkBounds.center);
-        if (dist < _lodDist_01)
+        if (dist < TileManager._LOD_Threshold_01)
         {
             Graphics.DrawMeshInstancedIndirect(_spawnMesh[0], 0, _spawnMeshMaterial, _fieldBounds, _argsBuffer[0],
           0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
             _mpb.SetColor("_LOD_Color", Color.green);
 
         }
-        else if (dist >= _lodDist_01 && dist <= _lodDist_12)
+        else if (dist >= TileManager._LOD_Threshold_01 && dist <= TileManager._LOD_Threshold_12)
         {
             Graphics.DrawMeshInstancedIndirect(_spawnMesh[1], 0, _spawnMeshMaterial, _fieldBounds, _argsBuffer[1],
          0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
             _mpb.SetColor("_LOD_Color", Color.blue);
 
         }
-        else  if (dist > _lodDist_12)
+        else  if (dist > TileManager._LOD_Threshold_12)
         {
             Graphics.DrawMeshInstancedIndirect(_spawnMesh[2], 0, _spawnMeshMaterial, _fieldBounds, _argsBuffer[2],
            0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);

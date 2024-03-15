@@ -182,7 +182,9 @@ MonoBehaviour:
   SmoothPlacement: 1
   ChunksPerSide: 6
   LOD_Threshold_01: 45
-  LOD_Threshold_12: 85
+  LOD_Threshold_12: 125
+  MaxRenderDistance: 200
+  DensityFalloffThreshold: 10
   ShowDebugView: 1
   DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
 --- !u!1 &583219401
@@ -316,7 +318,7 @@ Transform:
   m_GameObject: {fileID: 583219401}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.07454398, z: -0, w: -0.9972177}
-  m_LocalPosition: {x: 13.4, y: 6.3, z: -91.7}
+  m_LocalPosition: {x: 9.31, y: 6.7, z: -90.49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -58,8 +58,8 @@ Material:
     - _WindNoiseWeight: 1
     - _WindSpeed: 0.776
     m_Colors:
-    - _BotColor: {r: 0.010679938, g: 0.38842186, b: 0.754717, a: 1}
-    - _TopColor: {r: 0, g: 1, b: 0.70690846, a: 1}
+    - _BotColor: {r: 0.6698113, g: 0, b: 0.60127515, a: 1}
+    - _TopColor: {r: 1, g: 0.73801374, b: 0.25, a: 1}
     - _WindDirection: {r: 1, g: 1, b: 0, a: 0}
     - _WindNoiseFrequency: {r: 0.3, g: 0.3, b: 0, a: 0}
   m_BuildTextureStacks: []

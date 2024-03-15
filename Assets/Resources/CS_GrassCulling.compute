@@ -16,6 +16,7 @@ struct Args
 struct SpawnData
 {
     float3 positionWS;
+    float hash;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 RWStructuredBuffer<uint> _VoteBuffer;
@@ -29,6 +30,8 @@ RWStructuredBuffer<Args> _ArgsBuffer2;
 
 
 uint _InstanceCount;
+float _MaxRenderDist;
+float _DensityFalloffDist;
 float4x4 _Camera_P;
 float4x4 _Camera_V;
 
@@ -38,6 +41,11 @@ float4x4 _Camera_V;
 groupshared int temp[2 * NUM_THREAD_GROUP];
 groupshared int tempGroup[2 * NUM_GROUP];
 
+float invLerp(float from, float to, float value)
+{
+    return (value - from) / (to - from);
+}
+
 [numthreads(128, 1, 1)]
 void Vote (uint3 id : SV_DispatchThreadID)
 {
@@ -45,17 +53,21 @@ void Vote (uint3 id : SV_DispatchThreadID)
         return;
     
     float3 pos = _SpawnBuffer[id.x].positionWS;
+    float hash = _SpawnBuffer[id.x].hash;
+
     
-    float3 viewVector = mul(_Camera_V, float4(pos, 1)).xyz;
-    float4 posCS = mul(_Camera_P, float4(viewVector, 1));
+    float3 posVS = mul(_Camera_V, float4(pos, 1)).xyz;
+    float4 posCS = mul(_Camera_P, float4(posVS, 1));
     float3 posNDS = posCS.xyz / posCS.w;
     posNDS.z = -posCS.w;
 
+    float dist = posNDS.z / dot(normalize(posVS), float3(0, 0, 1));
+    float remap = invLerp(_DensityFalloffDist, _MaxRenderDist, dist);
+   
     
-    bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || posNDS.z/ dot(normalize(viewVector), float3(0, 0, 1))  > 200.0) ? 0 : 1;
-    _VoteBuffer[id.x] = isInView;
-    
-
+    bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || dist > _MaxRenderDist) ? 0:1;
+    bool selected = step(hash, remap) == 0;
+    _VoteBuffer[id.x] = selected && isInView;
 }
 [numthreads(NUM_THREAD_GROUP, 1, 1)]
 void ScanThreadGroup(uint3 id : SV_DispatchThreadID, uint3 groupTID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
