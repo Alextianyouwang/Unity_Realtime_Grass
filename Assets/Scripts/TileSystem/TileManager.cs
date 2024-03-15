@@ -50,13 +50,14 @@ public class TileManager : MonoBehaviour
         CleanupTileVisual();
         CleanupTileFunction();
     }
-    private void Update()
+    private void LateUpdate()
     {
         if (ShowDebugView)
             DrawDebugView();
         SpawnObjectIndirect();
     }
- 
+
+
     void SetupTileGrid() 
     {
         if (TileHeightmap)

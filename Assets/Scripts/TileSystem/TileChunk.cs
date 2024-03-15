@@ -7,7 +7,7 @@ public class TileChunk
     private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
     private MaterialPropertyBlock _mpb;
-    private Camera _randerCam;
+    private Camera _renderCam;
 
     private ComputeShader _cullShader;
 
@@ -26,21 +26,24 @@ public class TileChunk
     private Color _chunkColor;
     private Bounds _fieldBounds;
 
+    private RenderTexture _depthTex;
+
     struct SpawnData
     {
         Vector3 positionWS;
         float hash;
     };
 
-    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,ComputeShader cullShader,Bounds chunkBounds) 
+    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,ComputeShader cullShader,Bounds chunkBounds,RenderTexture depthTex) 
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
-        _randerCam = renderCam;
+        _renderCam = renderCam;
         _spawnBuffer = initialBuffer;
         _cullShader = cullShader;
         ChunkBounds = chunkBounds;
         _mpb = new MaterialPropertyBlock();
+        _depthTex = depthTex;
     }
 
     public void Setup() 
@@ -74,6 +77,7 @@ public class TileChunk
         _cullShader.SetInt("_InstanceCount", _spawnBuffer.count);
         _cullShader.SetFloat("_MaxRenderDist", TileManager._MaxRenderDistance);
         _cullShader.SetFloat("_DensityFalloffDist", TileManager._DensityFalloffThreshold);
+
 
         _cullShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
         _cullShader.SetBuffer(0, "_VoteBuffer", _voteBuffer);
@@ -111,8 +115,12 @@ public class TileChunk
             )
             return;
 
-        _cullShader.SetMatrix("_Camera_P", _randerCam.projectionMatrix);
-        _cullShader.SetMatrix("_Camera_V",_randerCam.transform.worldToLocalMatrix);
+        /*_cullShader.SetInt("_ScreenW", _renderCam.pixelWidth);
+        _cullShader.SetInt("_ScreenH", _renderCam.pixelHeight);
+        _cullShader.SetTexture(0,"_DepthTex", _depthTex);*/
+
+        _cullShader.SetMatrix("_Camera_P", _renderCam.projectionMatrix);
+        _cullShader.SetMatrix("_Camera_V",_renderCam.transform.worldToLocalMatrix);
         _cullShader.Dispatch(4, 1, 1, 1);
         _cullShader.Dispatch(0, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);
         _cullShader.Dispatch(1, _groupCount, 1, 1);
@@ -122,7 +130,7 @@ public class TileChunk
         _mpb.SetBuffer("_SpawnBuffer",_compactBuffer);
         _mpb.SetColor("_ChunkColor",_chunkColor);
 
-        float dist = Vector3.Distance(_randerCam.transform.position, ChunkBounds.center);
+        float dist = Vector3.Distance(_renderCam.transform.position, ChunkBounds.center);
         if (dist < TileManager._LOD_Threshold_01)
         {
             Graphics.DrawMeshInstancedIndirect(_spawnMesh[0], 0, _spawnMeshMaterial, _fieldBounds, _argsBuffer[0],

@@ -185,7 +185,7 @@ MonoBehaviour:
   LOD_Threshold_12: 125
   MaxRenderDistance: 200
   DensityFalloffThreshold: 10
-  ShowDebugView: 1
+  ShowDebugView: 0
   DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
 --- !u!1 &583219401
 GameObject:
@@ -318,7 +318,7 @@ Transform:
   m_GameObject: {fileID: 583219401}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.10237931, z: -0, w: 0.9947455}
-  m_LocalPosition: {x: 7.13, y: 6.4, z: -90.1}
+  m_LocalPosition: {x: -3.9, y: 6.5, z: -95.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

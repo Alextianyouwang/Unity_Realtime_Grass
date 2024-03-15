@@ -4,7 +4,7 @@
 #pragma kernel Compact
 #pragma kernel ClearArgs
 
-
+#include "UnityCG.cginc"
 struct Args
 {
     uint meshVertCount;
@@ -18,6 +18,8 @@ struct SpawnData
     float3 positionWS;
     float hash;
 };
+Texture2D<float> _DepthTex;
+SamplerState sampler_DepthTex;
 StructuredBuffer<SpawnData> _SpawnBuffer;
 RWStructuredBuffer<uint> _VoteBuffer;
 RWStructuredBuffer<uint> _ScanBuffer;
@@ -34,12 +36,15 @@ float _MaxRenderDist;
 float _DensityFalloffDist;
 float4x4 _Camera_P;
 float4x4 _Camera_V;
+uint _ScreenW;
+uint _ScreenH;
 
 #define NUM_THREAD_GROUP 64
 #define NUM_GROUP 1024
 
 groupshared int temp[2 * NUM_THREAD_GROUP];
 groupshared int tempGroup[2 * NUM_GROUP];
+
 
 float invLerp(float from, float to, float value)
 {
@@ -59,6 +64,12 @@ void Vote (uint3 id : SV_DispatchThreadID)
     float3 posVS = mul(_Camera_V, float4(pos, 1)).xyz;
     float4 posCS = mul(_Camera_P, float4(posVS, 1));
     float3 posNDS = posCS.xyz / posCS.w;
+    
+    //float2 screenUV = posNDS.xy * 0.5 + 0.5;
+    //screenUV = 1 - screenUV;
+    //float depth = LinearEyeDepth(_DepthTex[screenUV * int2(_ScreenW,_ScreenH)]);
+    //bool isNotOccluded = posNDS.z < depth;
+    
     posNDS.z = -posCS.w;
 
     float dist = posNDS.z / dot(normalize(posVS), float3(0, 0, 1));
@@ -66,8 +77,9 @@ void Vote (uint3 id : SV_DispatchThreadID)
     remap = pow(remap, 0.5);
    
     
-    bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || dist > _MaxRenderDist) ? 0:1;
+    bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || dist > _MaxRenderDist) ? 0 : 1;
     bool selected = step(hash, remap) == 0;
+
     _VoteBuffer[id.x] = selected && isInView;
 }
 [numthreads(NUM_THREAD_GROUP, 1, 1)]
