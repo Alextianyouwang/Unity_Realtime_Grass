@@ -104,8 +104,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         return;
     
     float3 verts[4];
-    GetNeighborAveragedVerts(id.x, verts);
-    
+    if (_SmoothPlacement)
+        GetNeighborAveragedVerts(id.x, verts);
+    else
+        GetVertsAtCurrentTile(id.x, verts);
     uint iteration = _Subdivisions;
 
     float3 chunkSize = verts[2] - verts[0];

@@ -123,6 +123,71 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &14277155
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 14277157}
+  - component: {fileID: 14277156}
+  m_Layer: 0
+  m_Name: TileGrandCluster (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &14277156
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 14277155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 383013453dda13b4c8dd631c3fb97f87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TileHeightmap: {fileID: 2800000, guid: ecd5d6ec073688845b16d60b69acc56b, type: 3}
+  TileHeightMultiplier: 10
+  TileSize: 0.390625
+  TileGridDimension: 512
+  TileGridCenterXZ: {x: -200, y: 0}
+  RenderCam: {fileID: 583219404}
+  SpawnMesh:
+  - {fileID: 4300000, guid: 696ee1f4a69d2f442add066d155d15aa, type: 2}
+  - {fileID: 4300000, guid: 2f5f0c371f17fe040a8092f24eb8b4e0, type: 2}
+  - {fileID: 4300000, guid: 94d77166164be5c4781fb928853d95b6, type: 2}
+  SpawnMeshMaterial: {fileID: 2100000, guid: 815a509e078cc4b43af2350162c58ce8, type: 2}
+  SpawnSubivisions: 4
+  SmoothPlacement: 1
+  ChunksPerSide: 8
+  TilePerClump: 32
+  LOD_Threshold_01: 45
+  LOD_Threshold_12: 125
+  MaxRenderDistance: 200
+  DensityFalloffThreshold: 10
+  ShowDebugView: 1
+  DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
+--- !u!4 &14277157
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 14277155}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &119619943
 GameObject:
   m_ObjectHideFlags: 0
@@ -180,8 +245,8 @@ MonoBehaviour:
   SpawnMeshMaterial: {fileID: 2100000, guid: 815a509e078cc4b43af2350162c58ce8, type: 2}
   SpawnSubivisions: 4
   SmoothPlacement: 1
-  ChunksPerSide: 8
-  TilePerClump: 6
+  ChunksPerSide: 4
+  TilePerClump: 32
   LOD_Threshold_01: 45
   LOD_Threshold_12: 125
   MaxRenderDistance: 200
@@ -292,7 +357,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 300
-  field of view: 60
+  field of view: 63.2
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -318,13 +383,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 583219401}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.18491745, z: -0, w: 0.9827541}
-  m_LocalPosition: {x: -10.4, y: 10.2, z: -54}
+  m_LocalRotation: {x: -0, y: -0.5142995, z: -0, w: 0.85761064}
+  m_LocalPosition: {x: -44.2, y: 13.9, z: -9.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 21.313, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -61.901, z: 0}
 --- !u!1 &818673441
 GameObject:
   m_ObjectHideFlags: 0
@@ -437,7 +502,7 @@ Transform:
   m_GameObject: {fileID: 818673441}
   serializedVersion: 2
   m_LocalRotation: {x: -0.55298316, y: -0.06792922, z: 0.7388803, w: -0.37901348}
-  m_LocalPosition: {x: 10.103572, y: -16.902277, z: 4.533514}
+  m_LocalPosition: {x: 6.1, y: -16.902277, z: -6.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -531,6 +596,7 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 119619944}
+  - {fileID: 14277157}
   - {fileID: 583219405}
   - {fileID: 1814955408}
   - {fileID: 818673444}

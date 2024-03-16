@@ -34,8 +34,8 @@ public class TileClumpParser
     {
         _clumpShader = GameObject.Instantiate((ComputeShader)Resources.Load("CS_ClumpVoronoi"));
         int clumpPerSide = Mathf.CeilToInt (_numTilePerSide / _numTilePerClumpSide) ;
-        _clumpCenters = new Vector2[clumpPerSide * clumpPerSide];
-        _clumpCenterBuffer = new ComputeBuffer(_clumpCenters.Length, sizeof(float) * 2);
+        _clumpCenters = new Vector2[clumpPerSide * clumpPerSide * 9];
+        _clumpCenterBuffer = new ComputeBuffer(_clumpCenters.Length * 9, sizeof(float) * 2);
         _clumpCenterBuffer.SetData(_clumpCenters);
 
         _clumpedSpawnData = new SpawnData[_rawSpawnBuffer.count];
@@ -52,7 +52,7 @@ public class TileClumpParser
 
 
         _clumpShader.SetBuffer(0,"_ClumpCenterBuffer",_clumpCenterBuffer);
-        _clumpShader.Dispatch(0, Mathf.CeilToInt(_clumpCenters.Length / 128f), 1, 1);
+        _clumpShader.Dispatch(0, Mathf.CeilToInt(_clumpCenters.Length/ 128f), 1, 1);
 
         _clumpShader.SetBuffer(1, "_SpawnBuffer", _rawSpawnBuffer);
         _clumpShader.SetBuffer(1, "_ClumpEnabledSpawnBuffer",_clumpEnabledSpawnBuffer);

@@ -22,38 +22,53 @@ float _CornerY;
 
 uint _InstanceMaxCount;
 
+uint RealToVirtualIndex(int i, int2 offset)
+{
+    return _ClumpPerSide * 3 * _ClumpPerSide * offset.x + _ClumpPerSide * offset.y + (i / _ClumpPerSide) * (_ClumpPerSide * 2) + i;
+}
 [numthreads(128,1,1)]
 void InitializeClumpCenter(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _ClumpMaxCount)
         return;
     
+    float gridSize = _ClumpIncrement * _ClumpPerSide;
     int xCoord = id.x / _ClumpPerSide;
     int yCoord = id.x % _ClumpPerSide;
-    
-    float2 clumpPosXZ = float2(_CornerX + xCoord * _ClumpIncrement, _CornerX + yCoord * _ClumpIncrement);
-    float2 noise = rand2dTo2d(clumpPosXZ) * _ClumpIncrement;
-    clumpPosXZ += noise;
-    _ClumpCenterBuffer[id.x] = clumpPosXZ;
+    float2 localPos = float2(xCoord * _ClumpIncrement, yCoord * _ClumpIncrement);
+    float2 noise = rand2dTo2d(localPos * 78.233) * _ClumpIncrement;
+    float2 clumpPosXZ = localPos + float2(_CornerX,_CornerY) + noise;
+      
+    [unroll]
+    for (int x = -1; x <= 1; x++)
+       [unroll]
+        for (int y = -1; y <= 1; y++)
+            _ClumpCenterBuffer[RealToVirtualIndex(id.x, int2(x + 1, y + 1))] = clumpPosXZ + float2(x, y) * gridSize;
 
 }
 
-int2 GetBelongedClump(float2 pos)
+
+int2 GetBelongedClumpCoordFromPos_real(float2 pos)
 {
     int x = floor((pos.x - _CornerX) / _ClumpIncrement);
     int y = floor((pos.y - _CornerY) / _ClumpIncrement);
     return int2(x,y);
 
 }
+int GetFlattenClumpIndex_real(int2 i)
+{
+    return i.x * _ClumpPerSide + i.y;
+}
 
-uint GetOffsetedIndex(uint2 i, int2 offset)
+int2 GetClumpCoord_virtual(int i)
+{
+    return int2(i / (_ClumpPerSide * 3), i % (_ClumpPerSide*3));
+}
+
+uint GetOffsetedIndex_virtual(uint2 i, int2 offset)
 {
     i += offset;
-    i.x = i.x >= 0 ? i.x : 0;
-    i.y = i.y >= 0 ? i.y : 0;
-    i.x = i.x <= _ClumpPerSide - 1 ? i.x : _ClumpPerSide - 1;
-    i.y = i.y <= _ClumpPerSide - 1 ? i.y : _ClumpPerSide - 1;
-    int index = i.x * _ClumpPerSide + i.y;
+    int index = i.x * _ClumpPerSide * 3 + i.y;
     return (uint) index;
 }
 
@@ -67,24 +82,29 @@ void CreateVoronoi(uint3 id : SV_DispatchThreadID)
    
    int closestClump = 0;
    float closestDist = 100000;
+    float gridSize = _ClumpIncrement * _ClumpPerSide;
      [unroll]
    for (int x = -1; x <= 1; x++)
    {
        [unroll]
        for (int y = -1; y <= 1; y++)
        {
-           int currentClump = GetOffsetedIndex(GetBelongedClump(samplePos), int2(x, y));
-           float2 clumpPos = _ClumpCenterBuffer[currentClump];
+            int2 clumpCoord = GetBelongedClumpCoordFromPos_real(samplePos);
+            int flatten = GetFlattenClumpIndex_real(clumpCoord);
+            int virtualIndex = RealToVirtualIndex(flatten, int2(1, 1));
+            int2 virtualCoord = GetClumpCoord_virtual(virtualIndex);
+            int currentClump = GetOffsetedIndex_virtual(virtualCoord, int2(x, y));
+            float2 clumpPos = _ClumpCenterBuffer[currentClump];
+   
            float dist = distance(clumpPos, samplePos);
            if (dist < closestDist)
            {
                closestDist = dist;
                closestClump = currentClump;
            }
-           
        }
    }
-   float2 clumpPos = _ClumpCenterBuffer[closestClump];
+    float2 clumpPos = _ClumpCenterBuffer[closestClump];
     SpawnData o;
     o.positionWS = _SpawnBuffer[id.x].positionWS;
     o.hash = _SpawnBuffer[id.x].hash;
