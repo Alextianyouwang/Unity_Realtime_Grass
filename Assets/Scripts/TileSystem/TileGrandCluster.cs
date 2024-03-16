@@ -1,7 +1,7 @@
 using UnityEngine;
 [ExecuteInEditMode]
 [DefaultExecutionOrder(-98)]
-public class TileManager : MonoBehaviour
+public class TileGrandCluster : MonoBehaviour
 {
 
     public Texture2D TileHeightmap;

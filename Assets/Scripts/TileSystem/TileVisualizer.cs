@@ -4,6 +4,7 @@ public class TileVisualizer
 {
     private Tile[] _tiles;
     private Material _material;
+    private MaterialPropertyBlock _mpb;
     private int _tileDimentions;
 
     private ComputeBuffer _instanceDataBuffer;
@@ -81,6 +82,7 @@ public class TileVisualizer
 
     private void InitializeShader() 
     {
+        _mpb = new MaterialPropertyBlock();
         _instanceDataBuffer = new ComputeBuffer(_tileDimentions * _tileDimentions, sizeof(float) * 7);
         _instanceDataBuffer.SetData(_instancesData);
         _vertBuffer = new ComputeBuffer(4, sizeof(float) * 3);
@@ -104,13 +106,13 @@ public class TileVisualizer
     {
         if (_material == null)
             return;
-        _material.SetBuffer("_InstanceDataBuffer", _instanceDataBuffer);
-        _material.SetBuffer("_VertBuffer", _vertBuffer);
-        _material.SetBuffer("_TriangleBuffer", _triangleBuffer);
+        _mpb.SetBuffer("_InstanceDataBuffer", _instanceDataBuffer);
+        _mpb.SetBuffer("_VertBuffer", _vertBuffer);
+        _mpb.SetBuffer("_TriangleBuffer", _triangleBuffer);
         if (_noiseBuffer != null)
             _material.SetBuffer("_NoiseBuffer", _noiseBuffer);
         Bounds cullBound = new Bounds(Vector3.zero, Vector3.one * _tileDimentions * _instancesData[0].size);
-        Graphics.DrawProceduralIndirect(_material, cullBound, MeshTopology.Triangles, _argsBuffer,0,null,null,UnityEngine.Rendering.ShadowCastingMode.Off,false);
+        Graphics.DrawProceduralIndirect(_material, cullBound, MeshTopology.Triangles, _argsBuffer,0,null,_mpb,UnityEngine.Rendering.ShadowCastingMode.Off,false);
     }
     public void ReleaseBuffer() 
     {

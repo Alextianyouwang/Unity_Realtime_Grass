@@ -71,8 +71,8 @@ public class TileChunk
         
 
         _cullShader.SetInt("_InstanceCount", _spawnBuffer.count);
-        _cullShader.SetFloat("_MaxRenderDist", TileManager._MaxRenderDistance);
-        _cullShader.SetFloat("_DensityFalloffDist", TileManager._DensityFalloffThreshold);
+        _cullShader.SetFloat("_MaxRenderDist", TileGrandCluster._MaxRenderDistance);
+        _cullShader.SetFloat("_DensityFalloffDist", TileGrandCluster._DensityFalloffThreshold);
         _cullShader.SetFloat("_OffsetX", -ChunkBounds.center.x);
         _cullShader.SetFloat("_OffsetY", -ChunkBounds.center.z);
 
@@ -122,21 +122,21 @@ public class TileChunk
         _cullShader.Dispatch(3, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);
 
         float dist = Vector3.Distance(_renderCam.transform.position, ChunkBounds.center);
-        if (dist < TileManager._LOD_Threshold_01)
+        if (dist < TileGrandCluster._LOD_Threshold_01)
         {
             Graphics.DrawMeshInstancedIndirect(_spawnMesh[0], 0, _spawnMeshMaterial, ChunkBounds, _argsBuffer[0],
           0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
             _mpb.SetColor("_LOD_Color", Color.green);
 
         }
-        else if (dist >= TileManager._LOD_Threshold_01 && dist <= TileManager._LOD_Threshold_12)
+        else if (dist >= TileGrandCluster._LOD_Threshold_01 && dist <= TileGrandCluster._LOD_Threshold_12)
         {
             Graphics.DrawMeshInstancedIndirect(_spawnMesh[1], 0, _spawnMeshMaterial, ChunkBounds, _argsBuffer[1],
          0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
             _mpb.SetColor("_LOD_Color", Color.blue);
 
         }
-        else  if (dist > TileManager._LOD_Threshold_12)
+        else  if (dist > TileGrandCluster._LOD_Threshold_12)
         {
             Graphics.DrawMeshInstancedIndirect(_spawnMesh[2], 0, _spawnMeshMaterial, ChunkBounds, _argsBuffer[2],
            0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
