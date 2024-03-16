@@ -35,6 +35,9 @@ float _DensityFalloffDist;
 float4x4 _Camera_P;
 float4x4 _Camera_V;
 
+float _OffsetX;
+float _OffsetY;
+
 #define NUM_THREAD_GROUP 64
 #define NUM_GROUP 1024
 
@@ -176,6 +179,7 @@ void Compact(uint3 id : SV_DispatchThreadID, uint3 groupID : SV_GroupID)
         InterlockedAdd(_ArgsBuffer2[0].numOfInstance, 1);
         _CompactBuffer[_ScanBuffer[id.x] + groupSum] = _SpawnBuffer[id.x];
     }
+
 }
 [numthreads(1, 1, 1)]
 void ClearArgs(uint3 id : SV_DispatchThreadID)
@@ -185,20 +189,5 @@ void ClearArgs(uint3 id : SV_DispatchThreadID)
     _ArgsBuffer2[0].numOfInstance = 0;
 }
 
-// Dont know why unity make indirect draw call bounds
-// adding vertex offset to its instance group... 
-// and even though using this fucntion to make up their
-// world positions in graphic shader are not continuous anymore...
-
-//#pragma kernel PosOffset
-//float _OffsetX;
-//float _OffsetY;
-//[numthreads(128, 1, 1)]
-//void PosOffset(uint3 id : SV_DispatchThreadID)
-//{
-//    SpawnData o;
-//    o.positionWS = _CompactBuffer[id.x].positionWS + float3(_OffsetX,0,_OffsetY);
-//    _CompactBuffer[id.x] = o;
-//}
 
 

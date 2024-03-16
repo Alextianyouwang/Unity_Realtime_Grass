@@ -57,7 +57,7 @@ public class TileClumpParser
         _clumpShader.SetBuffer(1, "_SpawnBuffer", _rawSpawnBuffer);
         _clumpShader.SetBuffer(1, "_ClumpEnabledSpawnBuffer",_clumpEnabledSpawnBuffer);
         _clumpShader.SetBuffer(1, "_ClumpCenterBuffer", _clumpCenterBuffer);
-        _clumpShader.Dispatch(1, Mathf.CeilToInt(_rawSpawnBuffer.count / 128f), 1, 1);
+        _clumpShader.Dispatch(1, Mathf.CeilToInt(_rawSpawnBuffer.count / 1024f), 1, 1);
     }
 
     public ComputeBuffer ShareSpawnBuffer() 

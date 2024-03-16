@@ -35,6 +35,12 @@ float _Scale, _Bend, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirec
 _DetailSpeed, _DetailAmplitude, _DetailFrequency,
 _HeightRandomnessAmplitude;
 float4 _TopColor, _BotColor;
+float2 _Offset; // World Pos Sampler Offset for Continuous Values;
+// Dont know why unity make indirect draw call bounds
+// adding vertex offset to its instance group... 
+// and even though using this fucntion to make up their
+// perlin-noise in graphic shader are not continuous anymore...
+
 
 float Perlin(float2 uv)
 {
@@ -56,26 +62,26 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
 
-    float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS ;
+    float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS - float3(_Offset.x,0, _Offset.y);
     float hash = _SpawnBuffer[instanceID].hash ;
     
    
     #if  _USE_MAINWAVE_ON
-        float wave = SinWaveWithNoise(spawnPosWS.xz, _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
+        float wave = SinWaveWithNoise(spawnPosWS.xz + _Offset , _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
     #else
         float wave = 0;
     #endif
     
     
     #if _USE_DETAIL_ON
-        float detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
+        float detail = Perlin(Rotate2D(spawnPosWS.xz+ _Offset, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
     #else
         float detail = 0;
     #endif
     
     
     #if _USE_RANDOM_HEIGHT_ON
-        float heightPerlin = Perlin(spawnPosWS.xz * 20)*_HeightRandomnessAmplitude;
+        float heightPerlin = Perlin((spawnPosWS.xz+ _Offset) * 20)*_HeightRandomnessAmplitude;
     #else
         float heightPerlin  = 0;
     #endif

@@ -57,7 +57,7 @@ uint GetOffsetedIndex(uint2 i, int2 offset)
     return (uint) index;
 }
 
-[numthreads(128, 1, 1)]
+[numthreads(1024, 1, 1)]
 void CreateVoronoi(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _InstanceMaxCount)
