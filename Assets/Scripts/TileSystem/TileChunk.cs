@@ -62,7 +62,7 @@ public class TileChunk
             _argsBuffer[i] = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
             uint[] _args = new uint[] {
             _spawnMesh[i].GetIndexCount(0),
-            0,
+            (uint)_spawnBuffer.count,
             _spawnMesh[i].GetIndexStart(0),
             _spawnMesh[i].GetBaseVertex(0),
             0
@@ -115,7 +115,7 @@ public class TileChunk
             return;
 
         _cullShader.SetMatrix("_Camera_P", _renderCam.projectionMatrix);
-        _cullShader.SetMatrix("_Camera_V",_renderCam.transform.worldToLocalMatrix);
+        _cullShader.SetMatrix("_Camera_V", _renderCam.transform.worldToLocalMatrix);
         _cullShader.Dispatch(4, 1, 1, 1);
         _cullShader.Dispatch(0, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);
         _cullShader.Dispatch(1, _groupCount, 1, 1);

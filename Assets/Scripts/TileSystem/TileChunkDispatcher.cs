@@ -122,8 +122,10 @@ public class TileChunkDispatcher
 
     public void DispatchTileChunksDrawCall() 
     {
-        foreach (TileChunk t in Chunks)
-            t?.DrawIndirect();
+        Plane[] p= GeometryUtility.CalculateFrustumPlanes(_renderCam);
+        foreach (TileChunk t in Chunks) 
+            if (GeometryUtility.TestPlanesAABB(p, t.ChunkBounds))
+                t.DrawIndirect();
     }
 
     public void ReleaseBuffer()
