@@ -17,6 +17,7 @@ struct SpawnData
     float hash;
     float4 clumpInfo;
     float density;
+    float wind;
 };
 
 StructuredBuffer<SpawnData> _SpawnBuffer;

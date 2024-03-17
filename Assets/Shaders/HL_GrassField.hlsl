@@ -28,6 +28,7 @@ struct SpawnData
     float hash;
     float4 clumpInfo;
     float density;
+    float wind;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 float3 _ChunkColor,_LOD_Color;
@@ -98,7 +99,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.positionCS = TransformObjectToHClip(pos);
     o.normalWS = TransformObjectToWorldNormal(v.normalOS);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-    o.debug = float4(wave, detail, _SpawnBuffer[instanceID].hash, 0);
+    o.debug = float4(wave, detail, _SpawnBuffer[instanceID].hash, _SpawnBuffer[instanceID].wind);
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
     return o;
 }
@@ -106,7 +107,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 float4 frag(VertexOutput v) : SV_Target
 {
     float4 color = lerp(_BotColor,_TopColor ,v.uv.y);
-    
+    return v.debug.w;
 #if _DEBUG_OFF
         return color;
 #elif _DEBUG_MAINWAVE

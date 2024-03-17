@@ -8,10 +8,17 @@ public class TileData
     public Vector2 TileGridCenterXZ { get; private set; }
     public Tile[] TileGrid { get; private set; }
 
+    public ComputeBuffer WindBuffer { get; private set; }
+
     private Texture2D _heightMap;
     private Texture2D _typeMap;
     private float _tileHeightMult;
     private Vector3[] _tileVerts;
+    private Vector2 _botLeftCorner;
+
+
+    private float[] _windValues;
+    private ComputeShader _windShader;
     public TileData(Vector2 tileGridCenterXZ, int tileGridDimension, float tileSize, Texture2D heightMap,float tileHeightMult , Texture2D typeMap)
     {
       
@@ -26,13 +33,13 @@ public class TileData
     {
         Tile[] tiles = new Tile[TileGridDimension * TileGridDimension];
         float offset = -TileGridDimension * TileSize / 2 + TileSize / 2;
-        Vector2 botLeftCorner = TileGridCenterXZ + new Vector2(offset, offset);
+        _botLeftCorner = TileGridCenterXZ + new Vector2(offset, offset);
 
         for (int x = 0; x < TileGridDimension; x++)
         {
             for (int y = 0; y < TileGridDimension; y++)
             {
-                Vector2 tilePos = botLeftCorner + new Vector2(TileSize * x, TileSize * y);
+                Vector2 tilePos = _botLeftCorner + new Vector2(TileSize * x, TileSize * y);
                 float height = _heightMap ? _heightMap.GetPixel(x, y).r * _tileHeightMult : 0;
                 float type = _typeMap ? _typeMap.GetPixel(x, y).r : 1;
                 tiles[x * TileGridDimension + y] = new Tile(TileSize, height, tilePos, type);
@@ -56,6 +63,31 @@ public class TileData
         return _tileVerts;
     }
     public float[] GetTileType() => TileGrid?.Select(t => t.GetTileType()).ToArray();
+
+    public void InitializeWind() 
+    {
+        _windShader = GameObject.Instantiate((ComputeShader)Resources.Load("CS_GlobalWind"));
+        _windValues = new float[TileGridDimension * TileGridDimension];
+        WindBuffer = new ComputeBuffer(TileGridDimension * TileGridDimension, sizeof(float));
+        WindBuffer.SetData(_windValues);
+        _windShader.SetInt("_MaxCount", _windValues.Length);
+        _windShader.SetFloat("_TileSize", TileSize);
+        _windShader.SetFloat("_TileDimension", TileGridDimension);
+        _windShader.SetFloat("_CornerX",_botLeftCorner.x);
+        _windShader.SetFloat("_CornerY",_botLeftCorner.y);
+        _windShader.SetBuffer(0,"_WindBuffer",WindBuffer);
+    }
+
+    public void UpdateWind() 
+    {
+        _windShader.SetFloat("_Time", Time.time);
+        _windShader.Dispatch(0, Mathf.CeilToInt(WindBuffer.count / 1024f), 1, 1);
+    }
+
+    public void ReleaseBuffer() 
+    {
+        WindBuffer?.Dispose();
+    }
 }
 
 public class Tile 

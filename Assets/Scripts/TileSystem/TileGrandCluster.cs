@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 [ExecuteInEditMode]
 [DefaultExecutionOrder(-98)]
@@ -34,6 +35,7 @@ public class TileGrandCluster : MonoBehaviour
     public static float _LOD_Threshold_12;
     public static float _MaxRenderDistance;
     public static float _DensityFalloffThreshold;
+    public static int _SpawnSubdivisions;
 
 
     private void OnEnable()
@@ -42,33 +44,47 @@ public class TileGrandCluster : MonoBehaviour
         _LOD_Threshold_12 = LOD_Threshold_12;
         _MaxRenderDistance = MaxRenderDistance;
         _DensityFalloffThreshold = DensityFalloffThreshold;
-        SetupTileGrid();
+        _SpawnSubdivisions = SpawnSubivisions;
+        SetupTileData();
         SetupTileDebug();
-        SetupTileFunctions();
+        SetupSpawner();
    
     }
     private void OnDisable()
     {
-        CleanupTileVisual();
-        CleanupTileFunction();
+        CleanupDebugVisualBuffers();
+        CleanupDrawBuffers();
+        CleanupTileDataBuffer();
     }
     private void LateUpdate()
     {
+        UpdateWindData();
         if (ShowDebugView)
             DrawDebugView();
         SpawnObjectIndirect();
     }
 
 
-    void SetupTileGrid() 
+    void SetupTileData() 
     {
         if (TileHeightmap)
             _tileData = new TileData(TileGridCenterXZ, TileHeightmap.width, TileSize, TileHeightmap,TileHeightMultiplier,TileTypemap);
         else
             _tileData = new TileData(TileGridCenterXZ, TileGridDimension, TileSize, null, TileHeightMultiplier, TileTypemap);
         _tileData.ConstructTileGrid();
+        _tileData.InitializeWind();
     }
-    void SetupTileFunctions()
+
+    void UpdateWindData() 
+    {
+        _tileData?.UpdateWind();
+    }
+
+    void CleanupTileDataBuffer() 
+    {
+        _tileData?.ReleaseBuffer();
+    }
+    void SetupSpawner()
     {
         if (_tileData == null)
             return;
@@ -95,15 +111,12 @@ public class TileGrandCluster : MonoBehaviour
     }
     void SpawnObjectIndirect()
     {
-        if (_tileChunkDispatcher == null)
-            return;
-        _tileChunkDispatcher.DispatchTileChunksDrawCall();
+
+        _tileChunkDispatcher?.DispatchTileChunksDrawCall();
     }
-    void CleanupTileFunction()
+    void CleanupDrawBuffers()
     {
-        if (_tileChunkDispatcher == null)
-            return;
-        _tileChunkDispatcher.ReleaseBuffer();
+        _tileChunkDispatcher?.ReleaseBuffer();
     }
 
     void SetupTileDebug() 
@@ -111,19 +124,16 @@ public class TileGrandCluster : MonoBehaviour
         if (_tileData == null)
             return;
         _tileVisualizer = new TileVisualizer(_tileData.TileGrid,DebugMaterial, _tileData.TileGridDimension);
-        _tileVisualizer.VisualizeTiles();
+        _tileVisualizer.GetNoiseBuffer(_tileData.WindBuffer);
+        _tileVisualizer.InitializeTileDebug();
     }
     void DrawDebugView()
     {
-        if (_tileVisualizer == null)
-            return;
-        _tileVisualizer.DrawIndirect();
+        _tileVisualizer?.DrawIndirect();
     }
-    void CleanupTileVisual() 
+    void CleanupDebugVisualBuffers() 
     {
-        if (_tileVisualizer == null)
-            return;
-        _tileVisualizer.ReleaseBuffer();
+        _tileVisualizer?.ReleaseBuffer();
     }
 
     private void OnDrawGizmos()
@@ -138,6 +148,7 @@ public class TileGrandCluster : MonoBehaviour
                 continue;
             Gizmos.DrawWireCube(c.ChunkBounds.center, c.ChunkBounds.size);
         }
+
     }
 
 }

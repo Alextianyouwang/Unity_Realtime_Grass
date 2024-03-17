@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class TileChunk
@@ -9,6 +10,7 @@ public class TileChunk
     private MaterialPropertyBlock _mpb;
     private Camera _renderCam;
 
+    private ComputeShader _sampleWindShader;
     private ComputeShader _cullShader;
 
 
@@ -20,10 +22,13 @@ public class TileChunk
     private ComputeBuffer _compactBuffer;
     private ComputeBuffer[] _argsBuffer;
 
+    private ComputeBuffer _windBuffer;//global resource
+
     private int _elementCount;
     private int _groupCount;
 
     private Color _chunkColor;
+    private Vector4 _samplingData;// xy:index z:tilePerChunk w:chunkPerSide
     struct SpawnData
     {
         Vector3 positionWS;
@@ -32,7 +37,7 @@ public class TileChunk
         float density;
     };
 
-    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,ComputeShader cullShader,Bounds chunkBounds) 
+    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,ComputeShader cullShader,Bounds chunkBounds, Vector4 samplingData) 
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -41,11 +46,32 @@ public class TileChunk
         _cullShader = cullShader;
         ChunkBounds = chunkBounds;
         _mpb = new MaterialPropertyBlock();
+        _samplingData = samplingData;
+    }
+    public void GetWindBuffer(ComputeBuffer windBuffer) 
+    {
+        _windBuffer = windBuffer;
     }
 
-    public void Setup() 
+    public void SetupWindSampler() 
+    {
+        if (_windBuffer == null)
+            return;
+        _sampleWindShader = (ComputeShader)GameObject.Instantiate(Resources.Load("CS_SampleWind"));
+        _sampleWindShader.SetInt("_IndexX",(int)_samplingData.x);
+        _sampleWindShader.SetInt("_IndexY",(int)_samplingData.y);
+        _sampleWindShader.SetInt("_ChunkDimension", (int)_samplingData.z);
+        _sampleWindShader.SetInt("_NumChunkPerSide", (int)_samplingData.w);
+        _sampleWindShader.SetInt("_InstancePerTile", TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions);
+
+        _sampleWindShader.SetBuffer(0,"_SpawnBuffer", _spawnBuffer);
+        _sampleWindShader.SetBuffer(0,"_WindBuffer", _windBuffer);
+    }
+
+    public void SetupCuller() 
     {
         _cullShader = (ComputeShader)GameObject.Instantiate(Resources.Load("CS_GrassCulling")) ;
+        
 
         _elementCount = Utility.CeilToNearestPowerOf2(_spawnBuffer.count);
         _groupCount = _elementCount / 128;
@@ -55,7 +81,7 @@ public class TileChunk
         _groupScanInBuffer = new ComputeBuffer(_groupCount, sizeof(int));
         _groupScanOutBuffer = new ComputeBuffer(_groupCount, sizeof(int));
 
-        _compactBuffer = new ComputeBuffer(_elementCount, sizeof(float) * 9);
+        _compactBuffer = new ComputeBuffer(_elementCount, sizeof(float) * 10);
         _argsBuffer = new ComputeBuffer[_spawnMesh.Length];
         for(int i = 0; i< _spawnMesh.Length; i++)
         {
@@ -104,7 +130,10 @@ public class TileChunk
         _mpb.SetVector("_Offset", new Vector4(ChunkBounds.center.x, ChunkBounds.center.z, 0, 0));
     }
 
-
+    public void UpdateWind() 
+    {
+        _sampleWindShader.Dispatch(0, Mathf.CeilToInt((int)_samplingData.z * (int)_samplingData.z / 128f), 1, 1);
+    }
     public void DrawIndirect()
     {
         if (

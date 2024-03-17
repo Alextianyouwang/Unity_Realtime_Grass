@@ -13,6 +13,7 @@ struct SpawnData
     float hash;
     float4 clumpInfo;
     float density;
+    float wind;
 };
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
 
@@ -134,6 +135,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             o.hash = rand3dTo1d(pos * 78.233);
             o.clumpInfo = float4(0, 0, 0,0);
             o.density = _TypeBuffer[id.x];
+            o.wind = 0;
             _SpawnBuffer[x * iteration + z + id.x * iteration * iteration] = o;
         }
     }

@@ -1,0 +1,23 @@
+#pragma kernel GlobalWind
+
+RWStructuredBuffer<float> _WindBuffer;
+uint _MaxCount;
+float _TileSize;
+float _TileDimension;
+float _CornerX;
+float _CornerY;
+float _Time;
+#include "../INCLUDE/HL_Noise.hlsl"
+[numthreads(1024, 1, 1)]
+void GlobalWind(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _MaxCount)
+        return;
+    
+    int coordX = id.x / _TileDimension;
+    int coordY = id.x % _TileDimension;
+    float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize + _CornerY);
+    float noise = perlinNoise(posXZ * 0.05 - _Time * 2, float2(12.9898, 78.233));
+    _WindBuffer[id.x] = noise;
+
+}

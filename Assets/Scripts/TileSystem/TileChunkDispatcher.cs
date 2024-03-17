@@ -22,6 +22,7 @@ public class TileChunkDispatcher
         float hash;
         Vector4 clumpInfo;
         float density;
+        float wind;
     };
     private SpawnData[] _spawnData;
     private int _tileCount;
@@ -56,7 +57,7 @@ public class TileChunkDispatcher
         _typeBuffer.SetData(_tileData.GetTileType());
 
         _spawnData = new SpawnData[_tileCount * instancePerTile];
-        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 9);
+        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 10);
         _rawSpawnBuffer.SetData(_spawnData);
 
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
@@ -97,7 +98,7 @@ public class TileChunkDispatcher
             for (int y = 0; y < _chunksPerSide; y++) 
             {
                 SpawnData[] spawnDatas = new SpawnData[totalInstancePerChunk];
-                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 9);
+                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 10);
                 chunkBuffer.SetData(spawnDatas);
                 _spawnOnTileShader.SetInt("_ChunkIndexX", x);
                 _spawnOnTileShader.SetInt("_ChunkIndexY", y);
@@ -106,7 +107,7 @@ public class TileChunkDispatcher
                 _spawnOnTileShader.SetBuffer(1, "_ChunkSpawnBuffer", chunkBuffer);
                 _spawnOnTileShader.Dispatch(1, Mathf.CeilToInt(totalInstancePerChunk / 128f), 1, 1);
                 Bounds b = new Bounds( new Vector3 (botLeft.x + chunkSize* x,0,botLeft.y + chunkSize * y) ,Vector3.one * chunkSize);
-                Chunks[x * _chunksPerSide + y] = new TileChunk(
+                TileChunk t = Chunks[x * _chunksPerSide + y] = new TileChunk(
                     _spawnMesh, 
                     _spawnMeshMaterial, 
                     _renderCam, 
@@ -114,8 +115,12 @@ public class TileChunkDispatcher
                     // Still don't know whats the difference between using a single compute shader
                     // and using multiple instanced compute shaders, currently go with the second.
                     (ComputeShader)Resources.Load("CS_GrassCulling"),
-                    b);
-                Chunks[x * _chunksPerSide + y].Setup();
+                    b,
+                    new Vector4(x,y,chunkDimension,_chunksPerSide)
+                    );
+                t.SetupCuller();
+                t.GetWindBuffer(_tileData.WindBuffer);
+                t.SetupWindSampler();
             }
         }
     }
@@ -123,9 +128,12 @@ public class TileChunkDispatcher
     public void DispatchTileChunksDrawCall() 
     {
         Plane[] p= GeometryUtility.CalculateFrustumPlanes(_renderCam);
-        foreach (TileChunk t in Chunks) 
-            if (GeometryUtility.TestPlanesAABB(p, t.ChunkBounds))
+        foreach (TileChunk t in Chunks)
+            if (GeometryUtility.TestPlanesAABB(p, t.ChunkBounds)) 
+            {
+                t.UpdateWind();
                 t.DrawIndirect();
+            }
     }
 
     public void ReleaseBuffer()
