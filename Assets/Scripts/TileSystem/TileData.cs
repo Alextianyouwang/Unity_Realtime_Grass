@@ -9,6 +9,8 @@ public class TileData
     public Tile[] TileGrid { get; private set; }
 
     public ComputeBuffer WindBuffer { get; private set; }
+    public ComputeBuffer VertBuffer { get; private set; }
+    public ComputeBuffer TypeBuffer { get; private set; }
 
     private Texture2D _heightMap;
     private Texture2D _typeMap;
@@ -16,9 +18,8 @@ public class TileData
     private Vector3[] _tileVerts;
     private Vector2 _botLeftCorner;
 
-
-    private float[] _windValues;
     private ComputeShader _windShader;
+    private float[] _windValues;
     public TileData(Vector2 tileGridCenterXZ, int tileGridDimension, float tileSize, Texture2D heightMap,float tileHeightMult , Texture2D typeMap)
     {
       
@@ -46,6 +47,12 @@ public class TileData
             }
         }
         TileGrid = tiles;
+
+        VertBuffer = new ComputeBuffer(TileGrid.Length * 4, sizeof(float) * 3);
+        VertBuffer.SetData(GetTileVerts());
+
+        TypeBuffer = new ComputeBuffer(TileGrid.Length, sizeof(float));
+        TypeBuffer.SetData(GetTileType());
     }
     public Vector3[] GetTileVerts() 
     {
@@ -80,13 +87,17 @@ public class TileData
 
     public void UpdateWind() 
     {
+        if (_windShader == null)
+            return;
         _windShader.SetFloat("_Time", Time.time);
-        _windShader.Dispatch(0, Mathf.CeilToInt(WindBuffer.count / 1024f), 1, 1);
+        _windShader.Dispatch(0, Mathf.CeilToInt(_windValues.Length / 1024f), 1, 1);
     }
 
     public void ReleaseBuffer() 
     {
         WindBuffer?.Dispose();
+        VertBuffer?.Dispose();
+        TypeBuffer?.Dispose();
     }
 }
 
@@ -119,6 +130,4 @@ public class Tile
         corners[3] = new Vector3(_tilePosition.x - _tileSize / 2, _tileHeight, _tilePosition.y + _tileSize / 2);
         return corners;
     }
-
-
 }

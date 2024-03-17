@@ -1,7 +1,5 @@
-using UnityEditor;
 using UnityEngine;
 [ExecuteInEditMode]
-[DefaultExecutionOrder(-98)]
 public class TileGrandCluster : MonoBehaviour
 {
 
@@ -31,11 +29,14 @@ public class TileGrandCluster : MonoBehaviour
     private TileData _tileData;
     private TileVisualizer _tileVisualizer;
     private TileChunkDispatcher _tileChunkDispatcher;
-    public static float _LOD_Threshold_01;
-    public static float _LOD_Threshold_12;
-    public static float _MaxRenderDistance;
-    public static float _DensityFalloffThreshold;
-    public static int _SpawnSubdivisions;
+
+    public static float _LOD_Threshold_01 { get; private set; }
+    public static float _LOD_Threshold_12 { get; private set; }
+    public static float _MaxRenderDistance { get; private set; }
+    public static float _DensityFalloffThreshold { get; private set; }
+    public static int _SpawnSubdivisions { get; private set; }
+    public static int _ChunksPerSide { get; private set; }
+    public static int _TilePerClump { get; private set; }
 
 
     private void OnEnable()
@@ -45,9 +46,11 @@ public class TileGrandCluster : MonoBehaviour
         _MaxRenderDistance = MaxRenderDistance;
         _DensityFalloffThreshold = DensityFalloffThreshold;
         _SpawnSubdivisions = SpawnSubivisions;
+        _ChunksPerSide = ChunksPerSide;
+        _TilePerClump = TilePerClump;
         SetupTileData();
         SetupTileDebug();
-        SetupSpawner();
+        SetupDrawers();
    
     }
     private void OnDisable()
@@ -61,7 +64,7 @@ public class TileGrandCluster : MonoBehaviour
         UpdateWindData();
         if (ShowDebugView)
             DrawDebugView();
-        SpawnObjectIndirect();
+        IndirectDrawPerFrame();
     }
 
 
@@ -84,7 +87,7 @@ public class TileGrandCluster : MonoBehaviour
     {
         _tileData?.ReleaseBuffer();
     }
-    void SetupSpawner()
+    void SetupDrawers()
     {
         if (_tileData == null)
             return;
@@ -101,17 +104,13 @@ public class TileGrandCluster : MonoBehaviour
             SpawnMesh, 
             SpawnMeshMaterial, 
             _tileData, 
-            SpawnSubivisions, 
             RenderCam, 
-            SmoothPlacement,
-            ChunksPerSide,
-            TilePerClump);
+            SmoothPlacement);
         _tileChunkDispatcher.InitialSpawn();
         _tileChunkDispatcher.InitializeChunks();
     }
-    void SpawnObjectIndirect()
+    void IndirectDrawPerFrame()
     {
-
         _tileChunkDispatcher?.DispatchTileChunksDrawCall();
     }
     void CleanupDrawBuffers()

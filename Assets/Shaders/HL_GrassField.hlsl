@@ -107,7 +107,6 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 float4 frag(VertexOutput v) : SV_Target
 {
     float4 color = lerp(_BotColor,_TopColor ,v.uv.y);
-    return v.debug.w;
 #if _DEBUG_OFF
         return color;
 #elif _DEBUG_MAINWAVE
@@ -120,6 +119,8 @@ float4 frag(VertexOutput v) : SV_Target
         return _LOD_Color.xyzz;
 #elif _DEBUG_CLUMPCELL
         return v.clumpInfo.wwzz;
+#elif _DEBUG_GLOBALWIND
+        return v.debug.w;
 #else 
 
     return color;
