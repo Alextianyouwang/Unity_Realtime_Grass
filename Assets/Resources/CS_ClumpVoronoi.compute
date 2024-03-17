@@ -7,9 +7,9 @@ struct SpawnData
     float3 positionWS;
     float hash;
     float4 clumpInfo;
+    float density;
 };
-StructuredBuffer<SpawnData> _SpawnBuffer;
-RWStructuredBuffer<SpawnData> _ClumpEnabledSpawnBuffer;
+RWStructuredBuffer<SpawnData> _SpawnBuffer;
 RWStructuredBuffer<float2> _ClumpCenterBuffer;
 
 #include "../INCLUDE/HL_Noise.hlsl"
@@ -105,10 +105,7 @@ void CreateVoronoi(uint3 id : SV_DispatchThreadID)
        }
    }
     float2 clumpPos = _ClumpCenterBuffer[closestClump];
-    SpawnData o;
-    o.positionWS = _SpawnBuffer[id.x].positionWS;
-    o.hash = _SpawnBuffer[id.x].hash;
-    o.clumpInfo = float4(clumpPos.xy, closestDist, rand2dTo1d(clumpPos * 78.233));
-    _ClumpEnabledSpawnBuffer[id.x] = o;
+    _SpawnBuffer[id.x].clumpInfo = float4(clumpPos.xy, closestDist, rand2dTo1d(clumpPos * 78.233));
+
     
 }

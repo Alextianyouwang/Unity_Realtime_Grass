@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 public class TileData 
@@ -8,15 +9,17 @@ public class TileData
     public Tile[] TileGrid { get; private set; }
 
     private Texture2D _heightMap;
+    private Texture2D _typeMap;
     private float _tileHeightMult;
     private Vector3[] _tileVerts;
-    public TileData(Vector2 tileGridCenterXZ, int tileGridDimension, float tileSize, Texture2D heightMap,float tileHeightMult)
+    public TileData(Vector2 tileGridCenterXZ, int tileGridDimension, float tileSize, Texture2D heightMap,float tileHeightMult , Texture2D typeMap)
     {
       
         TileSize = tileSize;  
         TileGridDimension = tileGridDimension;
         TileGridCenterXZ = tileGridCenterXZ;
         _heightMap = heightMap;
+        _typeMap = typeMap;
         _tileHeightMult = tileHeightMult;
     }
     public void ConstructTileGrid()
@@ -30,13 +33,9 @@ public class TileData
             for (int y = 0; y < TileGridDimension; y++)
             {
                 Vector2 tilePos = botLeftCorner + new Vector2(TileSize * x, TileSize * y);
-                if (_heightMap) 
-                {
-                    float height = _heightMap.GetPixel(x, y).r * _tileHeightMult;
-                    tiles[x * TileGridDimension + y] = new Tile(TileSize,height, tilePos);
-                }   
-                else
-                    tiles[x * TileGridDimension + y] = new Tile(TileSize, 0, tilePos);
+                float height = _heightMap ? _heightMap.GetPixel(x, y).r * _tileHeightMult : 0;
+                float type = _typeMap ? _typeMap.GetPixel(x, y).r : 1;
+                tiles[x * TileGridDimension + y] = new Tile(TileSize, height, tilePos, type);
             }
         }
         TileGrid = tiles;
@@ -56,7 +55,7 @@ public class TileData
         }
         return _tileVerts;
     }
-   
+    public float[] GetTileType() => TileGrid?.Select(t => t.GetTileType()).ToArray();
 }
 
 public class Tile 
@@ -64,12 +63,15 @@ public class Tile
     private float _tileSize;
     private float _tileHeight;
     private Vector2 _tilePosition;
+    private float _tileType;
+    public float GetTileType() => _tileType;
 
-    public Tile(float tileSize, float tileHeight,Vector2 tilePosition) 
+    public Tile(float tileSize, float tileHeight,Vector2 tilePosition, float tileType) 
     {
         _tileSize = tileSize;
         _tilePosition = tilePosition;
         _tileHeight = tileHeight;
+        _tileType = tileType;
     }
 
     public Vector4 GetTilePosSize() 
@@ -85,5 +87,6 @@ public class Tile
         corners[3] = new Vector3(_tilePosition.x - _tileSize / 2, _tileHeight, _tilePosition.y + _tileSize / 2);
         return corners;
     }
+
 
 }

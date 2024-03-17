@@ -5,6 +5,7 @@ public class TileGrandCluster : MonoBehaviour
 {
 
     public Texture2D TileHeightmap;
+    public Texture2D TileTypemap;
     public float TileHeightMultiplier = 1;
     public float TileSize = 39.0625f;
     public int TileGridDimension = 512;
@@ -62,9 +63,9 @@ public class TileGrandCluster : MonoBehaviour
     void SetupTileGrid() 
     {
         if (TileHeightmap)
-            _tileData = new TileData(TileGridCenterXZ, TileHeightmap.width, TileSize, TileHeightmap,TileHeightMultiplier);
+            _tileData = new TileData(TileGridCenterXZ, TileHeightmap.width, TileSize, TileHeightmap,TileHeightMultiplier,TileTypemap);
         else
-            _tileData = new TileData(TileGridCenterXZ, TileGridDimension, TileSize, null, TileHeightMultiplier);
+            _tileData = new TileData(TileGridCenterXZ, TileGridDimension, TileSize, null, TileHeightMultiplier, TileTypemap);
         _tileData.ConstructTileGrid();
     }
     void SetupTileFunctions()

@@ -16,6 +16,7 @@ struct SpawnData
     float3 positionWS;
     float hash;
     float4 clumpInfo;
+    float density;
 };
 
 StructuredBuffer<SpawnData> _SpawnBuffer;
@@ -69,11 +70,11 @@ void Vote (uint3 id : SV_DispatchThreadID)
     float remap = saturate(invLerp(_DensityFalloffDist, _MaxRenderDist, dist));
     remap = pow(remap, 0.5);
    
-    
+    bool hasGrass = step(hash, _SpawnBuffer[id.x].density);
     bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || dist > _MaxRenderDist) ? 0 : 1;
-    bool selected = step(hash, remap) == 0;
+    bool passedDistDrop = step(hash, remap) == 0;
 
-    _VoteBuffer[id.x] = selected && isInView;
+    _VoteBuffer[id.x] = passedDistDrop && isInView && hasGrass;
 }
 [numthreads(NUM_THREAD_GROUP, 1, 1)]
 void ScanThreadGroup(uint3 id : SV_DispatchThreadID, uint3 groupTID : SV_GroupThreadID, uint3 groupID : SV_GroupID)

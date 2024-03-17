@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class TileChunkDispatcher
 {
@@ -9,6 +10,7 @@ public class TileChunkDispatcher
     private ComputeShader _spawnOnTileShader;
     private ComputeBuffer _rawSpawnBuffer; 
     private ComputeBuffer _vertBuffer;
+    private ComputeBuffer _typeBuffer;
 
     private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
@@ -19,6 +21,7 @@ public class TileChunkDispatcher
         Vector3 positionWS;
         float hash;
         Vector4 clumpInfo;
+        float density;
     };
     private SpawnData[] _spawnData;
     private int _tileCount;
@@ -49,8 +52,11 @@ public class TileChunkDispatcher
         _vertBuffer = new ComputeBuffer(_tileCount * 4, sizeof(float) * 3);
         _vertBuffer.SetData(_tileData.GetTileVerts());
 
+        _typeBuffer = new ComputeBuffer(_tileCount,sizeof(float));
+        _typeBuffer.SetData(_tileData.GetTileType());
+
         _spawnData = new SpawnData[_tileCount * instancePerTile];
-        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 8);
+        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 9);
         _rawSpawnBuffer.SetData(_spawnData);
 
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
@@ -59,6 +65,7 @@ public class TileChunkDispatcher
         _spawnOnTileShader.SetBool("_SmoothPlacement", _smoothPlacement);
 
         _spawnOnTileShader.SetBuffer(0, "_VertBuffer", _vertBuffer);
+        _spawnOnTileShader.SetBuffer(0, "_TypeBuffer", _typeBuffer);
         _spawnOnTileShader.SetBuffer(0, "_SpawnBuffer", _rawSpawnBuffer);
         _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
     }
@@ -90,7 +97,7 @@ public class TileChunkDispatcher
             for (int y = 0; y < _chunksPerSide; y++) 
             {
                 SpawnData[] spawnDatas = new SpawnData[totalInstancePerChunk];
-                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 8);
+                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 9);
                 chunkBuffer.SetData(spawnDatas);
                 _spawnOnTileShader.SetInt("_ChunkIndexX", x);
                 _spawnOnTileShader.SetInt("_ChunkIndexY", y);
@@ -122,6 +129,7 @@ public class TileChunkDispatcher
     public void ReleaseBuffer()
     {
         _vertBuffer?.Dispose();
+        _typeBuffer?.Dispose();
         _rawSpawnBuffer?.Dispose();
         foreach (TileChunk t in Chunks)
             t?.ReleaseBuffer();

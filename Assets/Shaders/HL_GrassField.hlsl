@@ -27,6 +27,7 @@ struct SpawnData
     float3 positionWS;
     float hash;
     float4 clumpInfo;
+    float density;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 float3 _ChunkColor,_LOD_Color;

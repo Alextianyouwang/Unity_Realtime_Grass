@@ -6,11 +6,13 @@ uint _Subdivisions;
 bool _SmoothPlacement;
 
 StructuredBuffer<float3> _VertBuffer;
+StructuredBuffer<float> _TypeBuffer;
 struct SpawnData
 {
     float3 positionWS;
     float hash;
     float4 clumpInfo;
+    float density;
 };
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
 
@@ -131,6 +133,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             o.positionWS = pos;
             o.hash = rand3dTo1d(pos * 78.233);
             o.clumpInfo = float4(0, 0, 0,0);
+            o.density = _TypeBuffer[id.x];
             _SpawnBuffer[x * iteration + z + id.x * iteration * iteration] = o;
         }
     }
