@@ -77,7 +77,6 @@ public class TileChunkDispatcher
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
         _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
-
     public void InitializeChunks() 
     {
         _rawSpawnBuffer =  ProcessWithClumpData();

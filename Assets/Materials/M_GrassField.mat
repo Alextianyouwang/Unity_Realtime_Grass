@@ -12,7 +12,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _DEBUG_GLOBALWIND
+  - _DEBUG_OFF
   - _USE_DETAIL_ON
   - _USE_MAINWAVE_ON
   - _USE_RANDOM_HEIGHT_ON
@@ -39,7 +39,7 @@ Material:
     - USE_MAINWAVE_ON: 1
     - _Bend: 0.624
     - _DEBUG: 0
-    - _Debug: 6
+    - _Debug: 0
     - _DetailAmplitude: 0.072
     - _DetailFrequency: 0.768
     - _DetailSpeed: 0.285
@@ -51,7 +51,7 @@ Material:
     - _USE_MAINWAVE_ON: 1
     - _USE_RANDOM_HEIGHT_ON: 1
     - _WindAmplitude: 0.568
-    - _WindDirection: 0
+    - _WindDirection: 45
     - _WindFrequency: 0.208
     - _WindNoiseAmplitude: 1
     - _WindNoiseFrequency: 0.358

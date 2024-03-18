@@ -94,6 +94,8 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     #endif
     
     float rand = _SpawnBuffer[instanceID].hash;
+    rand *= 2;
+    rand -= 1;
     //float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), rand * 360).xyz;
     //float2 rotatedWindDir = Rotate2D(float2(1, -1), _WindDirection * 360);
     //pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
@@ -110,8 +112,9 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 curveNormal = normalize(cross(float3(-1, 0, 0), curveTangent));
     
     pos.yz = curvePos.yz;
-    pos = RotateAroundYInDegrees(float4(pos, 1), rand * 45).xyz;
-    curveNormal = RotateAroundYInDegrees(float4(curveNormal, 0), rand * 45).xyz;
+    float rotDegree = - rand * 45 + _WindDirection - 90;
+    pos = RotateAroundYInDegrees(float4(pos, 1), rotDegree).xyz;
+    curveNormal = RotateAroundYInDegrees(float4(curveNormal, 0), rotDegree).xyz;
 
     pos *= _Scale + heightPerlin;
     pos += spawnPosWS_outVertex;

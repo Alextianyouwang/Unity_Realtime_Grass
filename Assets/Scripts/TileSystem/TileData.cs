@@ -16,8 +16,6 @@ public class TileData
     private float _tileHeightMult;
     private Vector3[] _tileVerts;
     private Vector2 _botLeftCorner;
-
-    private float[] _windValues;
     public TileData(Vector2 tileGridCenterXZ, int tileGridDimension, float tileSize, Texture2D heightMap,float tileHeightMult , Texture2D typeMap)
     {
       

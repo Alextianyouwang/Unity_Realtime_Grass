@@ -13,7 +13,7 @@ Shader "Procedural/S_GrassField"
         [Toggle(_USE_MAINWAVE_ON)]_USE_MAINWAVE_ON ("Use_Main_Wave", Float) = 1
         _WindSpeed("WindSpeed", Range(0,1)) = 0.5
         _WindFrequency("WindFrequency", Range(0,1)) = 0.5
-        _WindDirection("WindDirection", Range(0,1)) = 0
+        _WindDirection("WindDirection", Range(0,360)) = 0
         _WindAmplitude("WindAmplitude", Range(0,1)) = 0.5
         _WindNoiseFrequency("WindNoiseFrequency", Range(0,1)) = 0.5
         _WindNoiseAmplitude("WindNoiseAmplitude", Range(0,1)) = 0.5

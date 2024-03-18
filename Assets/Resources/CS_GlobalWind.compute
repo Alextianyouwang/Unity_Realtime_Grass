@@ -11,7 +11,9 @@ float _DirX;
 float _DirY;
 float _Frequency;
 float _Speed;
+float _Direction;
 #include "../INCLUDE/HL_Noise.hlsl"
+#include "../INCLUDE/HL_GraphicsHelper.hlsl"
 [numthreads(1024, 1, 1)]
 void GlobalWind(uint3 id : SV_DispatchThreadID)
 {
@@ -21,8 +23,10 @@ void GlobalWind(uint3 id : SV_DispatchThreadID)
     int coordX = id.x / _TileDimension;
     int coordY = id.x % _TileDimension;
     float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize + _CornerY);
+    posXZ = Rotate2D(posXZ, -_Direction);
     posXZ *= _Frequency;
-    posXZ -= _Time * _Frequency * _Speed;
+    posXZ.x -= _Time * _Frequency * _Speed;
+
     float noise = perlinNoise(posXZ , float2(12.9898, 78.233));
     _WindBuffer[id.x] =noise ;
 
