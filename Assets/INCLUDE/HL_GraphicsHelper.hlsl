@@ -48,4 +48,35 @@ float2 Rotate2D(float2 uv, float angle)
     return mul(m, uv);
 
 }
+
+void CubicBezierCurve(float3 P0, float3 P1, float3 P2, float3 P3, float t, out float3 pos, out float3 tangent)
+{
+    float t2 = t * t;
+    float t3 = t * t * t;
+    float4x3 input =
+    {
+        P0.x, P0.y, P0.z,
+        P1.x, P1.y, P1.z,
+        P2.x, P2.y, P2.z,
+        P3.x, P3.y, P3.z
+    };
+
+    float1x4 bernstein =
+    {
+         1 - 3 * t + 3 * t2 - 3 * t3,
+         3 * t - 6 * t2 + 3 * t3,
+         3 * t2 - 3 * t3,
+         t3
+    };
+
+    float1x4 d_bernstein =
+    {
+        -3 + 6 * t - 9 * t2,
+        3 - 12 * t + 9 * t2,
+        6 * t - 9 * t2,
+        3 * t2
+    };
+    pos = mul(bernstein, input);
+    tangent = mul(d_bernstein, input);
+}
 #endif

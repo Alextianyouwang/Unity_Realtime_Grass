@@ -3,6 +3,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "../INCLUDE/HL_GraphicsHelper.hlsl"
 #include "../INCLUDE/HL_Noise.hlsl"
+#include "../INCLUDE/HL_CustomLighting.hlsl"
 
 struct VertexInput
 {
@@ -63,54 +64,81 @@ float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWe
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
-
-    float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS - float3(_Offset.x,0, _Offset.y);
+    float3 spawnPosWS_raw = _SpawnBuffer[instanceID].positionWS;
+    float3 spawnPosWS_outVertex = _SpawnBuffer[instanceID].positionWS - float3(_Offset.x,0, _Offset.y);
+    o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
+    float2 dirToCenter = normalize((spawnPosWS_raw).xz - o.clumpInfo.xy);
+    float distToCenter = o.clumpInfo.z;
     float hash = _SpawnBuffer[instanceID].hash ;
     
    
     #if  _USE_MAINWAVE_ON
-        float wave = SinWaveWithNoise(spawnPosWS.xz + _Offset , _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
+        float wave = SinWaveWithNoise(spawnPosWS_raw.xz , _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
+        //wave = _SpawnBuffer[instanceID].wind;
     #else
         float wave = 0;
     #endif
     
     
     #if _USE_DETAIL_ON
-        float detail = Perlin(Rotate2D(spawnPosWS.xz+ _Offset, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
+        float detail = Perlin(Rotate2D(spawnPosWS_raw.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
     #else
         float detail = 0;
     #endif
     
     
     #if _USE_RANDOM_HEIGHT_ON
-        float heightPerlin = Perlin((spawnPosWS.xz+ _Offset) * 20)*_HeightRandomnessAmplitude;
+        float heightPerlin = Perlin((spawnPosWS_raw.xz+ _Offset) * 20)*_HeightRandomnessAmplitude;
     #else
         float heightPerlin  = 0;
     #endif
     
-    float rand = rand3dTo1d(spawnPosWS * 78.233);
-    float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), rand * 360).xyz;
-    float2 rotatedWindDir = Rotate2D(float2(1, -1), _WindDirection * 360);
-    pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
-        v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 + (wave / 2 + 0.75) * detail * _DetailAmplitude * 20))).xyz;
+    float rand = _SpawnBuffer[instanceID].hash;
+    //float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), rand * 360).xyz;
+    //float2 rotatedWindDir = Rotate2D(float2(1, -1), _WindDirection * 360);
+    //pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
+    //    v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 + (wave / 2 + 0.75) * detail * _DetailAmplitude * 20))).xyz;
+    //pos *= _Scale + heightPerlin;
+    float3 pos = v.positionOS;
+    float3 P0 = float3(0, 0, 0);
+    float3 P1 = float3(0, 0.5, 0);
+    float3 P2 = float3(0, 1.5, 0.5);
+    float3 P3 = float3(0, 1, 1.5);
+    float3 curvePos;
+    float3 curveTangent;
+    CubicBezierCurve(P0, P1, P2, P3, pos.y,curvePos, curveTangent);
+    float3 curveNormal = normalize(cross(float3(-1, 0, 0), curveTangent));
+    
+    pos.yz = curvePos.yz;
+    pos = RotateAroundYInDegrees(float4(pos, 1), rand * 45).xyz;
+    curveNormal = RotateAroundYInDegrees(float4(curveNormal, 0), rand * 45).xyz;
+
     pos *= _Scale + heightPerlin;
-    pos += spawnPosWS;
+    pos += spawnPosWS_outVertex;
+    
     o.positionWS = pos;
     o.positionCS = TransformObjectToHClip(pos);
-    o.normalWS = TransformObjectToWorldNormal(v.normalOS);
+    o.normalWS = TransformObjectToWorldNormal(curveNormal);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-    o.debug = float4(wave, detail, _SpawnBuffer[instanceID].hash, _SpawnBuffer[instanceID].wind);
-    o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
+    o.debug = float4(dirToCenter,0, 0);
+
     return o;
 }
 
 float4 frag(VertexOutput v) : SV_Target
 {
     float4 color = lerp(_BotColor,_TopColor ,v.uv.y);
+    float3 finalColor;
+    CalculateCustomLighting_float
+    (
+    v.positionWS, v.normalWS, float3(0,1,0),
+    color.xyz, 0.1, 1,
+    v.uv,
+    finalColor);
 #if _DEBUG_OFF
-        return color;
+        return color.xyzz;
 #elif _DEBUG_MAINWAVE
-        return v.debug.x;
+        return v.debug;
 #elif _DEBUG_DETAILEDWAVE
         return v.debug.y;
 #elif _DEBUG_CHUNKID
