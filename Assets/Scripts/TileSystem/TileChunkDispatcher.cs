@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 public class TileChunkDispatcher
 {
@@ -7,10 +8,14 @@ public class TileChunkDispatcher
 
     private ComputeShader _spawnOnTileShader;
     private ComputeBuffer _rawSpawnBuffer; 
+    private ComputeBuffer _windBuffer_external; 
 
     private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
     private Camera _renderCam;
+
+    public static Func<int,int,float,Vector2,ComputeBuffer> OnRequestWindBuffer;
+    public static Action<int> OnRequestDisposeWindBuffer;
     struct SpawnData
     {
         Vector3 positionWS;
@@ -66,6 +71,13 @@ public class TileChunkDispatcher
         _tileClumpParser.ParseClump();
         return _tileClumpParser.ShareSpawnBuffer();
     }
+    public void GetWindBuffer() 
+    {
+        float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
+        Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
+        _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+    }
+
     public void InitializeChunks() 
     {
         _rawSpawnBuffer =  ProcessWithClumpData();
@@ -99,22 +111,27 @@ public class TileChunkDispatcher
                     new Vector4(x,y,chunkDimension,chunksPerSide),
                     _tileData
                     );
+                t.SetWindBuffer(_windBuffer_external);
                 t.Init();
+                
             }
         }
     }
+
 
     public void DispatchTileChunksDrawCall() 
     {
         Plane[] p= GeometryUtility.CalculateFrustumPlanes(_renderCam);
         foreach (TileChunk t in Chunks)
             if (GeometryUtility.TestPlanesAABB(p, t.ChunkBounds))
-                t.Update();
+                if (t != null)
+                    t.Update();
     }
-
     public void ReleaseBuffer()
     {
         _rawSpawnBuffer?.Dispose();
+        OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
+
         foreach (TileChunk t in Chunks)
             t?.ReleaseBuffer();
         _tileClumpParser?.ReleaseBuffer();

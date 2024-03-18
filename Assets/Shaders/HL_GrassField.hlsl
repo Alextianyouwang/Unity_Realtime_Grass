@@ -120,7 +120,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.positionCS = TransformObjectToHClip(pos);
     o.normalWS = TransformObjectToWorldNormal(curveNormal);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-    o.debug = float4(dirToCenter,0, 0);
+    o.debug = float4(dirToCenter,0, _SpawnBuffer[instanceID].wind);
 
     return o;
 }

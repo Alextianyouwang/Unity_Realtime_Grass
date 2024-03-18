@@ -1,5 +1,6 @@
 using UnityEngine;
 [ExecuteInEditMode]
+[DefaultExecutionOrder(-99)]
 public class TileGrandCluster : MonoBehaviour
 {
 
@@ -61,7 +62,6 @@ public class TileGrandCluster : MonoBehaviour
     }
     private void LateUpdate()
     {
-        UpdateWindData();
         if (ShowDebugView)
             DrawDebugView();
         IndirectDrawPerFrame();
@@ -75,12 +75,6 @@ public class TileGrandCluster : MonoBehaviour
         else
             _tileData = new TileData(TileGridCenterXZ, TileGridDimension, TileSize, null, TileHeightMultiplier, TileTypemap);
         _tileData.ConstructTileGrid();
-        _tileData.InitializeWind();
-    }
-
-    void UpdateWindData() 
-    {
-        _tileData?.UpdateWind();
     }
 
     void CleanupTileDataBuffer() 
@@ -107,6 +101,7 @@ public class TileGrandCluster : MonoBehaviour
             RenderCam, 
             SmoothPlacement);
         _tileChunkDispatcher.InitialSpawn();
+        _tileChunkDispatcher.GetWindBuffer();
         _tileChunkDispatcher.InitializeChunks();
     }
     void IndirectDrawPerFrame()
@@ -122,8 +117,7 @@ public class TileGrandCluster : MonoBehaviour
     {
         if (_tileData == null)
             return;
-        _tileVisualizer = new TileVisualizer(_tileData.TileGrid,DebugMaterial, _tileData.TileGridDimension);
-        _tileVisualizer.GetNoiseBuffer(_tileData.WindBuffer);
+        _tileVisualizer = new TileVisualizer(_tileData,DebugMaterial);
         _tileVisualizer.InitializeTileDebug();
     }
     void DrawDebugView()
