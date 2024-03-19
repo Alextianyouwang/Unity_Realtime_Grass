@@ -38,7 +38,7 @@ Material:
     m_Floats:
     - USE_MAINWAVE_ON: 1
     - _Bend: 0.498
-    - _BladeThickenFactor: 51.1
+    - _BladeThickenFactor: 32.9
     - _DEBUG: 0
     - _Debug: 0
     - _DetailAmplitude: 0.072
@@ -48,7 +48,7 @@ Material:
     - _Height: 1
     - _HeightRandomnessAmplitude: 0.708
     - _RandomBendOffset: 0.206
-    - _Scale: 0.455
+    - _Scale: 0.499
     - _Tilt: 1
     - _USE_DETAIL_ON: 1
     - _USE_MAINWAVE_ON: 1

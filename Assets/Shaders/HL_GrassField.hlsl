@@ -55,10 +55,10 @@ float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWe
 }
 
 
-void CalculateGrassCurve(float t, out float3 pos, out float3 tan)
+void CalculateGrassCurve(float t, float v, out float3 pos, out float3 tan)
 {
-    float2 P3 = float2(_Height, _Tilt);
-    float2 P2 = float2(_Tilt, _Height) / 2 + normalize(float2(-_Height, _Tilt)) * _Bend;
+    float2 P3 = float2(_Height , _Tilt);
+    float2 P2 = float2(_Tilt, _Height) / 2 + normalize(float2(-_Height, _Tilt)) * (_Bend + v);
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
 }
 
@@ -108,7 +108,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 posOS = v.positionOS;
     float3 curvePosOS;
     float3 curveTangentOS;
-    CalculateGrassCurve(o.uv.y, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(o.uv.y, 0, curvePosOS, curveTangentOS);
     float3 normalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
     
     posOS.yz = curvePosOS.yz;
@@ -123,22 +123,26 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.normalWS = normalWS;
     float3 curvePosWS = curvePosOS + spawnPosWS;
 
-    float offScreenFactor = smoothstep(0.2, 1, 1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS))));
+    float offScreenFactor = smoothstep(0, 1, 1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS))));
     
-
-    
+    float3 posVS = mul(UNITY_MATRIX_V, float4(posWS, 1)).xyz;
     float4 posCS = mul(UNITY_MATRIX_VP, float4(posWS, 1));
+    float3 curvePosVS = mul(UNITY_MATRIX_V, float4(curvePosWS, 1)).xyz;
     float4 curvePosCS = mul(UNITY_MATRIX_VP, float4(curvePosWS, 1));
+    float3 normalVS = mul(UNITY_MATRIX_V, float4(normalWS, 0)).xyz;
     float4 normalCS = mul(UNITY_MATRIX_VP, float4(normalWS, 0));
-    float2 shiftDist = (posCS.xy - curvePosCS.xy);
-    float2 projected = dot(shiftDist, normalCS.xy) * length(normalCS.xy) * length(normalCS.xy) * normalCS.xy;
-    float2 shiftFactor = (projected) * _BladeThickenFactor * offScreenFactor * 0.01;
-    float thickness = length(shiftDist);
-    posCS.xy += thickness > 0.0001?
-    shiftDist* _BladeThickenFactor* offScreenFactor *  0.02 :
+    float2 shiftDist = posCS.xy - curvePosCS.xy;
+    float2 projected = dot(shiftDist, normalCS.xy) * normalCS.xy;
+    float2 shiftFactor = normalize(projected) * _BladeThickenFactor * offScreenFactor * 0.0005;
+    //shiftFactor *= smoothstep(-0.01, 0.01, dot(shiftDist, normalCS.xy));
+    
+    posCS.xy += length(shiftDist) > 0.001? 
+    shiftFactor:
     0;
     
-    o.debug = float4(shiftDist.xy*100,0,offScreenFactor);
+    float4 posCS2 = mul(UNITY_MATRIX_P, float4(posVS, 1));
+   
+    o.debug = float4(normalCS.xyz, 0);
     o.positionCS = posCS;
     return o;
 }
@@ -153,7 +157,8 @@ float4 frag(VertexOutput v) : SV_Target
     float nDotl = saturate(dot(mainLight.direction, normal));
 
 #if _DEBUG_OFF
-        return normal.xyzz;
+        return color;
+        return v.debug.xyzw;
 #elif _DEBUG_MAINWAVE
         return v.debug;
 #elif _DEBUG_DETAILEDWAVE
