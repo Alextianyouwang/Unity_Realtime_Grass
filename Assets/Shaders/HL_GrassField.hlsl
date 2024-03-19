@@ -37,6 +37,7 @@ TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 float _Scale, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,_WindAmplitude,
 _DetailSpeed, _DetailAmplitude, _DetailFrequency,
 _HeightRandomnessAmplitude,
+_BladeThickenFactor,
 _Tilt,_Height,_Bend;
 float4 _TopColor, _BotColor;
 
@@ -105,36 +106,40 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     //    v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 + (wave / 2 + 0.75) * detail * _DetailAmplitude * 20))).xyz;
     //pos *= _Scale + heightPerlin;
     float3 posOS = v.positionOS;
-    float3 curvePos;
-    float3 curveTangent;
-    CalculateGrassCurve(o.uv.y, curvePos, curveTangent);
-    float3 normalOS = normalize(cross(float3(-1, 0, 0), curveTangent));
+    float3 curvePosOS;
+    float3 curveTangentOS;
+    CalculateGrassCurve(o.uv.y, curvePosOS, curveTangentOS);
+    float3 normalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
     
-    posOS.yz = curvePos.yz;
+    posOS.yz = curvePosOS.yz;
     float rotDegree = - rand * 45 + _WindDirection - 90;
     posOS = RotateAroundYInDegrees(float4(posOS, 1), rotDegree).xyz;
+    curvePosOS = RotateAroundYInDegrees(float4(curvePosOS, 1),rotDegree).xyz;
     float3 normalWS = RotateAroundYInDegrees(float4(normalOS, 0), rotDegree).xyz;
-
-
+    curvePosOS *= _Scale;
     posOS *= _Scale;
     float3 posWS= posOS + spawnPosWS;
-
-
-    //float3 posVS = mul(UNITY_MATRIX_V, float4(posWS, 1)).xyz;
-    //float3 normalVS = mul(UNITY_MATRIX_V, float4(normalWS, 0)).xyz;
-    //float offScreenFactor = abs(dot(normalVS, normalize(posVS)));
-    
-    //posVS += normalVS * offScreenFactor;
-    float offScreenFactor = abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS)));
-    posWS = RotateAroundAxis(float4(posWS, 0), curveTangent, 10 * offScreenFactor);
-    
-    
     o.positionWS = posWS;
     o.normalWS = normalWS;
-    o.debug = float4(dirToCenter,offScreenFactor, _SpawnBuffer[instanceID].wind);
+    float3 curvePosWS = curvePosOS + spawnPosWS;
+
+    float offScreenFactor = smoothstep(0.2, 1, 1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS))));
     
+
     
-    o.positionCS = mul(UNITY_MATRIX_VP, float4(posWS, 1));
+    float4 posCS = mul(UNITY_MATRIX_VP, float4(posWS, 1));
+    float4 curvePosCS = mul(UNITY_MATRIX_VP, float4(curvePosWS, 1));
+    float4 normalCS = mul(UNITY_MATRIX_VP, float4(normalWS, 0));
+    float2 shiftDist = (posCS.xy - curvePosCS.xy);
+    float2 projected = dot(shiftDist, normalCS.xy) * length(normalCS.xy) * length(normalCS.xy) * normalCS.xy;
+    float2 shiftFactor = (projected) * _BladeThickenFactor * offScreenFactor * 0.01;
+    float thickness = length(shiftDist);
+    posCS.xy += thickness > 0.0001?
+    shiftDist* _BladeThickenFactor* offScreenFactor *  0.02 :
+    0;
+    
+    o.debug = float4(shiftDist.xy*100,0,offScreenFactor);
+    o.positionCS = posCS;
     return o;
 }
 
@@ -148,7 +153,7 @@ float4 frag(VertexOutput v) : SV_Target
     float nDotl = saturate(dot(mainLight.direction, normal));
 
 #if _DEBUG_OFF
-        return 1- v.debug.zzzz ;
+        return normal.xyzz;
 #elif _DEBUG_MAINWAVE
         return v.debug;
 #elif _DEBUG_DETAILEDWAVE

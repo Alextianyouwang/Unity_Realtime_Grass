@@ -28,6 +28,8 @@ Shader "Procedural/S_GrassField"
         _Height("GrassHeight",Float) = 1
         _Bend("GrassBend",Range(-1,1)) = 0
 
+        _BladeThickenFactor("_BladeThickenFactor",Range(0,90)) = 0
+
 
 
     }

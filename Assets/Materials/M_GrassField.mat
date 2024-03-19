@@ -38,6 +38,7 @@ Material:
     m_Floats:
     - USE_MAINWAVE_ON: 1
     - _Bend: 0.498
+    - _BladeThickenFactor: 51.1
     - _DEBUG: 0
     - _Debug: 0
     - _DetailAmplitude: 0.072

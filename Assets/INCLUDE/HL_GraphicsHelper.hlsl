@@ -38,6 +38,28 @@ float4 RotateAroundAxis(float4 vertex, float3 axis, float angle)
 
     return float4(rotatedVertex, vertex.w);
 }
+float4 RotateAroundAxis(float4 vertex, float3 axis, float angle, float3 center)
+{
+    // Translate the vertex so that the center becomes the origin
+    float3 translatedVertex = vertex.xyz - center;
+
+    // Convert angle from degrees to radians
+    float radians = angle * UNITY_PI / 180.0;
+
+    // Compute sine and cosine of the angle
+    float sina, cosa;
+    sincos(radians, sina, cosa);
+
+    // Rodrigues' rotation formula
+    float3 rotatedTranslatedVertex = translatedVertex * cosa +
+                                     cross(axis, translatedVertex) * sina +
+                                     axis * dot(axis, translatedVertex) * (1 - cosa);
+
+    // Translate the vertex back to its original position
+    float3 rotatedVertex = rotatedTranslatedVertex + center;
+
+    return float4(rotatedVertex, vertex.w);
+}
 
 float2 Rotate2D(float2 uv, float angle)
 {
