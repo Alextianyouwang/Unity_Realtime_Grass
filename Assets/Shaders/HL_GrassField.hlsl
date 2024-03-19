@@ -34,9 +34,10 @@ struct SpawnData
 StructuredBuffer<SpawnData> _SpawnBuffer;
 float3 _ChunkColor,_LOD_Color;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
-float _Scale, _Bend, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,_WindAmplitude,
+float _Scale, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,_WindAmplitude,
 _DetailSpeed, _DetailAmplitude, _DetailFrequency,
-_HeightRandomnessAmplitude;
+_HeightRandomnessAmplitude,
+_Tilt,_Height,_Bend;
 float4 _TopColor, _BotColor;
 float2 _Offset; // World Pos Sampler Offset for Continuous Values;
 // Dont know why unity make indirect draw call bounds
@@ -59,11 +60,19 @@ float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWe
 }
 
 
+void CalculateGrassCurve(float t, out float3 pos, out float3 tan)
+{
+    float2 P3 = float2(_Height, _Tilt);
+    float2 P2 = float2(_Tilt, _Height) / 2 + normalize(float2(-_Height, _Tilt)) * _Bend;
+    CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
+}
+
 
 
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
+    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     float3 spawnPosWS_raw = _SpawnBuffer[instanceID].positionWS;
     float3 spawnPosWS_outVertex = _SpawnBuffer[instanceID].positionWS - float3(_Offset.x,0, _Offset.y);
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
@@ -102,13 +111,9 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     //    v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 + (wave / 2 + 0.75) * detail * _DetailAmplitude * 20))).xyz;
     //pos *= _Scale + heightPerlin;
     float3 pos = v.positionOS;
-    float3 P0 = float3(0, 0, 0);
-    float3 P1 = float3(0, 0.5, 0);
-    float3 P2 = float3(0, 1.5, 0.5);
-    float3 P3 = float3(0, 1, 1.5);
     float3 curvePos;
     float3 curveTangent;
-    CubicBezierCurve(P0, P1, P2, P3, pos.y,curvePos, curveTangent);
+    CalculateGrassCurve(o.uv.y, curvePos, curveTangent);
     float3 curveNormal = normalize(cross(float3(-1, 0, 0), curveTangent));
     
     pos.yz = curvePos.yz;
@@ -122,7 +127,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.positionWS = pos;
     o.positionCS = TransformObjectToHClip(pos);
     o.normalWS = TransformObjectToWorldNormal(curveNormal);
-    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+
     o.debug = float4(dirToCenter,0, _SpawnBuffer[instanceID].wind);
 
     return o;
@@ -131,15 +136,15 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 float4 frag(VertexOutput v) : SV_Target
 {
     float4 color = lerp(_BotColor,_TopColor ,v.uv.y);
+    float3 normal = normalize(v.normalWS);
     float3 finalColor;
-    CalculateCustomLighting_float
-    (
-    v.positionWS, v.normalWS, float3(0,1,0),
-    color.xyz, 0.1, 1,
-    v.uv,
-    finalColor);
+    
+   Light mainLight = GetMainLight();
+    float nDotl = saturate(dot(mainLight.direction, normal));
+
+   
 #if _DEBUG_OFF
-        return color.xyzz;
+        return normal.xyzz ;
 #elif _DEBUG_MAINWAVE
         return v.debug;
 #elif _DEBUG_DETAILEDWAVE

@@ -79,4 +79,30 @@ void CubicBezierCurve(float3 P0, float3 P1, float3 P2, float3 P3, float t, out f
     pos = mul(bernstein, input);
     tangent = mul(d_bernstein, input);
 }
+void CubicBezierCurve_Tilt_Bend(float3 P2, float3 P3, float t, out float3 pos, out float3 tangent)
+{
+    float t2 = t * t;
+    float t3 = t * t * t;
+    float1x2 bernstein =
+    {
+         3 * t2 - 3 * t3,
+         t3
+    };
+
+    float2x3 input =
+    {
+        P2.x, P2.y, P2.z,
+        P3.x, P3.y, P3.z
+    };
+
+
+    float1x2 d_bernstein =
+    {
+        6 * t - 9 * t2,
+        3 * t2
+    };
+    pos = mul(bernstein, input);
+    tangent = mul(d_bernstein, input);
+}
+
 #endif

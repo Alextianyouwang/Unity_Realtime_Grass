@@ -10,7 +10,7 @@ Shader "Procedural/S_GrassField"
         _RandomBendOffset("RandomBendOffset", Range(0,1)) = 0
         _TopColor("TopColor", Color) = (1,1,1,1)
         _BotColor("BotColor", Color) = (0,0,0,1)
-        [Toggle(_USE_MAINWAVE_ON)]_USE_MAINWAVE_ON ("Use_Main_Wave", Float) = 1
+        [Toggle(_USE_MAINWAVE_ON)]_USE_MAINWAVE_ON("Use_Main_Wave", Float) = 1
         _WindSpeed("WindSpeed", Range(0,1)) = 0.5
         _WindFrequency("WindFrequency", Range(0,1)) = 0.5
         _WindDirection("WindDirection", Range(0,360)) = 0
@@ -23,6 +23,10 @@ Shader "Procedural/S_GrassField"
         _DetailAmplitude("DetailAmplitude", Range(0,1)) = 0.5
         [Toggle(_USE_RANDOM_HEIGHT_ON)]_USE_RANDOM_HEIGHT_ON("Use_Random_Height", Float) = 1
         _HeightRandomnessAmplitude("RandomHeightAmplitude", Range(0,1)) = 0.5
+
+        _Tilt("GrassTilt",Float) = 1
+        _Height("GrassHeight",Float) = 1
+        _Bend("GrassBend",Range(-1,1)) = 0
 
 
 
