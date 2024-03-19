@@ -39,12 +39,6 @@ _DetailSpeed, _DetailAmplitude, _DetailFrequency,
 _HeightRandomnessAmplitude,
 _Tilt,_Height,_Bend;
 float4 _TopColor, _BotColor;
-float2 _Offset; // World Pos Sampler Offset for Continuous Values;
-// Dont know why unity make indirect draw call bounds
-// adding vertex offset to its instance group... 
-// and even though using this fucntion to make up their
-// perlin-noise in graphic shader are not continuous anymore...
-
 
 float Perlin(float2 uv)
 {
@@ -72,17 +66,17 @@ void CalculateGrassCurve(float t, out float3 pos, out float3 tan)
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
+   
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-    float3 spawnPosWS_raw = _SpawnBuffer[instanceID].positionWS;
-    float3 spawnPosWS_outVertex = _SpawnBuffer[instanceID].positionWS - float3(_Offset.x,0, _Offset.y);
+    float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
-    float2 dirToCenter = normalize((spawnPosWS_raw).xz - o.clumpInfo.xy);
+    float2 dirToCenter = normalize((spawnPosWS).xz - o.clumpInfo.xy);
     float distToCenter = o.clumpInfo.z;
     float hash = _SpawnBuffer[instanceID].hash ;
-    
+
    
     #if  _USE_MAINWAVE_ON
-        float wave = SinWaveWithNoise(spawnPosWS_raw.xz , _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
+        float wave = SinWaveWithNoise(spawnPosWS.xz , _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
         //wave = _SpawnBuffer[instanceID].wind;
     #else
         float wave = 0;
@@ -90,14 +84,14 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     
     #if _USE_DETAIL_ON
-        float detail = Perlin(Rotate2D(spawnPosWS_raw.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
+        float detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
     #else
         float detail = 0;
     #endif
     
     
     #if _USE_RANDOM_HEIGHT_ON
-        float heightPerlin = Perlin((spawnPosWS_raw.xz+ _Offset) * 20)*_HeightRandomnessAmplitude;
+        float heightPerlin = Perlin((spawnPosWS.xz) * 20)*_HeightRandomnessAmplitude;
     #else
         float heightPerlin  = 0;
     #endif
@@ -110,26 +104,37 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     //pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
     //    v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 + (wave / 2 + 0.75) * detail * _DetailAmplitude * 20))).xyz;
     //pos *= _Scale + heightPerlin;
-    float3 pos = v.positionOS;
+    float3 posOS = v.positionOS;
     float3 curvePos;
     float3 curveTangent;
     CalculateGrassCurve(o.uv.y, curvePos, curveTangent);
-    float3 curveNormal = normalize(cross(float3(-1, 0, 0), curveTangent));
+    float3 normalOS = normalize(cross(float3(-1, 0, 0), curveTangent));
     
-    pos.yz = curvePos.yz;
+    posOS.yz = curvePos.yz;
     float rotDegree = - rand * 45 + _WindDirection - 90;
-    pos = RotateAroundYInDegrees(float4(pos, 1), rotDegree).xyz;
-    curveNormal = RotateAroundYInDegrees(float4(curveNormal, 0), rotDegree).xyz;
+    posOS = RotateAroundYInDegrees(float4(posOS, 1), rotDegree).xyz;
+    float3 normalWS = RotateAroundYInDegrees(float4(normalOS, 0), rotDegree).xyz;
 
-    pos *= _Scale + heightPerlin;
-    pos += spawnPosWS_outVertex;
+
+    posOS *= _Scale;
+    float3 posWS= posOS + spawnPosWS;
+
+
+    //float3 posVS = mul(UNITY_MATRIX_V, float4(posWS, 1)).xyz;
+    //float3 normalVS = mul(UNITY_MATRIX_V, float4(normalWS, 0)).xyz;
+    //float offScreenFactor = abs(dot(normalVS, normalize(posVS)));
     
-    o.positionWS = pos;
-    o.positionCS = TransformObjectToHClip(pos);
-    o.normalWS = TransformObjectToWorldNormal(curveNormal);
-
-    o.debug = float4(dirToCenter,0, _SpawnBuffer[instanceID].wind);
-
+    //posVS += normalVS * offScreenFactor;
+    float offScreenFactor = abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS)));
+    posWS = RotateAroundAxis(float4(posWS, 0), curveTangent, 10 * offScreenFactor);
+    
+    
+    o.positionWS = posWS;
+    o.normalWS = normalWS;
+    o.debug = float4(dirToCenter,offScreenFactor, _SpawnBuffer[instanceID].wind);
+    
+    
+    o.positionCS = mul(UNITY_MATRIX_VP, float4(posWS, 1));
     return o;
 }
 
@@ -142,9 +147,8 @@ float4 frag(VertexOutput v) : SV_Target
    Light mainLight = GetMainLight();
     float nDotl = saturate(dot(mainLight.direction, normal));
 
-   
 #if _DEBUG_OFF
-        return normal.xyzz ;
+        return 1- v.debug.zzzz ;
 #elif _DEBUG_MAINWAVE
         return v.debug;
 #elif _DEBUG_DETAILEDWAVE

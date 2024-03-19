@@ -129,7 +129,6 @@ public class TileChunk
         _chunkColor = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
         _mpb.SetBuffer("_SpawnBuffer", _compactBuffer);
         _mpb.SetColor("_ChunkColor", _chunkColor);
-        _mpb.SetVector("_Offset", new Vector4(ChunkBounds.center.x, ChunkBounds.center.z, 0, 0));
     }
 
     private void UpdateWind()
@@ -156,7 +155,6 @@ public class TileChunk
         _cullShader.Dispatch(3, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);
 
         float dist = Vector3.Distance(_renderCam.transform.position, ChunkBounds.center);
-        Bounds fieldBounds = new Bounds (Vector3.zero,new Vector3 (200,1,200));
         if (dist < TileGrandCluster._LOD_Threshold_01)
         {
             Graphics.DrawMeshInstancedIndirect(_spawnMesh[0], 0, _spawnMeshMaterial, ChunkBounds, _argsBuffer[0],
