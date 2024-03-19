@@ -38,7 +38,7 @@ Material:
     m_Floats:
     - USE_MAINWAVE_ON: 1
     - _Bend: 0.498
-    - _BladeThickenFactor: 32.9
+    - _BladeThickenFactor: 35
     - _DEBUG: 0
     - _Debug: 0
     - _DetailAmplitude: 0.072
@@ -61,8 +61,8 @@ Material:
     - _WindNoiseWeight: 1
     - _WindSpeed: 0.776
     m_Colors:
-    - _BotColor: {r: 0, g: 0.09201164, b: 0.21698111, a: 1}
-    - _TopColor: {r: 0, g: 1, b: 0.058154345, a: 1}
+    - _BotColor: {r: 0.28288117, g: 0, b: 0.8207547, a: 1}
+    - _TopColor: {r: 0, g: 1, b: 0.3393314, a: 1}
     - _WindDirection: {r: 1, g: 1, b: 0, a: 0}
     - _WindNoiseFrequency: {r: 0.3, g: 0.3, b: 0, a: 0}
   m_BuildTextureStacks: []

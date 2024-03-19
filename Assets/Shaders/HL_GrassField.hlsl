@@ -131,10 +131,9 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float4 curvePosCS = mul(UNITY_MATRIX_VP, float4(curvePosWS, 1));
     float3 normalVS = mul(UNITY_MATRIX_V, float4(normalWS, 0)).xyz;
     float4 normalCS = mul(UNITY_MATRIX_VP, float4(normalWS, 0));
-    float2 shiftDist = posCS.xy - curvePosCS.xy;
-    float2 projected = dot(shiftDist, normalCS.xy) * normalCS.xy;
-    float2 shiftFactor = normalize(projected) * _BladeThickenFactor * offScreenFactor * 0.0005;
-    //shiftFactor *= smoothstep(-0.01, 0.01, dot(shiftDist, normalCS.xy));
+    float2 shiftDist = posCS.xy- curvePosCS.xy;
+    float2 projected = clamp(-1, dot(shiftDist, normalCS.xy) * normalCS.xy * 300, 1);
+    float2 shiftFactor =  projected * _BladeThickenFactor * offScreenFactor * 0.0005;
     
     posCS.xy += length(shiftDist) > 0.001? 
     shiftFactor:
@@ -142,7 +141,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     float4 posCS2 = mul(UNITY_MATRIX_P, float4(posVS, 1));
    
-    o.debug = float4(normalCS.xyz, 0);
+    o.debug = float4(normalCS.xyz, 0 );
     o.positionCS = posCS;
     return o;
 }
@@ -158,7 +157,7 @@ float4 frag(VertexOutput v) : SV_Target
 
 #if _DEBUG_OFF
         return color;
-        return v.debug.xyzw;
+        return v.debug.wwww;
 #elif _DEBUG_MAINWAVE
         return v.debug;
 #elif _DEBUG_DETAILEDWAVE
