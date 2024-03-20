@@ -38,7 +38,7 @@ float _Scale, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _
 _DetailSpeed, _DetailAmplitude, _DetailFrequency,
 _HeightRandomnessAmplitude,
 _BladeThickenFactor,
-_Tilt,_Height,_Bend;
+_Tilt,_Height,_Bend,_WaveMultiplier;
 float4 _TopColor, _BotColor;
 
 float Perlin(float2 uv)
@@ -55,10 +55,15 @@ float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWe
 }
 
 
-void CalculateGrassCurve(float t, float v, inout float3 pos, inout float3 tan)
+void CalculateGrassCurve(float t, float offset, out float3 pos, out float3 tan)
 {
-    float2 P3 = float2(_Height , _Tilt);
-    float2 P2 = float2(_Tilt, _Height) / 2 + normalize(float2(-_Height, _Tilt)) * (_Bend + v);
+    float2 waveDir = normalize(float2(_Tilt, _Height));
+    float propg = dot(waveDir, float2(_Tilt, _Height));
+    float grassWave = sin(t * 2 - _Time.y * 4 +offset);
+    float2 P3 = float2(_Tilt,_Height);
+    float2 P2 = float2(_Tilt, _Height) / 2 + normalize(float2(-_Height, _Tilt)) * _Bend;
+    P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * _WaveMultiplier * t;
+    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * _WaveMultiplier * t;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
 }
 
@@ -108,14 +113,15 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 posOS = v.positionOS;
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
-    CalculateGrassCurve(o.uv.y, 0, curvePosOS, curveTangentOS);
-    float3 normalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
+    
+    CalculateGrassCurve(o.uv.y, ( hash*0.2) * 10, curvePosOS, curveTangentOS);
+    float3 curveNormalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
     
     posOS.yz = curvePosOS.yz;
     float rotDegree = - rand * 45 + _WindDirection - 90;
     posOS = RotateAroundYInDegrees(float4(posOS, 1), rotDegree).xyz;
     curvePosOS = RotateAroundYInDegrees(float4(curvePosOS, 1),rotDegree).xyz;
-    float3 normalWS = RotateAroundYInDegrees(float4(normalOS, 0), rotDegree).xyz;
+    float3 normalWS = RotateAroundYInDegrees(float4(curveNormalOS, 0), rotDegree).xyz;
     curvePosOS *= _Scale;
     posOS *= _Scale;
     float3 posWS= posOS + spawnPosWS;
@@ -136,7 +142,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float2 projected = normalize(dot(shiftDist, normalCS.xy)) * normalCS.xy;
     float viewDist = length(_WorldSpaceCameraPos- spawnPosWS);
     float mask = 1- smoothstep(10,20, viewDist);
-    float2 shiftFactor = projected * _BladeThickenFactor * offScreenFactor * 0.0005;
+    float2 shiftFactor = projectedSmooth * _BladeThickenFactor * offScreenFactor * 0.0005;
 
     
     posCS.xy += length(shiftDist) > 0.001? 
@@ -145,7 +151,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     float4 posCS2 = mul(UNITY_MATRIX_P, float4(posVS, 1));
    
-    o.debug = float4(normalCS.xyz, 0 );
+    o.debug = float4(normalCS.xyz, 0);
     o.positionCS = posCS;
     return o;
 }

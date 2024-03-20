@@ -27,8 +27,9 @@ Shader "Procedural/S_GrassField"
         _Tilt("GrassTilt",Float) = 1
         _Height("GrassHeight",Float) = 1
         _Bend("GrassBend",Range(-1,1)) = 0
+        _WaveMultiplier("WaveMultiplier",Range(0,1)) = 0.1
 
-        _BladeThickenFactor("_BladeThickenFactor",Range(0,90)) = 0
+        _BladeThickenFactor("BladeThickenFactor",Range(0,90)) = 0
 
 
 
