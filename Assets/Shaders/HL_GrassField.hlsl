@@ -38,7 +38,7 @@ float _Scale, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _
 _DetailSpeed, _DetailAmplitude, _DetailFrequency,
 _HeightRandomnessAmplitude,
 _BladeThickenFactor,
-_Tilt,_Height,_Bend,_WaveMultiplier;
+_Tilt, _Height, _Bend, _GrassWaveAmplitude, _GrassWaveFrequency;
 float4 _TopColor, _BotColor;
 
 float Perlin(float2 uv)
@@ -55,15 +55,15 @@ float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWe
 }
 
 
-void CalculateGrassCurve(float t, float offset, out float3 pos, out float3 tan)
+void CalculateGrassCurve(float t, float offset,float amplitude, out float3 pos, out float3 tan)
 {
     float2 waveDir = normalize(float2(_Tilt, _Height));
     float propg = dot(waveDir, float2(_Tilt, _Height));
-    float grassWave = sin(t * 2 - _Time.y * 4 +offset);
+    float grassWave = sin(t * 5 * _GrassWaveFrequency - _Time.y * 4 + offset);
     float2 P3 = float2(_Tilt,_Height);
     float2 P2 = float2(_Tilt, _Height) / 2 + normalize(float2(-_Height, _Tilt)) * _Bend;
-    P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * _WaveMultiplier * t;
-    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * _WaveMultiplier * t;
+    P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * _GrassWaveAmplitude * amplitude * t;
+    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * _GrassWaveAmplitude * amplitude * t;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
 }
 
@@ -72,88 +72,96 @@ void CalculateGrassCurve(float t, float offset, out float3 pos, out float3 tan)
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
-   
-    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+    ////////////////////////////////////////////////
+    // Fetch Input
+    float wind = _SpawnBuffer[instanceID].wind;
+    float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
     float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS;
-    o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
-    float2 dirToCenter = normalize((spawnPosWS).xz - o.clumpInfo.xy);
-    float distToCenter = o.clumpInfo.z;
-    float hash = _SpawnBuffer[instanceID].hash ;
+    float rand = _SpawnBuffer[instanceID].hash * 2 - 1;
+    float2 dirToClump = normalize((spawnPosWS).xz - _SpawnBuffer[instanceID].clumpInfo.xy);
+    float distToClump = _SpawnBuffer[instanceID].clumpInfo.z;
+    float clumpHash= _SpawnBuffer[instanceID].clumpInfo.w;
+    float3 posOS = v.positionOS;
+    ////////////////////////////////////////////////
 
-   
-    #if  _USE_MAINWAVE_ON
-        float wave = SinWaveWithNoise(spawnPosWS.xz , _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
-        //wave = _SpawnBuffer[instanceID].wind;
-    #else
-        float wave = 0;
-    #endif
+
+    ////////////////////////////////////////////////
+    // Apply Curve
+    float3 curvePosOS = 0;
+    float3 curveTangentOS = 0;
+    CalculateGrassCurve(uv.y, (rand * 0.2) * 10, wind * 4, curvePosOS, curveTangentOS);
+    float3 curveNormalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
+    posOS.yz = curvePosOS.yz;
+    ////////////////////////////////////////////////
     
     
-    #if _USE_DETAIL_ON
-        float detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
-    #else
-        float detail = 0;
-    #endif
+    ////////////////////////////////////////////////
+    // Apply Transform
+    float rotDegree = -rand * 45 + _WindDirection - 90;
+    posOS = RotateAroundYInDegrees(float4(posOS, 1), rotDegree).xyz * _Scale;
+    curvePosOS = RotateAroundYInDegrees(float4(curvePosOS, 1), rotDegree).xyz * _Scale;
+    float3 posWS = posOS + spawnPosWS;
+    float3 curvePosWS = curvePosOS + spawnPosWS;
+    float3 normalWS = RotateAroundYInDegrees(float4(curveNormalOS, 0), rotDegree).xyz;
+    ////////////////////////////////////////////////
     
     
-    #if _USE_RANDOM_HEIGHT_ON
-        float heightPerlin = Perlin((spawnPosWS.xz) * 20)*_HeightRandomnessAmplitude;
-    #else
-        float heightPerlin  = 0;
-    #endif
+    ////////////////////////////////////////////////
+    // Apply Clip Space Adjustment
+    float offScreenFactor = smoothstep(0.2, 1, 1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS))));
+    float4 posCS = mul(UNITY_MATRIX_VP, float4(posWS, 1));
+    float4 curvePosCS = mul(UNITY_MATRIX_VP, float4(curvePosWS, 1));
+    float4 normalCS = mul(UNITY_MATRIX_VP, float4(normalWS, 0));
+    float2 shiftDist = posCS.xy - curvePosCS.xy;
+    float2 projectedFlat = normalize(dot(shiftDist, float2(1, 1)));
+    float2 projectedSmooth = clamp(-1, dot(shiftDist, normalCS.xy) * normalCS.xy * 600, 1);
+    float viewDist = length(_WorldSpaceCameraPos - spawnPosWS);
+    float mask = 1 - smoothstep(20, 40, viewDist);
+    float2 shiftFactor = lerp(projectedFlat,projectedSmooth,mask) * _BladeThickenFactor * offScreenFactor * 0.05;
+
+    posCS.xy += length(shiftDist) > 0.001 ?shiftFactor : 0;
+    ////////////////////////////////////////////////
     
-    float rand = _SpawnBuffer[instanceID].hash;
-    rand *= 2;
-    rand -= 1;
+    
+    
+    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+    o.positionWS = posWS;
+    o.normalWS = normalWS;
+    o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
+    o.debug = float4(normalCS.xyz, 0);
+    o.positionCS = posCS;
+    return o;
+    
+   // #if  _USE_MAINWAVE_ON
+   //     float wave = SinWaveWithNoise(spawnPosWS.xz , _WindDirection, _WindNoiseFrequency, _WindNoiseAmplitude, _WindSpeed, _WindFrequency) ;
+   //     //wave = _SpawnBuffer[instanceID].wind;
+   // #else
+   //     float wave = 0;
+   // #endif
+   // 
+   // 
+   // #if _USE_DETAIL_ON
+   //     float detail = Perlin(Rotate2D(spawnPosWS.xz, _WindDirection * 360) * _DetailFrequency * 10 - _Time.y * _DetailSpeed * 10) ;
+   // #else
+   //     float detail = 0;
+   // #endif
+   // 
+   // 
+   // #if _USE_RANDOM_HEIGHT_ON
+   //     float heightPerlin = Perlin((spawnPosWS.xz) * 20)*_HeightRandomnessAmplitude;
+   // #else
+   //     float heightPerlin  = 0;
+   // #endif
+    
+
     //float3 pos = RotateAroundYInDegrees(float4(v.positionOS, 1), rand * 360).xyz;
     //float2 rotatedWindDir = Rotate2D(float2(1, -1), _WindDirection * 360);
     //pos = RotateAroundAxis(float4(pos, 1), float3(rotatedWindDir.x, 0, rotatedWindDir.y),
     //    v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 + (wave / 2 + 0.75) * detail * _DetailAmplitude * 20))).xyz;
     //pos *= _Scale + heightPerlin;
-    float3 posOS = v.positionOS;
-    float3 curvePosOS = 0;
-    float3 curveTangentOS = 0;
-    
-    CalculateGrassCurve(o.uv.y, ( hash*0.2) * 10, curvePosOS, curveTangentOS);
-    float3 curveNormalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
-    
-    posOS.yz = curvePosOS.yz;
-    float rotDegree = - rand * 45 + _WindDirection - 90;
-    posOS = RotateAroundYInDegrees(float4(posOS, 1), rotDegree).xyz;
-    curvePosOS = RotateAroundYInDegrees(float4(curvePosOS, 1),rotDegree).xyz;
-    float3 normalWS = RotateAroundYInDegrees(float4(curveNormalOS, 0), rotDegree).xyz;
-    curvePosOS *= _Scale;
-    posOS *= _Scale;
-    float3 posWS= posOS + spawnPosWS;
-    o.positionWS = posWS;
-    o.normalWS = normalWS;
-    float3 curvePosWS = curvePosOS + spawnPosWS;
-
-    float offScreenFactor = smoothstep(0.2, 1, 1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS))));
-    
-    float3 posVS = mul(UNITY_MATRIX_V, float4(posWS, 1)).xyz;
-    float4 posCS = mul(UNITY_MATRIX_VP, float4(posWS, 1));
-    float3 curvePosVS = mul(UNITY_MATRIX_V, float4(curvePosWS, 1)).xyz;
-    float4 curvePosCS = mul(UNITY_MATRIX_VP, float4(curvePosWS, 1));
-    float3 normalVS = mul(UNITY_MATRIX_V, float4(normalWS, 0)).xyz;
-    float4 normalCS = mul(UNITY_MATRIX_VP, float4(normalWS, 0));
-    float2 shiftDist = posCS.xy- curvePosCS.xy;
-    float2 projectedSmooth = clamp(-1, dot(shiftDist, normalCS.xy) * normalCS.xy * 600, 1);
-    float2 projected = normalize(dot(shiftDist, normalCS.xy)) * normalCS.xy;
-    float viewDist = length(_WorldSpaceCameraPos- spawnPosWS);
-    float mask = 1- smoothstep(10,20, viewDist);
-    float2 shiftFactor = projectedSmooth * _BladeThickenFactor * offScreenFactor * 0.0005;
 
     
-    posCS.xy += length(shiftDist) > 0.001? 
-    shiftFactor:
-    0;
-    
-    float4 posCS2 = mul(UNITY_MATRIX_P, float4(posVS, 1));
-   
-    o.debug = float4(normalCS.xyz, 0);
-    o.positionCS = posCS;
-    return o;
+
 }
 
 float4 frag(VertexOutput v) : SV_Target
