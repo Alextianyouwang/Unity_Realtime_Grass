@@ -28,10 +28,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats: []
+    m_Floats:
+    - _WaveMagnitude: 0.059
     m_Colors:
-    - _P0: {r: 0, g: -0.194, b: 0, a: 0}
-    - _P1: {r: 0, g: -0.31100002, b: 0, a: 0}
-    - _P2: {r: 0, g: 0.726, b: 0.105, a: 0}
-    - _P3: {r: 0, g: 0.817, b: 0.779, a: 0}
+    - _P0: {r: 0, g: 0, b: 0, a: 0}
+    - _P1: {r: 0, g: 0, b: 0, a: 0}
+    - _P2: {r: 0, g: 0.472, b: 0.047, a: 0}
+    - _P3: {r: 0, g: 0.523, b: 0.54, a: 0}
   m_BuildTextureStacks: []

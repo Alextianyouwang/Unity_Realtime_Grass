@@ -52,7 +52,7 @@ Shader "Procedural/S_TileDebug"
 #if _DEBUG_RANDOMID
                 o.color = _InstanceDataBuffer[instanceID].color;
 #elif _DEBUG_NOISE
-                o.color = _NoiseBuffer[instanceID];
+                o.color = _NoiseBuffer[instanceID] * 0.5 + 0.5;
 #endif
 
                 return o;

@@ -55,7 +55,7 @@ float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWe
 }
 
 
-void CalculateGrassCurve(float t, float v, out float3 pos, out float3 tan)
+void CalculateGrassCurve(float t, float v, inout float3 pos, inout float3 tan)
 {
     float2 P3 = float2(_Height , _Tilt);
     float2 P2 = float2(_Tilt, _Height) / 2 + normalize(float2(-_Height, _Tilt)) * (_Bend + v);
@@ -106,8 +106,8 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     //    v.uv.y * ((_Bend * 20 + rand * _RandomBendOffset * 20) + (wave * _WindAmplitude * 20 + (wave / 2 + 0.75) * detail * _DetailAmplitude * 20))).xyz;
     //pos *= _Scale + heightPerlin;
     float3 posOS = v.positionOS;
-    float3 curvePosOS;
-    float3 curveTangentOS;
+    float3 curvePosOS = 0;
+    float3 curveTangentOS = 0;
     CalculateGrassCurve(o.uv.y, 0, curvePosOS, curveTangentOS);
     float3 normalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
     
@@ -123,7 +123,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.normalWS = normalWS;
     float3 curvePosWS = curvePosOS + spawnPosWS;
 
-    float offScreenFactor = smoothstep(0, 1, 1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS))));
+    float offScreenFactor = smoothstep(0.2, 1, 1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS))));
     
     float3 posVS = mul(UNITY_MATRIX_V, float4(posWS, 1)).xyz;
     float4 posCS = mul(UNITY_MATRIX_VP, float4(posWS, 1));
@@ -132,8 +132,12 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 normalVS = mul(UNITY_MATRIX_V, float4(normalWS, 0)).xyz;
     float4 normalCS = mul(UNITY_MATRIX_VP, float4(normalWS, 0));
     float2 shiftDist = posCS.xy- curvePosCS.xy;
-    float2 projected = clamp(-1, dot(shiftDist, normalCS.xy) * normalCS.xy * 300, 1);
-    float2 shiftFactor =  projected * _BladeThickenFactor * offScreenFactor * 0.0005;
+    float2 projectedSmooth = clamp(-1, dot(shiftDist, normalCS.xy) * normalCS.xy * 600, 1);
+    float2 projected = normalize(dot(shiftDist, normalCS.xy)) * normalCS.xy;
+    float viewDist = length(_WorldSpaceCameraPos- spawnPosWS);
+    float mask = 1- smoothstep(10,20, viewDist);
+    float2 shiftFactor = projected * _BladeThickenFactor * offScreenFactor * 0.0005;
+
     
     posCS.xy += length(shiftDist) > 0.001? 
     shiftFactor:

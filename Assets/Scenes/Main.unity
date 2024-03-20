@@ -176,8 +176,8 @@ MonoBehaviour:
   RenderCam: {fileID: 583219404}
   SpawnMesh:
   - {fileID: 4300000, guid: 696ee1f4a69d2f442add066d155d15aa, type: 2}
+  - {fileID: 4300000, guid: 696ee1f4a69d2f442add066d155d15aa, type: 2}
   - {fileID: 4300000, guid: 2f5f0c371f17fe040a8092f24eb8b4e0, type: 2}
-  - {fileID: 4300000, guid: 94d77166164be5c4781fb928853d95b6, type: 2}
   SpawnMeshMaterial: {fileID: 2100000, guid: 815a509e078cc4b43af2350162c58ce8, type: 2}
   SpawnSubivisions: 4
   SmoothPlacement: 1
