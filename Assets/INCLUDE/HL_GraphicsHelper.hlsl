@@ -127,4 +127,29 @@ void CubicBezierCurve_Tilt_Bend(float3 P2, float3 P3, float t, out float3 pos, o
     tangent = mul(d_bernstein, input);
 }
 
+float AngleBetweenVectors(float2 vector1, float2 vector2)
+{
+    // Calculate the dot product of the two vectors
+    float dotProduct = dot(normalize(vector1), normalize(vector2));
+    
+    // Calculate the magnitudes of the vectors
+    float magnitudeVector1 = length(vector1);
+    float magnitudeVector2 = length(vector2);
+    
+    // Calculate the angle in radians
+    float angleRadians = acos(dotProduct / (magnitudeVector1 * magnitudeVector2));
+    
+    // Convert the angle from radians to degrees
+    float angleDegrees = degrees(angleRadians);
+    
+    return angleDegrees;
+}
+
+float3 ScaleWithCenter(float3 pos,float scale, float3 center)
+{
+    pos -= center;
+    pos *= scale;
+    pos += center;
+    return pos;
+}
 #endif

@@ -94,6 +94,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
     float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS;
     float rand = _SpawnBuffer[instanceID].hash * 2 - 1;
+    float3 clumpCenter = float3(_SpawnBuffer[instanceID].clumpInfo.x, 0, _SpawnBuffer[instanceID].clumpInfo.y);
     float2 dirToClump = normalize((spawnPosWS).xz - _SpawnBuffer[instanceID].clumpInfo.xy);
     float distToClump = _SpawnBuffer[instanceID].clumpInfo.z;
     float clumpHash= _SpawnBuffer[instanceID].clumpInfo.w;
@@ -122,6 +123,18 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 normalWS = RotateAroundYInDegrees(float4(curveNormalOS, 0), rotDegree).xyz;
     ////////////////////////////////////////////////
     
+    ////////////////////////////////////////////////
+    // Apply Clump
+    float2 windDir = Rotate2D(float2(1, 0), _WindDirection);
+    float rotAngle = AngleBetweenVectors(windDir, dirToClump) * clumpHash;
+    float scale = 1 + (3 - distToClump) * 0.5 * clumpHash;
+    posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
+    posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
+    curvePosWS = ScaleWithCenter(curvePosWS, scale, spawnPosWS);
+    curvePosWS = RotateAroundAxis(float4(curvePosWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
+    normalWS = RotateAroundYInDegrees(float4(normalWS, 0), rotDegree).xyz;
+    //posWS *= distToClump + 1;
+    ////////////////////////////////////////////////
     
     ////////////////////////////////////////////////
     // Apply Clip Space Adjustment
