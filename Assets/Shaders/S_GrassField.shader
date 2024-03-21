@@ -29,6 +29,8 @@ Shader "Procedural/S_GrassField"
         _Bend("GrassBend",Range(-1,1)) = 0
          _GrassWaveAmplitude("GrassWaveAmplitude",Range(0,1)) = 0.1
          _GrassWaveFrequency("GrassWaveFrequency",Range(0,1)) = 0.1
+         _GrassWaveSpeed("GrassWaveSpeed",Range(0,1)) = 0.1
+
 
         _BladeThickenFactor("BladeThickenFactor",Range(0,1)) = 0
 

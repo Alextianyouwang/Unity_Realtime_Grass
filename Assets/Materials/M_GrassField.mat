@@ -45,8 +45,8 @@ Material:
     - _DetailFrequency: 0.768
     - _DetailSpeed: 0.285
     - _DetailWeight: 0.175
-    - _GrassWaveAmplitude: 0.469
-    - _GrassWaveFrequency: 0.193
+    - _GrassWaveAmplitude: 0.02
+    - _GrassWaveFrequency: 1
     - _Height: 1.5
     - _HeightRandomnessAmplitude: 0.708
     - _RandomBendOffset: 0.206

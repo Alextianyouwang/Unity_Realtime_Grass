@@ -24,10 +24,23 @@ void GlobalWind(uint3 id : SV_DispatchThreadID)
     int coordY = id.x % _TileDimension;
     float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize + _CornerY);
     posXZ = Rotate2D(posXZ, -_Direction);
-    posXZ *= _Frequency;
-    posXZ.x -= _Time * _Frequency * _Speed;
+    //posXZ *= _Frequency;
+    //posXZ.x -= _Time * _Frequency * _Speed;
+    
+    float freq = _Frequency;
+    float amp = 1;
+    float speedRamp = 0;
+    float2 offset = float2(_Time * _Frequency * _Speed, 0);
+    float noise = 0;
+    for (int i = 0; i < 3; i++)
+    {
+        noise +=  perlinNoise(posXZ * freq - offset, float2(12.9898, 78.233)) * amp;
+        freq *= 1.5;
+        amp *= 0.5;
+        speedRamp += 2;
+        offset = float2(_Time * freq * (_Speed + speedRamp), 0);
+    }
 
-    float noise = perlinNoise(posXZ , float2(12.9898, 78.233));
     _WindBuffer[id.x] =noise ;
 
 }

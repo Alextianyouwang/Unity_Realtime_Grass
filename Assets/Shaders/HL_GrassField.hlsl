@@ -38,7 +38,7 @@ float _Scale, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _
 _DetailSpeed, _DetailAmplitude, _DetailFrequency,
 _HeightRandomnessAmplitude,
 _BladeThickenFactor,
-_Tilt, _Height, _Bend, _GrassWaveAmplitude, _GrassWaveFrequency;
+_Tilt, _Height, _Bend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed;
 float4 _TopColor, _BotColor;
 
 float Perlin(float2 uv)
@@ -55,15 +55,31 @@ float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWe
 }
 
 
-void CalculateGrassCurve(float t, float offset,float amplitude, out float3 pos, out float3 tan)
+void CalculateGrassCurve(float t, float offset,float tiltFactor, out float3 pos, out float3 tan)
 {
-    float2 waveDir = normalize(float2(_Tilt, _Height));
-    float propg = dot(waveDir, float2(_Tilt, _Height));
-    float grassWave = sin(t * 5 * _GrassWaveFrequency - _Time.y * 4 + offset);
-    float2 P3 = float2(_Tilt,_Height);
-    float2 P2 = float2(_Tilt, _Height) / 2 + normalize(float2(-_Height, _Tilt)) * _Bend;
-    P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * _GrassWaveAmplitude * amplitude * t;
-    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * _GrassWaveAmplitude * amplitude * t;
+    float2 tiltHeight = float2(_Tilt, _Height);
+    tiltHeight = Rotate2D(tiltHeight, tiltFactor);
+    float2 waveDir = normalize(tiltHeight);
+    float propg = dot(waveDir, tiltHeight);
+    float grassWave = 0;
+    float freq = 5 * _GrassWaveFrequency;
+    float amplitude = _GrassWaveAmplitude ;
+    float speed = _Time.y * _GrassWaveSpeed * 10;
+    for (int i = 0; i < 3; i++)
+    {
+
+        grassWave += sin(t * freq - speed + offset) * amplitude;
+        freq *= 1.2;
+        amplitude *= 0.8;
+        speed *= 1.4;
+        offset *= 78.233;
+    }
+    
+        
+    float2 P3 = tiltHeight;
+    float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * _Bend;
+    P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave ;
+    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
 }
 
@@ -89,7 +105,8 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Curve
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
-    CalculateGrassCurve(uv.y, (rand * 0.2) * 10, wind * 4, curvePosOS, curveTangentOS);
+    wind * 0.5 + 0.5;
+    CalculateGrassCurve(uv.y, rand * 2, wind * 100, curvePosOS, curveTangentOS);
     float3 curveNormalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
@@ -97,7 +114,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     ////////////////////////////////////////////////
     // Apply Transform
-    float rotDegree = -rand * 45 + _WindDirection - 90;
+    float rotDegree = -rand * 50 + _WindDirection - 90;
     posOS = RotateAroundYInDegrees(float4(posOS, 1), rotDegree).xyz * _Scale;
     curvePosOS = RotateAroundYInDegrees(float4(curvePosOS, 1), rotDegree).xyz * _Scale;
     float3 posWS = posOS + spawnPosWS;
@@ -114,12 +131,13 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float4 normalCS = mul(UNITY_MATRIX_VP, float4(normalWS, 0));
     float2 shiftDist = posCS.xy - curvePosCS.xy;
     float2 projectedFlat = normalize(dot(shiftDist, float2(1, 1)));
-    float2 projectedSmooth = clamp(-1, dot(shiftDist, normalCS.xy) * normalCS.xy * 600, 1);
-    float viewDist = length(_WorldSpaceCameraPos - spawnPosWS);
-    float mask = 1 - smoothstep(20, 40, viewDist);
-    float2 shiftFactor = lerp(projectedFlat,projectedSmooth,mask) * _BladeThickenFactor * offScreenFactor * 0.05;
+    float2 projectedSmooth = clamp(-1, dot(shiftDist, normalCS.xy ) * normalCS.xy * 600, 1);
+    //float viewDist = length(_WorldSpaceCameraPos - posWS);
+    //float mask = 1 - smoothstep(20, 40, viewDist);
+    //float2 shiftFactor = lerp(projectedFlat,projectedSmooth,mask) * _BladeThickenFactor * offScreenFactor * 0.05;
+    float2 shiftFactor = projectedSmooth * _BladeThickenFactor * offScreenFactor * 0.05;
 
-    posCS.xy += length(shiftDist) > 0.001 ?shiftFactor : 0;
+    posCS.xy += length(shiftDist) > 0.0001 ?shiftFactor : 0;
     ////////////////////////////////////////////////
     
     
