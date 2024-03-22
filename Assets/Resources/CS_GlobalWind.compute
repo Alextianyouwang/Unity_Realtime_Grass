@@ -24,8 +24,6 @@ void GlobalWind(uint3 id : SV_DispatchThreadID)
     int coordY = id.x % _TileDimension;
     float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize + _CornerY);
     posXZ = Rotate2D(posXZ, -_Direction);
-    //posXZ *= _Frequency;
-    //posXZ.x -= _Time * _Frequency * _Speed;
     
     float freq = _Frequency;
     float amp = 1;
