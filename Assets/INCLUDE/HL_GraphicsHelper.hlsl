@@ -24,10 +24,7 @@ float4 RotateAroundXInDegrees(float4 vertex, float degrees)
 
 float4 RotateAroundAxis(float4 vertex, float3 axis, float angle)
 {
-    // Convert angle from degrees to radians
     float radians = angle * UNITY_PI / 180.0;
-
-    // Compute sine and cosine of the angle
     float sina, cosa;
     sincos(radians, sina, cosa);
 
@@ -40,24 +37,17 @@ float4 RotateAroundAxis(float4 vertex, float3 axis, float angle)
 }
 float4 RotateAroundAxis(float4 vertex, float3 axis, float angle, float3 center)
 {
-    // Translate the vertex so that the center becomes the origin
+
     float3 translatedVertex = vertex.xyz - center;
-
-    // Convert angle from degrees to radians
     float radians = angle * UNITY_PI / 180.0;
-
-    // Compute sine and cosine of the angle
     float sina, cosa;
     sincos(radians, sina, cosa);
-
-    // Rodrigues' rotation formula
+    
     float3 rotatedTranslatedVertex = translatedVertex * cosa +
                                      cross(axis, translatedVertex) * sina +
                                      axis * dot(axis, translatedVertex) * (1 - cosa);
 
-    // Translate the vertex back to its original position
     float3 rotatedVertex = rotatedTranslatedVertex + center;
-
     return float4(rotatedVertex, vertex.w);
 }
 
@@ -125,24 +115,6 @@ void CubicBezierCurve_Tilt_Bend(float3 P2, float3 P3, float t, out float3 pos, o
     };
     pos = mul(bernstein, input);
     tangent = mul(d_bernstein, input);
-}
-
-float AngleBetweenVectors(float2 vector1, float2 vector2)
-{
-    // Calculate the dot product of the two vectors
-    float dotProduct = dot(normalize(vector1), normalize(vector2));
-    
-    // Calculate the magnitudes of the vectors
-    float magnitudeVector1 = length(vector1);
-    float magnitudeVector2 = length(vector2);
-    
-    // Calculate the angle in radians
-    float angleRadians = acos(dotProduct / (magnitudeVector1 * magnitudeVector2));
-    
-    // Convert the angle from radians to degrees
-    float angleDegrees = degrees(angleRadians);
-    
-    return angleDegrees;
 }
 
 float3 ScaleWithCenter(float3 pos,float scale, float3 center)

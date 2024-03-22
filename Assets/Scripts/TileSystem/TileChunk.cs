@@ -11,7 +11,6 @@ public class TileChunk
     private MaterialPropertyBlock _mpb;
     private Camera _renderCam;
 
-    private ComputeShader _sampleTileShader;
     private ComputeShader _cullShader;
 
 
@@ -26,16 +25,12 @@ public class TileChunk
     private ComputeBuffer _windBuffer_external;
     private ComputeBuffer _groundNormalBuffer_external;
 
-    private ComputeBuffer _sampledGroundNormalBuffer;
-
     private int _elementCount;
     private int _groupCount;
 
     private Color _chunkColor;
-    private Vector4 _samplingData;// xy:index z:tilePerChunk w:chunkPerSide
 
-    private Vector3[] _groundNormals;
-    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,Bounds chunkBounds, Vector4 samplingData , TileData tileData) 
+    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,Bounds chunkBounds, TileData tileData) 
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -43,18 +38,14 @@ public class TileChunk
         _spawnBuffer = initialBuffer;
         ChunkBounds = chunkBounds;
         _mpb = new MaterialPropertyBlock();
-        _samplingData = samplingData;
         _tileData = tileData;
     }
     public void Init() 
     {
-        SetupWindSampler();
-        SetupGroundNormalSampler();
         SetupCuller();
     }
     public void Update() 
     {
-        UpdateWind();
         DrawContent();
     }
     public void SetWindBuffer(ComputeBuffer windBuffer) 
@@ -64,30 +55,6 @@ public class TileChunk
     public void SetGroundNormalBuffer(ComputeBuffer normalBuffer) 
     { 
         _groundNormalBuffer_external = normalBuffer;
-    }
-    private void SetupWindSampler() 
-    {
-        if (_windBuffer_external == null)
-            return;
-        _sampleTileShader = (ComputeShader)GameObject.Instantiate(Resources.Load("CS_SampleWind"));
-        _sampleTileShader.SetInt("_IndexX",(int)_samplingData.x);
-        _sampleTileShader.SetInt("_IndexY",(int)_samplingData.y);
-        _sampleTileShader.SetInt("_ChunkDimension", (int)_samplingData.z);
-        _sampleTileShader.SetInt("_NumChunkPerSide", (int)_samplingData.w);
-        _sampleTileShader.SetInt("_InstancePerTile", TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions);
-
-        _sampleTileShader.SetBuffer(0,"_SpawnBuffer", _spawnBuffer);
-        _sampleTileShader.SetBuffer(0,"_WindBuffer", _windBuffer_external);
-    }
-
-    private void SetupGroundNormalSampler() 
-    {
-        _groundNormals = new Vector3[(int)_samplingData.z * (int)_samplingData.z];
-        _sampledGroundNormalBuffer = new ComputeBuffer((int)_samplingData.z * (int)_samplingData.z, sizeof(float) * 3);
-        _sampledGroundNormalBuffer.SetData(_groundNormals);
-        _sampleTileShader.SetBuffer(1, "_NormalBuffer",_groundNormalBuffer_external);
-        _sampleTileShader.SetBuffer(1, "_SampledNormalBuffer", _sampledGroundNormalBuffer);
-        _sampleTileShader.Dispatch(1, Mathf.CeilToInt((int)_samplingData.z * (int)_samplingData.z / 128f), 1, 1);
     }
 
     private void SetupCuller() 
@@ -118,15 +85,19 @@ public class TileChunk
             _argsBuffer[i].SetData(_args);
         }
         
+        Vector2 bl = _tileData.TileGridCenterXZ - (Vector2.one * _tileData.TileSize * _tileData.TileGridDimension / 2);
 
         _cullShader.SetInt("_InstanceCount", _spawnBuffer.count);
         _cullShader.SetFloat("_MaxRenderDist", TileGrandCluster._MaxRenderDistance);
         _cullShader.SetFloat("_DensityFalloffDist", TileGrandCluster._DensityFalloffThreshold);
-        _cullShader.SetFloat("_OffsetX", -ChunkBounds.center.x);
-        _cullShader.SetFloat("_OffsetY", -ChunkBounds.center.z);
+        _cullShader.SetFloat("_ClusterBotLeftX", bl.x);
+        _cullShader.SetFloat("_ClusterBotLeftY", bl.y);
+        _cullShader.SetFloat("_TileSize", _tileData.TileSize);
+        _cullShader.SetInt("_NumTilePerClusterSide", _tileData.TileGridDimension);
 
         _cullShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
         _cullShader.SetBuffer(0, "_VoteBuffer", _voteBuffer);
+        _cullShader.SetBuffer(0, "_DensityBuffer", _tileData.TypeBuffer);
 
         _cullShader.SetBuffer(1, "_VoteBuffer", _voteBuffer);
         _cullShader.SetBuffer(1, "_ScanBuffer", _scanBuffer);
@@ -148,21 +119,13 @@ public class TileChunk
 
         _chunkColor = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
         _mpb.SetBuffer("_SpawnBuffer", _compactBuffer);
-        _mpb.SetBuffer("_RawSpawnBuffer", _spawnBuffer);
-        _mpb.SetBuffer("_GroundNormalBuffer", _sampledGroundNormalBuffer);
-        _mpb.SetInt("_InstancePerTile", TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions);
-        _mpb.SetInt("_IndexX", (int)_samplingData.x);
-        _mpb.SetInt("_IndexY", (int)_samplingData.y);
-        _mpb.SetInt("_ChunkDimension", (int)_samplingData.z);
-        _mpb.SetInt("_NumChunkPerSide", (int)_samplingData.w);
+        _mpb.SetBuffer("_GroundNormalBuffer", _groundNormalBuffer_external);
+        _mpb.SetBuffer("_WindBuffer", _windBuffer_external);
+        _mpb.SetFloat("_ClusterBotLeftX",bl.x);
+        _mpb.SetFloat("_ClusterBotLeftY",bl.y);
+        _mpb.SetFloat("_TileSize", _tileData.TileSize);
+        _mpb.SetInt("_NumTilePerClusterSide", _tileData.TileGridDimension);
         _mpb.SetColor("_ChunkColor", _chunkColor);
-    }
-
-    private void UpdateWind()
-    {
-        if (_windBuffer_external == null)
-            return;
-        _sampleTileShader.Dispatch(0, Mathf.CeilToInt((int)_samplingData.z * (int)_samplingData.z / 128f), 1, 1);
     }
     private void DrawContent()
     {
@@ -214,8 +177,6 @@ public class TileChunk
         _groupScanInBuffer?.Dispose();
         _groupScanOutBuffer?.Dispose();
         _compactBuffer?.Dispose();
-
-        _sampledGroundNormalBuffer?.Dispose();
         if (_argsBuffer != null) 
             foreach (ComputeBuffer arg in _argsBuffer) 
                 arg?.Dispose();

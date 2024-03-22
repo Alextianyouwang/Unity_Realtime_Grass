@@ -3,7 +3,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "../INCLUDE/HL_GraphicsHelper.hlsl"
 #include "../INCLUDE/HL_Noise.hlsl"
-#include "../INCLUDE/HL_CustomLighting.hlsl"
 #include "../INCLUDE/HL_ShadowHelper.hlsl"
 
 struct VertexInput
@@ -32,19 +31,16 @@ struct SpawnData
     float3 positionWS;
     float hash;
     float4 clumpInfo;
-    float density;
-    float wind;
-    float3 groundNormalWS;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
-StructuredBuffer<SpawnData> _RawSpawnBuffer;
 
+    ////////////////////////////////////////////////
+// Field Data
 StructuredBuffer<float3> _GroundNormalBuffer;
-int _IndexX, _IndexY, _NumChunkPerSide, _ChunkDimension, _InstancePerTile;
-uint ChunkToGlobalIndex(uint i, uint2 offset, uint chunkDim, uint numChunk)
-{
-    return chunkDim * chunkDim * numChunk * offset.x + chunkDim * offset.y + (i / chunkDim) * chunkDim * (numChunk - 1) + i;
-}
+StructuredBuffer<float> _WindBuffer;
+int _NumTilePerClusterSide;
+float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
+    ////////////////////////////////////////////////
 
 float3 _ChunkColor,_LOD_Color;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
@@ -108,16 +104,22 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     VertexOutput o;
     ////////////////////////////////////////////////
     // Fetch Input
-    float wind = _SpawnBuffer[instanceID].wind;
-    float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
+    //float wind = _WindBuffer[x * _NumTilePerClusterSide + y];
     float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS;
+    
+    int x = (spawnPosWS.x - _ClusterBotLeftX) / _TileSize;
+    int y = (spawnPosWS.z - _ClusterBotLeftY) / _TileSize;
+    
+    float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
+    float wind = _WindBuffer[x * _NumTilePerClusterSide + y];
+    
+    float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
     float rand = _SpawnBuffer[instanceID].hash * 2 - 1;
     float3 clumpCenter = float3(_SpawnBuffer[instanceID].clumpInfo.x, 0, _SpawnBuffer[instanceID].clumpInfo.y);
     float2 dirToClump = normalize((spawnPosWS).xz - _SpawnBuffer[instanceID].clumpInfo.xy);
     float distToClump = _SpawnBuffer[instanceID].clumpInfo.z;
     float clumpHash= _SpawnBuffer[instanceID].clumpInfo.w;
     float3 posOS = v.positionOS;
-    float3 groundNormalWS = _SpawnBuffer[instanceID].groundNormalWS;
     ////////////////////////////////////////////////
 
 
@@ -162,15 +164,15 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float4 normalCS = mul(UNITY_MATRIX_VP, float4(normalWS, 0));
     float2 shiftDist = posCS.xy - curvePosCS.xy;
     float2 projectedFlat = normalize(dot(shiftDist, float2(1, 1)));
-    float2 projectedSmooth = clamp(-1, dot(shiftDist, normalCS.xy ) * normalCS.xy * 600, 1);
+    float2 projectedSmooth = clamp(-1, dot(shiftDist, normalize(normalCS.xy)) * normalize(normalCS.xy) * 600, 1);
    
     //float2 shiftFactor = lerp(projectedFlat,projectedSmooth,mask) * _BladeThickenFactor * offScreenFactor * 0.05;
     float2 shiftFactor = projectedSmooth * _BladeThickenFactor * offScreenFactor * 0.05;
 
     posCS.xy += length(shiftDist) > 0.0001 ?shiftFactor : 0;
     ////////////////////////////////////////////////
-
     
+
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.positionWS = posWS;
     o.normalWS = normalWS;
@@ -179,7 +181,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.debug = float4(groundNormalWS, 0);
     o.height = max(scale * rand, _HeightRandomnessAmplitude * rand) * clumpHash;
     #ifdef SHADOW_CASTER_PASS
-    o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
+        o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
     #else
         o.positionCS = posCS;
     #endif
@@ -257,7 +259,9 @@ float3 CustomCombineLight(CustomInputData d)
 
 float4 frag(VertexOutput v) : SV_Target
 {
-    
+#ifdef SHADOW_CASTER_PASS
+    return 0;
+#else
     CustomInputData d = (CustomInputData) 0;
     d.normalWS = normalize(v.normalWS);
     d.groundNormalWS = normalize(v.groundNormalWS);
@@ -272,6 +276,7 @@ float4 frag(VertexOutput v) : SV_Target
     float3 finalColor = CustomCombineLight(d) + ambient * d.albedo + ambient;
 #if _DEBUG_OFF
         return finalColor.xyzz;
+    return v.debug.xyzz;
 #elif _DEBUG_MAINWAVE
         return v.debug;
 #elif _DEBUG_DETAILEDWAVE
@@ -287,5 +292,7 @@ float4 frag(VertexOutput v) : SV_Target
 #else 
     return d.albedo.xyzz;
 #endif
+#endif
+   
 }
 #endif

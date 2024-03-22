@@ -16,11 +16,9 @@ struct SpawnData
     float3 positionWS;
     float hash;
     float4 clumpInfo;
-    float density;
-    float wind;
-    float3 groundNormalWS;
 };
 
+StructuredBuffer<float> _DensityBuffer;
 StructuredBuffer<SpawnData> _SpawnBuffer;
 RWStructuredBuffer<uint> _VoteBuffer;
 RWStructuredBuffer<uint> _ScanBuffer;
@@ -38,8 +36,10 @@ float _DensityFalloffDist;
 float4x4 _Camera_P;
 float4x4 _Camera_V;
 
-float _OffsetX;
-float _OffsetY;
+int _NumTilePerClusterSide;
+float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
+
+
 
 #define NUM_THREAD_GROUP 64
 #define NUM_GROUP 1024
@@ -61,7 +61,11 @@ void Vote (uint3 id : SV_DispatchThreadID)
     
     float3 pos = _SpawnBuffer[id.x].positionWS;
     float hash = _SpawnBuffer[id.x].hash;
-
+    
+    int x = (pos.x - _ClusterBotLeftX) / _TileSize;
+    int y = (pos.z - _ClusterBotLeftY) / _TileSize;
+    
+    float density = _DensityBuffer[x * _NumTilePerClusterSide + y];
     
     float3 posVS = mul(_Camera_V, float4(pos, 1)).xyz;
     float4 posCS = mul(_Camera_P, float4(posVS, 1));
@@ -72,7 +76,7 @@ void Vote (uint3 id : SV_DispatchThreadID)
     float remap = saturate(invLerp(_DensityFalloffDist, _MaxRenderDist, dist));
     remap = pow(remap, 0.5);
    
-    bool hasGrass = step(hash, _SpawnBuffer[id.x].density);
+    bool hasGrass = step(hash, density);
     bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || dist > _MaxRenderDist) ? 0 : 1;
     bool passedDistDrop = step(hash, remap) == 0;
 
