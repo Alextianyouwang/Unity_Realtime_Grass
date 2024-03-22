@@ -10,6 +10,7 @@ struct VertexInput
     float3 positionOS : POSITION;
     float3 normalOS : NORMAL;
     float2 uv : TEXCOORD0;
+    float2 uv1 : TEXCOORD1;
     
 };
 struct VertexOutput
@@ -22,6 +23,7 @@ struct VertexOutput
     float4 clumpInfo : TEXCOORD4;
     float3 groundNormalWS : TEXCOOR5;
     float height : TEXCOOR6;
+    float3 bakedGI : TEXCOORD7;
     
    
     
@@ -44,15 +46,15 @@ float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
 
 float3 _ChunkColor,_LOD_Color;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
-float _Scale, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,_WindAmplitude,
+float _Scale, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _WindNoiseFrequency, _RandomBendOffset, _WindAmplitude,
 _DetailSpeed, _DetailAmplitude, _DetailFrequency,
 _HeightRandomnessAmplitude,
 _BladeThickenFactor,
 _Tilt, _Height, _Bend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
 _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeight, _ClumpHeightSmoothness,
 _GrassRandomFacing,
-_NormalBlend;
-float4 _TopColor, _BotColor,_VariantTopColor;
+_SpecularTightness;
+float4 _TopColor, _BotColor,_VariantTopColor,_SpecularColor;
 
 float Perlin(float2 uv)
 {
@@ -172,7 +174,14 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     posCS.xy += length(shiftDist) > 0.0001 ?shiftFactor : 0;
     ////////////////////////////////////////////////
     
-
+    
+    float2 lightmapUV;
+    OUTPUT_LIGHTMAP_UV(v.uv1, unity_LightmapST, lightmapUV);
+    // Samples spherical harmonics, which encode light probe data
+    float3 vertexSH;
+    OUTPUT_SH(normalWS, vertexSH);
+    // This function calculates the final baked lighting from light maps or probes
+    o.bakedGI = SAMPLE_GI(lightmapUV, vertexSH, normalWS);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.positionWS = posWS;
     o.normalWS = normalWS;
@@ -230,8 +239,10 @@ struct CustomInputData
     float viewDist;
     
     float3 albedo;
+    float3 specularColor;
     float smoothness;
     
+    float3 bakedGI;
     float4 shadowCoord;
 };
 float3 CustomLightHandling(CustomInputData d, Light l)
@@ -241,16 +252,16 @@ float3 CustomLightHandling(CustomInputData d, Light l)
     float diffuse = saturate(dot(l.direction, d.normalWS));
     float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
     float specularDot = saturate(dot(d.normalWS, normalize(l.direction + d.viewDir)));
-    float specular = pow(specularDot, 20) * diffuse;
-    float3 phong = (diffuseGround * 0.5 + diffuse * 0.5 + specular * 0.8) * d.albedo;
+    float specular = pow(specularDot, d.smoothness) * diffuse;
+    float3 phong = max((diffuseGround * 0.5 + diffuse * 0.3) * d.albedo, specular * d.specularColor);
     return phong * radiance;
 }
 float3 CustomCombineLight(CustomInputData d)
 {
-    float3 color = 0;
     Light mainLight = GetMainLight(d.shadowCoord);
+    MixRealtimeAndBakedGI(mainLight, d.normalWS, d.bakedGI);
+    float3 color = d.bakedGI * d.albedo;
     color += CustomLightHandling(d, mainLight);
-    
     uint numAdditionalLights = GetAdditionalLightsCount();
     for (uint lightI = 0; lightI < numAdditionalLights; lightI++)
         color += CustomLightHandling(d, GetAdditionalLight(lightI, d.positionWS, d.shadowCoord));
@@ -269,14 +280,15 @@ float4 frag(VertexOutput v) : SV_Target
     d.shadowCoord = CalculateShadowCoord(v.positionWS, v.positionCS);
     d.viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
     d.viewDist = length(_WorldSpaceCameraPos - v.positionWS);
-    d.smoothness = 20;
+    d.smoothness = exp2(_SpecularTightness * 10 + 1);
     d.albedo = lerp(_BotColor, lerp(_TopColor, _VariantTopColor, v.height * 0.25), v.uv.y);
-    
-    float3 ambient = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-    float3 finalColor = CustomCombineLight(d) + ambient * d.albedo + ambient;
+    d.specularColor = _SpecularColor;
+    d.bakedGI = v.bakedGI;
+
+    float3 finalColor = CustomCombineLight(d) ;
 #if _DEBUG_OFF
-        return finalColor.xyzz;
-    return v.debug.xyzz;
+       return finalColor.xyzz;
+    return  d.normalWS.xyzz;
 #elif _DEBUG_MAINWAVE
         return v.debug;
 #elif _DEBUG_DETAILEDWAVE

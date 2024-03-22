@@ -11,6 +11,8 @@ Shader "Procedural/S_GrassField"
         _TopColor("TopColor", Color) = (1,1,1,1)
         _BotColor("BotColor", Color) = (0,0,0,1)
         _VariantTopColor("VariantTop", Color) = (1,0,0,1)
+        [HDR]_SpecularColor("SpecularColor", Color) = (1,1,1,1)
+
         [Toggle(_USE_MAINWAVE_ON)]_USE_MAINWAVE_ON("Use_Main_Wave", Float) = 1
         _WindSpeed("WindSpeed", Range(0,1)) = 0.5
         _WindFrequency("WindFrequency", Range(0,1)) = 0.5
@@ -40,7 +42,7 @@ Shader "Procedural/S_GrassField"
 
          _GrassRandomFacing("GrassRandomFacing",Range(0,1)) = 0.1
 
-        _NormalBlend("NormalBlend",Range(0,1)) = 0.5
+        _SpecularTightness("SpecularTightness",Range(0,1)) = 0.5
 
         _BladeThickenFactor("BladeThickenFactor",Range(0,1)) = 0
 
@@ -76,18 +78,19 @@ Shader "Procedural/S_GrassField"
             ENDHLSL
         }
 
-        Pass
-        {
-            Name "ShadowCaster"
-            Tags {"LightMode" = "ShadowCaster"}
-            ColorMask 0
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma target 5.0
-            #define SHADOW_CASTER_PASS
-             #include "HL_GrassField.hlsl"
-            ENDHLSL
-        }
-    }
+       Pass
+       {
+           Name "ShadowCaster"
+           Tags {"LightMode" = "ShadowCaster"}
+           ColorMask 0
+           HLSLPROGRAM
+       
+           #pragma vertex vert
+           #pragma fragment frag
+           #pragma target 2.0
+           #define SHADOW_CASTER_PASS
+           #include "HL_GrassField.hlsl"
+           ENDHLSL
+       }
+    }  
 }
