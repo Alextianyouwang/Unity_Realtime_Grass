@@ -39,7 +39,8 @@ _DetailSpeed, _DetailAmplitude, _DetailFrequency,
 _HeightRandomnessAmplitude,
 _BladeThickenFactor,
 _Tilt, _Height, _Bend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
-_ClumpEmergeFactor, _ClumpHeight, _ClumpHeightSmoothness, _GrassRandomFacing;
+_ClumpEmergeFactor, _ClumpThreshold, _ClumpHeight, _ClumpHeightSmoothness,
+_GrassRandomFacing;
 float4 _TopColor, _BotColor;
 
 float Perlin(float2 uv)
@@ -124,10 +125,12 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     ////////////////////////////////////////////////
     // Apply Clump
     float windAngle = _WindDirection - rand * 50 * _GrassRandomFacing;
-    float clumpAngle = degrees(atan2(dirToClump.x,dirToClump.y)) * clumpHash;
+    float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
     float rotAngle = lerp(windAngle, clumpAngle, _ClumpEmergeFactor) ;
-    rotAngle = windAngle + clumpAngle * _ClumpEmergeFactor;
-    float scale = 1 + (_ClumpHeight * 5 - distToClump) * _ClumpHeightSmoothness * clumpHash;
+     float viewDist = length(_WorldSpaceCameraPos - posWS);
+    float mask = 1 - smoothstep(10, 70, viewDist);
+    rotAngle = windAngle + clumpAngle * _ClumpEmergeFactor * mask;
+    float scale = 1 + (_ClumpHeight * 5 - distToClump) * _ClumpHeightSmoothness * clumpHash * step(_ClumpThreshold, clumpHash);
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
     curvePosWS = ScaleWithCenter(curvePosWS, scale, spawnPosWS);
@@ -144,8 +147,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float2 shiftDist = posCS.xy - curvePosCS.xy;
     float2 projectedFlat = normalize(dot(shiftDist, float2(1, 1)));
     float2 projectedSmooth = clamp(-1, dot(shiftDist, normalCS.xy ) * normalCS.xy * 600, 1);
-    //float viewDist = length(_WorldSpaceCameraPos - posWS);
-    //float mask = 1 - smoothstep(20, 40, viewDist);
+   
     //float2 shiftFactor = lerp(projectedFlat,projectedSmooth,mask) * _BladeThickenFactor * offScreenFactor * 0.05;
     float2 shiftFactor = projectedSmooth * _BladeThickenFactor * offScreenFactor * 0.05;
 

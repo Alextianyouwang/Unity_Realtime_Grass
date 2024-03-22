@@ -182,7 +182,7 @@ MonoBehaviour:
   SpawnSubivisions: 4
   SmoothPlacement: 1
   ChunksPerSide: 8
-  TilePerClump: 8
+  TilePerClump: 4
   LOD_Threshold_01: 45
   LOD_Threshold_12: 125
   MaxRenderDistance: 200
