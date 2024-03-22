@@ -38,7 +38,8 @@ float _Scale, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _
 _DetailSpeed, _DetailAmplitude, _DetailFrequency,
 _HeightRandomnessAmplitude,
 _BladeThickenFactor,
-_Tilt, _Height, _Bend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed;
+_Tilt, _Height, _Bend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
+_ClumpEmergeFactor, _ClumpHeight, _ClumpHeightSmoothness, _GrassRandomFacing;
 float4 _TopColor, _BotColor;
 
 float Perlin(float2 uv)
@@ -55,9 +56,9 @@ float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWe
 }
 
 
-void CalculateGrassCurve(float t, float offset,float tiltFactor, out float3 pos, out float3 tan)
+void CalculateGrassCurve(float t, float lengthMult, float offset,float tiltFactor, out float3 pos, out float3 tan)
 {
-    float2 tiltHeight = float2(_Tilt, _Height);
+    float2 tiltHeight = float2(_Tilt, _Height) * lengthMult;
     tiltHeight = Rotate2D(tiltHeight, tiltFactor);
     float2 waveDir = normalize(tiltHeight);
     float propg = dot(waveDir, tiltHeight);
@@ -68,7 +69,7 @@ void CalculateGrassCurve(float t, float offset,float tiltFactor, out float3 pos,
     for (int i = 0; i < 3; i++)
     {
 
-        grassWave += sin(t * freq - speed + offset) * amplitude;
+        grassWave += sin(t * freq - speed + offset) * amplitude * lengthMult;
         freq *= 1.2;
         amplitude *= 0.8;
         speed *= 1.4;
@@ -77,11 +78,12 @@ void CalculateGrassCurve(float t, float offset,float tiltFactor, out float3 pos,
     
         
     float2 P3 = tiltHeight;
-    float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * _Bend;
+    float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * _Bend * lengthMult;
     P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave ;
     P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
 }
+
 
 
 
@@ -107,7 +109,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
     wind * 0.5 + 0.5;
-    CalculateGrassCurve(uv.y, rand * 2, wind * 100, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y,1 + _HeightRandomnessAmplitude * rand, rand * 2, wind * 60, curvePosOS, curveTangentOS);
     float3 curveNormalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
@@ -115,25 +117,22 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     ////////////////////////////////////////////////
     // Apply Transform
-    float rotDegree = -rand * 50 + _WindDirection - 90;
-    posOS = RotateAroundYInDegrees(float4(posOS, 1), rotDegree).xyz * _Scale;
-    curvePosOS = RotateAroundYInDegrees(float4(curvePosOS, 1), rotDegree).xyz * _Scale;
-    float3 posWS = posOS + spawnPosWS;
-    float3 curvePosWS = curvePosOS + spawnPosWS;
-    float3 normalWS = RotateAroundYInDegrees(float4(curveNormalOS, 0), rotDegree).xyz;
+    float3 posWS = posOS * _Scale + spawnPosWS;
+    float3 curvePosWS = curvePosOS * _Scale + spawnPosWS;
     ////////////////////////////////////////////////
     
     ////////////////////////////////////////////////
     // Apply Clump
-    float2 windDir = Rotate2D(float2(1, 0), _WindDirection);
-    float rotAngle = AngleBetweenVectors(windDir, dirToClump) * clumpHash;
-    float scale = 1 + (3 - distToClump) * 0.5 * clumpHash;
+    float windAngle = _WindDirection - rand * 50 * _GrassRandomFacing;
+    float clumpAngle = degrees(atan2(dirToClump.x,dirToClump.y)) * clumpHash;
+    float rotAngle = lerp(windAngle, clumpAngle, _ClumpEmergeFactor) ;
+    rotAngle = windAngle + clumpAngle * _ClumpEmergeFactor;
+    float scale = 1 + (_ClumpHeight * 5 - distToClump) * _ClumpHeightSmoothness * clumpHash;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
     curvePosWS = ScaleWithCenter(curvePosWS, scale, spawnPosWS);
     curvePosWS = RotateAroundAxis(float4(curvePosWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
-    normalWS = RotateAroundYInDegrees(float4(normalWS, 0), rotDegree).xyz;
-    //posWS *= distToClump + 1;
+    float3 normalWS = RotateAroundYInDegrees(float4(curveNormalOS, 0), rotAngle).xyz;
     ////////////////////////////////////////////////
     
     ////////////////////////////////////////////////
@@ -159,7 +158,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.positionWS = posWS;
     o.normalWS = normalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
-    o.debug = float4(normalCS.xyz, 0);
+    o.debug = float4(dirToClump,0, 0);
     o.positionCS = posCS;
     return o;
     
@@ -206,7 +205,7 @@ float4 frag(VertexOutput v) : SV_Target
 
 #if _DEBUG_OFF
         return color;
-        return v.debug.wwww;
+        return v.debug.xyzw;
 #elif _DEBUG_MAINWAVE
         return v.debug;
 #elif _DEBUG_DETAILEDWAVE

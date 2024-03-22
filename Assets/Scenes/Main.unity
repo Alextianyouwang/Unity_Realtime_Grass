@@ -233,7 +233,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 274a32c52955af5439f8cdac934a3d71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WindSpeed: 4
+  WindSpeed: 6
   WindFrequencyMultiplier: 0.05
   WindDirection: 45
 --- !u!1 &490721300

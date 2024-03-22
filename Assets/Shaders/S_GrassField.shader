@@ -31,6 +31,13 @@ Shader "Procedural/S_GrassField"
          _GrassWaveFrequency("GrassWaveFrequency",Range(0,1)) = 0.1
          _GrassWaveSpeed("GrassWaveSpeed",Range(0,1)) = 0.1
 
+         _ClumpEmergeFactor("ClumpEmergeFactor",Range(0,1)) = 0.1
+         _ClumpHeight("ClumpHeight",Range(0,1)) = 0.1
+         _ClumpHeightSmoothness("ClumpHeightSmoothness",Range(0,1)) = 0.1
+
+
+         _GrassRandomFacing("GrassRandomFacing",Range(0,1)) = 0.1
+
 
         _BladeThickenFactor("BladeThickenFactor",Range(0,1)) = 0
 
