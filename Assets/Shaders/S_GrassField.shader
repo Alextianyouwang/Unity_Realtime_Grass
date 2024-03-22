@@ -60,6 +60,11 @@ Shader "Procedural/S_GrassField"
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile _ _SHADOWS_SOFT
+       
+
             #pragma shader_feature _ _USE_MAINWAVE_ON
             #pragma shader_feature _ _USE_DETAIL_ON
             #pragma shader_feature _ _USE_RANDOM_HEIGHT_ON
@@ -67,6 +72,20 @@ Shader "Procedural/S_GrassField"
             
             #include "HL_GrassField.hlsl"
             
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags {"LightMode" = "ShadowCaster"}
+            ColorMask 0
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 5.0
+            #define SHADOW_CASTER_PASS
+             #include "HL_GrassField.hlsl"
             ENDHLSL
         }
     }

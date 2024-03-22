@@ -4,6 +4,7 @@
 #include "../INCLUDE/HL_GraphicsHelper.hlsl"
 #include "../INCLUDE/HL_Noise.hlsl"
 #include "../INCLUDE/HL_CustomLighting.hlsl"
+#include "../INCLUDE/HL_ShadowHelper.hlsl"
 
 struct VertexInput
 {
@@ -175,7 +176,13 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
     o.debug = float4(groundNormalWS, 0);
-    o.positionCS = posCS;
+    #ifdef SHADOW_CASTER_PASS
+    o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
+    #else
+        o.positionCS = posCS;
+    #endif
+    
+    
     return o;
     
    // #if  _USE_MAINWAVE_ON
@@ -217,19 +224,23 @@ float4 frag(VertexOutput v) : SV_Target
     
     float3 normal = normalize(v.normalWS);
     float3 finalColor;
-    
-   Light mainLight = GetMainLight();
+    float4 shadowCoord = CalculateShadowCoord(v.positionWS, v.positionCS);
+    Light mainLight = GetMainLight(shadowCoord);
     float diffuseGround = saturate(dot(mainLight.direction, v.groundNormalWS));
     float diffuse = saturate(dot(mainLight.direction,normal));
     float3 viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
+    float viewDist = length(_WorldSpaceCameraPos - v.positionWS);
     
     float specularDot = saturate(dot(v.normalWS, normalize(mainLight.direction + viewDir)));
     float specular = pow(specularDot, 20) * diffuse;
-    
+    float3 radience = mainLight.color * lerp( mainLight.shadowAttenuation,1, smoothstep(20, 30, viewDist));
     
     float3 ambient = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+    
+
     color = color * (diffuseGround * 0.5 + diffuse * 0.5 + specular * 0.7);
-    color.xyz += ambient *0.5;
+    color.xyz *= radience;
+    color.xyz += ambient ;
 #if _DEBUG_OFF
         return color;
         return v.debug.xyzw;
