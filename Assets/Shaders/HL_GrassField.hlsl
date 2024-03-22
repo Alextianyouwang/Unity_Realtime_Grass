@@ -219,34 +219,59 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 
 }
 
+struct CustomInputData
+{
+    float3 normalWS;
+    float3 groundNormalWS;
+    float3 positionWS;
+    float3 viewDir;
+    float viewDist;
+    
+    float3 albedo;
+    float smoothness;
+    
+    float4 shadowCoord;
+};
+float3 CustomLightHandling(CustomInputData d, Light l)
+{
+    float atten = lerp(l.shadowAttenuation, 1, smoothstep(20, 30, d.viewDist)) * l.distanceAttenuation;
+    float3 radiance = l.color * atten;
+    float diffuse = saturate(dot(l.direction, d.normalWS));
+    float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
+    float specularDot = saturate(dot(d.normalWS, normalize(l.direction + d.viewDir)));
+    float specular = pow(specularDot, 20) * diffuse;
+    float3 phong = (diffuseGround * 0.5 + diffuse * 0.5 + specular * 0.8) * d.albedo;
+    return phong * radiance;
+}
+float3 CustomCombineLight(CustomInputData d)
+{
+    float3 color = 0;
+    Light mainLight = GetMainLight(d.shadowCoord);
+    color += CustomLightHandling(d, mainLight);
+    
+    uint numAdditionalLights = GetAdditionalLightsCount();
+    for (uint lightI = 0; lightI < numAdditionalLights; lightI++)
+        color += CustomLightHandling(d, GetAdditionalLight(lightI, d.positionWS, d.shadowCoord));
+    return color;
+}
+
 float4 frag(VertexOutput v) : SV_Target
 {
-    float4 color = lerp(_BotColor, lerp(_TopColor,_VariantTopColor,v.height*0.25), v.uv.y);
-    int inView = step(0, dot(normalize(_WorldSpaceCameraPos - v.positionWS), v.normalWS));
     
-    float3 normal = normalize(v.normalWS);
-    float3 finalColor;
-    float4 shadowCoord = CalculateShadowCoord(v.positionWS, v.positionCS);
-    Light mainLight = GetMainLight(shadowCoord);
-    float diffuseGround = saturate(dot(mainLight.direction, v.groundNormalWS));
-    float diffuse = saturate(dot(mainLight.direction,normal));
-    float3 viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
-    float viewDist = length(_WorldSpaceCameraPos - v.positionWS);
+    CustomInputData d = (CustomInputData) 0;
+    d.normalWS = normalize(v.normalWS);
+    d.groundNormalWS = normalize(v.groundNormalWS);
+    d.positionWS = v.positionWS;
+    d.shadowCoord = CalculateShadowCoord(v.positionWS, v.positionCS);
+    d.viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
+    d.viewDist = length(_WorldSpaceCameraPos - v.positionWS);
+    d.smoothness = 20;
+    d.albedo = lerp(_BotColor, lerp(_TopColor, _VariantTopColor, v.height * 0.25), v.uv.y);
     
-    float specularDot = saturate(dot(v.normalWS, normalize(mainLight.direction + viewDir)));
-    float specular = pow(specularDot, 20) * diffuse;
-    float atten = lerp(mainLight.shadowAttenuation, 1, smoothstep(20, 30, viewDist));
-    float3 radience = mainLight.color * atten;
-    
-    float3 ambient = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-    
-
-    color = color * (diffuseGround * 0.5 + diffuse * 0.5 + specular );
-    color.xyz = lerp(color.xyz * 0.3, color.xyz * radience,atten);
-    color.xyz += ambient ;
+    float3 ambient = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+    float3 finalColor = CustomCombineLight(d) + ambient * d.albedo + ambient;
 #if _DEBUG_OFF
-        return color;
-        return v.debug.xyzw;
+        return finalColor.xyzz;
 #elif _DEBUG_MAINWAVE
         return v.debug;
 #elif _DEBUG_DETAILEDWAVE
@@ -260,8 +285,7 @@ float4 frag(VertexOutput v) : SV_Target
 #elif _DEBUG_GLOBALWIND
         return v.debug.w;
 #else 
-
-    return color;
+    return d.albedo.xyzz;
 #endif
 }
 #endif

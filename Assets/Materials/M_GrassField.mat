@@ -38,7 +38,7 @@ Material:
     m_Floats:
     - USE_MAINWAVE_ON: 1
     - _Bend: 0.537
-    - _BladeThickenFactor: 0.2
+    - _BladeThickenFactor: 0.3
     - _ClumpEmergeFactor: 0.149
     - _ClumpHeight: 1
     - _ClumpHeightSmoothness: 0.109
