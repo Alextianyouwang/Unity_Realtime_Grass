@@ -22,6 +22,7 @@ struct VertexOutput
     float4 debug : TEXCOORD3;
     float4 clumpInfo : TEXCOORD4;
     float3 groundNormalWS : TEXCOOR5;
+    float height : TEXCOOR6;
     
    
     
@@ -55,7 +56,7 @@ _Tilt, _Height, _Bend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed
 _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeight, _ClumpHeightSmoothness,
 _GrassRandomFacing,
 _NormalBlend;
-float4 _TopColor, _BotColor;
+float4 _TopColor, _BotColor,_VariantTopColor;
 
 float Perlin(float2 uv)
 {
@@ -145,7 +146,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
      float viewDist = length(_WorldSpaceCameraPos - posWS);
     float mask = 1 - smoothstep(10, 70, viewDist);
     rotAngle = windAngle + clumpAngle * _ClumpEmergeFactor * mask;
-    float scale = 1 + (_ClumpHeight * 5 - distToClump) * _ClumpHeightSmoothness * clumpHash * step(_ClumpThreshold, clumpHash);
+    float scale = 1 + (_ClumpHeight * 5 - distToClump) * _ClumpHeightSmoothness * clumpHash * step(_ClumpThreshold, clumpHash) * rand;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
     curvePosWS = ScaleWithCenter(curvePosWS, scale, spawnPosWS);
@@ -176,6 +177,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
     o.debug = float4(groundNormalWS, 0);
+    o.height = max(scale * rand, _HeightRandomnessAmplitude * rand) * clumpHash;
     #ifdef SHADOW_CASTER_PASS
     o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
     #else
@@ -219,7 +221,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 
 float4 frag(VertexOutput v) : SV_Target
 {
-    float4 color = lerp(_BotColor,_TopColor ,v.uv.y);
+    float4 color = lerp(_BotColor, lerp(_TopColor,_VariantTopColor,v.height*0.25), v.uv.y);
     int inView = step(0, dot(normalize(_WorldSpaceCameraPos - v.positionWS), v.normalWS));
     
     float3 normal = normalize(v.normalWS);
@@ -233,13 +235,14 @@ float4 frag(VertexOutput v) : SV_Target
     
     float specularDot = saturate(dot(v.normalWS, normalize(mainLight.direction + viewDir)));
     float specular = pow(specularDot, 20) * diffuse;
-    float3 radience = mainLight.color * lerp( mainLight.shadowAttenuation,1, smoothstep(20, 30, viewDist));
+    float atten = lerp(mainLight.shadowAttenuation, 1, smoothstep(20, 30, viewDist));
+    float3 radience = mainLight.color * atten;
     
     float3 ambient = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
     
 
-    color = color * (diffuseGround * 0.5 + diffuse * 0.5 + specular * 0.7);
-    color.xyz *= radience;
+    color = color * (diffuseGround * 0.5 + diffuse * 0.5 + specular );
+    color.xyz = lerp(color.xyz * 0.3, color.xyz * radience,atten);
     color.xyz += ambient ;
 #if _DEBUG_OFF
         return color;
