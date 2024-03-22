@@ -9,6 +9,7 @@ struct SpawnData
     float4 clumpInfo;
     float density;
     float wind;
+    int index;
 };
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
 RWStructuredBuffer<float2> _ClumpCenterBuffer;

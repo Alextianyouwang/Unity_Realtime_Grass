@@ -7,7 +7,8 @@ public class TileChunkDispatcher
     private TileClumpParser _tileClumpParser;
 
     private ComputeShader _spawnOnTileShader;
-    private ComputeBuffer _rawSpawnBuffer; 
+    private ComputeBuffer _rawSpawnBuffer;
+    private ComputeBuffer _groundNormalBuffer;
     private ComputeBuffer _windBuffer_external; 
 
     private Mesh[] _spawnMesh;
@@ -23,8 +24,10 @@ public class TileChunkDispatcher
         Vector4 clumpInfo;
         float density;
         float wind;
+        int index;
     };
     private SpawnData[] _spawnData;
+    private Vector3[] _groundNormals;
     private int _tileCount;
 
     private bool _smoothPlacement;
@@ -46,8 +49,12 @@ public class TileChunkDispatcher
         int instancePerTile = TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions;
 
         _spawnData = new SpawnData[_tileCount * instancePerTile];
-        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 10);
+        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 11);
         _rawSpawnBuffer.SetData(_spawnData);
+
+        _groundNormals = new Vector3[_tileCount];
+        _groundNormalBuffer = new ComputeBuffer(_tileCount, sizeof(float) * 3);
+        _groundNormalBuffer.SetData(_groundNormals);
 
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
         _spawnOnTileShader.SetInt("_Subdivisions", TileGrandCluster._SpawnSubdivisions);
@@ -57,6 +64,8 @@ public class TileChunkDispatcher
         _spawnOnTileShader.SetBuffer(0, "_VertBuffer", _tileData.VertBuffer);
         _spawnOnTileShader.SetBuffer(0, "_TypeBuffer", _tileData.TypeBuffer);
         _spawnOnTileShader.SetBuffer(0, "_SpawnBuffer", _rawSpawnBuffer);
+        _spawnOnTileShader.SetBuffer(0, "_GroundNormalBuffer", _groundNormalBuffer);
+
         _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
     }
 
@@ -77,6 +86,7 @@ public class TileChunkDispatcher
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
         _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
+
     public void InitializeChunks() 
     {
         _rawSpawnBuffer =  ProcessWithClumpData();
@@ -92,7 +102,7 @@ public class TileChunkDispatcher
             for (int y = 0; y < chunksPerSide; y++) 
             {
                 SpawnData[] spawnDatas = new SpawnData[totalInstancePerChunk];
-                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 10);
+                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 11);
                 chunkBuffer.SetData(spawnDatas);
                 _spawnOnTileShader.SetInt("_ChunkIndexX", x);
                 _spawnOnTileShader.SetInt("_ChunkIndexY", y);
@@ -111,6 +121,7 @@ public class TileChunkDispatcher
                     _tileData
                     );
                 t.SetWindBuffer(_windBuffer_external);
+                t.SetGroundNormalBuffer(_groundNormalBuffer);
                 t.Init();
                 
             }
@@ -129,6 +140,7 @@ public class TileChunkDispatcher
     public void ReleaseBuffer()
     {
         _rawSpawnBuffer?.Dispose();
+        _groundNormalBuffer?.Dispose();
         OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
 
         foreach (TileChunk t in Chunks)

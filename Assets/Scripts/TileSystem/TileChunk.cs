@@ -11,7 +11,7 @@ public class TileChunk
     private MaterialPropertyBlock _mpb;
     private Camera _renderCam;
 
-    private ComputeShader _sampleWindShader;
+    private ComputeShader _sampleTileShader;
     private ComputeShader _cullShader;
 
 
@@ -24,12 +24,17 @@ public class TileChunk
     private ComputeBuffer[] _argsBuffer;
 
     private ComputeBuffer _windBuffer_external;
+    private ComputeBuffer _groundNormalBuffer_external;
+
+    private ComputeBuffer _sampledGroundNormalBuffer;
 
     private int _elementCount;
     private int _groupCount;
 
     private Color _chunkColor;
     private Vector4 _samplingData;// xy:index z:tilePerChunk w:chunkPerSide
+
+    private Vector3[] _groundNormals;
     public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,Bounds chunkBounds, Vector4 samplingData , TileData tileData) 
     {
         _spawnMesh = spawnMesh;
@@ -44,6 +49,7 @@ public class TileChunk
     public void Init() 
     {
         SetupWindSampler();
+        SetupGroundNormalSampler();
         SetupCuller();
     }
     public void Update() 
@@ -55,19 +61,33 @@ public class TileChunk
     {
         _windBuffer_external = windBuffer;
     }
+    public void SetGroundNormalBuffer(ComputeBuffer normalBuffer) 
+    { 
+        _groundNormalBuffer_external = normalBuffer;
+    }
     private void SetupWindSampler() 
     {
         if (_windBuffer_external == null)
             return;
-        _sampleWindShader = (ComputeShader)GameObject.Instantiate(Resources.Load("CS_SampleWind"));
-        _sampleWindShader.SetInt("_IndexX",(int)_samplingData.x);
-        _sampleWindShader.SetInt("_IndexY",(int)_samplingData.y);
-        _sampleWindShader.SetInt("_ChunkDimension", (int)_samplingData.z);
-        _sampleWindShader.SetInt("_NumChunkPerSide", (int)_samplingData.w);
-        _sampleWindShader.SetInt("_InstancePerTile", TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions);
+        _sampleTileShader = (ComputeShader)GameObject.Instantiate(Resources.Load("CS_SampleWind"));
+        _sampleTileShader.SetInt("_IndexX",(int)_samplingData.x);
+        _sampleTileShader.SetInt("_IndexY",(int)_samplingData.y);
+        _sampleTileShader.SetInt("_ChunkDimension", (int)_samplingData.z);
+        _sampleTileShader.SetInt("_NumChunkPerSide", (int)_samplingData.w);
+        _sampleTileShader.SetInt("_InstancePerTile", TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions);
 
-        _sampleWindShader.SetBuffer(0,"_SpawnBuffer", _spawnBuffer);
-        _sampleWindShader.SetBuffer(0,"_WindBuffer", _windBuffer_external);
+        _sampleTileShader.SetBuffer(0,"_SpawnBuffer", _spawnBuffer);
+        _sampleTileShader.SetBuffer(0,"_WindBuffer", _windBuffer_external);
+    }
+
+    private void SetupGroundNormalSampler() 
+    {
+        _groundNormals = new Vector3[(int)_samplingData.z * (int)_samplingData.z];
+        _sampledGroundNormalBuffer = new ComputeBuffer((int)_samplingData.z * (int)_samplingData.z, sizeof(float) * 3);
+        _sampledGroundNormalBuffer.SetData(_groundNormals);
+        _sampleTileShader.SetBuffer(1, "_NormalBuffer",_groundNormalBuffer_external);
+        _sampleTileShader.SetBuffer(1, "_SampledNormalBuffer", _sampledGroundNormalBuffer);
+        _sampleTileShader.Dispatch(1, Mathf.CeilToInt((int)_samplingData.z * (int)_samplingData.z / 128f), 1, 1);
     }
 
     private void SetupCuller() 
@@ -128,6 +148,8 @@ public class TileChunk
 
         _chunkColor = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
         _mpb.SetBuffer("_SpawnBuffer", _compactBuffer);
+        _mpb.SetBuffer("_GroundNormalBuffer", _sampledGroundNormalBuffer);
+        _mpb.SetInt("_InstancePerTile", TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions);
         _mpb.SetColor("_ChunkColor", _chunkColor);
     }
 
@@ -135,7 +157,7 @@ public class TileChunk
     {
         if (_windBuffer_external == null)
             return;
-        _sampleWindShader.Dispatch(0, Mathf.CeilToInt((int)_samplingData.z * (int)_samplingData.z / 128f), 1, 1);
+        _sampleTileShader.Dispatch(0, Mathf.CeilToInt((int)_samplingData.z * (int)_samplingData.z / 128f), 1, 1);
     }
     private void DrawContent()
     {
@@ -187,6 +209,8 @@ public class TileChunk
         _groupScanInBuffer?.Dispose();
         _groupScanOutBuffer?.Dispose();
         _compactBuffer?.Dispose();
+
+        _sampledGroundNormalBuffer?.Dispose();
         if (_argsBuffer != null) 
             foreach (ComputeBuffer arg in _argsBuffer) 
                 arg?.Dispose();

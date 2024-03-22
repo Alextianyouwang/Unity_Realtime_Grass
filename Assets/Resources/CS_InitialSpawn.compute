@@ -14,8 +14,11 @@ struct SpawnData
     float4 clumpInfo;
     float density;
     float wind;
+    int index;
+
 };
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
+RWStructuredBuffer<float3> _GroundNormalBuffer;
 
 
 #include "../INCLUDE/HL_Noise.hlsl"
@@ -117,6 +120,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 inc = chunkSize / iteration;
     
     int2 tileCoord = GetCellCoord(id.x);
+    
+    _GroundNormalBuffer[id.x] = normalize(cross(verts[1] - verts[0], verts[0] - verts[3]));
+    
 
     for (uint x = 0; x < iteration; x++)
     {
@@ -136,6 +142,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             o.clumpInfo = float4(0, 0, 0,0);
             o.density = _TypeBuffer[id.x];
             o.wind = 0;
+            o.index = id.x;
             _SpawnBuffer[x * iteration + z + id.x * iteration * iteration] = o;
         }
     }

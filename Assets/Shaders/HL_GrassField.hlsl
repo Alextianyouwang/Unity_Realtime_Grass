@@ -32,6 +32,10 @@ struct SpawnData
     float wind;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
+
+StructuredBuffer<float3> _GroundNormalBuffer;
+int _InstancePerTile;
+
 float3 _ChunkColor,_LOD_Color;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 float _Scale, _WindSpeed, _WindFrequency, _WindNoiseAmplitude, _WindDirection, _WindNoiseFrequency,_RandomBendOffset,_WindAmplitude,
@@ -124,7 +128,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     ////////////////////////////////////////////////
     // Apply Clump
-    float windAngle = _WindDirection - rand * 50 * _GrassRandomFacing;
+    float windAngle = _WindDirection - rand * 50 * _GrassRandomFacing * (1-wind);
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
     float rotAngle = lerp(windAngle, clumpAngle, _ClumpEmergeFactor) ;
      float viewDist = length(_WorldSpaceCameraPos - posWS);
@@ -155,12 +159,13 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     ////////////////////////////////////////////////
     
     
+    float3 groundNormalWS = _GroundNormalBuffer[instanceID / _InstancePerTile];
     
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.positionWS = posWS;
     o.normalWS = normalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
-    o.debug = float4(dirToClump,0, 0);
+    o.debug = float4(groundNormalWS, 0);
     o.positionCS = posCS;
     return o;
     
@@ -203,10 +208,14 @@ float4 frag(VertexOutput v) : SV_Target
     float3 finalColor;
     
    Light mainLight = GetMainLight();
-    float nDotl = saturate(dot(mainLight.direction, normal));
+    float diffuse = saturate(dot(mainLight.direction, normal));
+    float3 viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
+    
+    float specularDot = saturate(dot(v.normalWS, normalize(mainLight.direction + viewDir)));
+    float specular = pow(specularDot, 80) * diffuse;
 
 #if _DEBUG_OFF
-        return color;
+        //return color * (diffuse + specular);
         return v.debug.xyzw;
 #elif _DEBUG_MAINWAVE
         return v.debug;
