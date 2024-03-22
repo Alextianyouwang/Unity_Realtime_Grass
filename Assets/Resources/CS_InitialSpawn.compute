@@ -14,7 +14,7 @@ struct SpawnData
     float4 clumpInfo;
     float density;
     float wind;
-    int index;
+    float3 groundNormalWS;
 
 };
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
@@ -121,7 +121,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     int2 tileCoord = GetCellCoord(id.x);
     
-    _GroundNormalBuffer[id.x] = normalize(cross(verts[1] - verts[0], verts[0] - verts[3]));
+    float3 groundNormalWS = normalize(cross(verts[1] - verts[0], verts[0] - verts[3]));
     
 
     for (uint x = 0; x < iteration; x++)
@@ -142,7 +142,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             o.clumpInfo = float4(0, 0, 0,0);
             o.density = _TypeBuffer[id.x];
             o.wind = 0;
-            o.index = id.x;
+            o.groundNormalWS = groundNormalWS;
             _SpawnBuffer[x * iteration + z + id.x * iteration * iteration] = o;
         }
     }

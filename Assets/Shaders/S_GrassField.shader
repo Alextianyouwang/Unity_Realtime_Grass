@@ -39,6 +39,7 @@ Shader "Procedural/S_GrassField"
 
          _GrassRandomFacing("GrassRandomFacing",Range(0,1)) = 0.1
 
+        _NormalBlend("NormalBlend",Range(0,1)) = 0.5
 
         _BladeThickenFactor("BladeThickenFactor",Range(0,1)) = 0
 

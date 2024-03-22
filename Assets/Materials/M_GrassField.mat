@@ -37,12 +37,12 @@ Material:
     m_Ints: []
     m_Floats:
     - USE_MAINWAVE_ON: 1
-    - _Bend: 0.645
+    - _Bend: 0.389
     - _BladeThickenFactor: 0.2
     - _ClumpEmergeFactor: 0.257
     - _ClumpHeight: 0.438
     - _ClumpHeightSmoothness: 0.148
-    - _ClumpThreshold: 0.518
+    - _ClumpThreshold: 0
     - _DEBUG: 0
     - _Debug: 0
     - _DetailAmplitude: 0.072

@@ -103,7 +103,7 @@ public class TileChunk
         _groupScanInBuffer = new ComputeBuffer(_groupCount, sizeof(int));
         _groupScanOutBuffer = new ComputeBuffer(_groupCount, sizeof(int));
 
-        _compactBuffer = new ComputeBuffer(_elementCount, sizeof(float) * 10);
+        _compactBuffer = new ComputeBuffer(_elementCount, sizeof(float) * 13);
         _argsBuffer = new ComputeBuffer[_spawnMesh.Length];
         for(int i = 0; i< _spawnMesh.Length; i++)
         {
@@ -148,8 +148,13 @@ public class TileChunk
 
         _chunkColor = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
         _mpb.SetBuffer("_SpawnBuffer", _compactBuffer);
+        _mpb.SetBuffer("_RawSpawnBuffer", _spawnBuffer);
         _mpb.SetBuffer("_GroundNormalBuffer", _sampledGroundNormalBuffer);
         _mpb.SetInt("_InstancePerTile", TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions);
+        _mpb.SetInt("_IndexX", (int)_samplingData.x);
+        _mpb.SetInt("_IndexY", (int)_samplingData.y);
+        _mpb.SetInt("_ChunkDimension", (int)_samplingData.z);
+        _mpb.SetInt("_NumChunkPerSide", (int)_samplingData.w);
         _mpb.SetColor("_ChunkColor", _chunkColor);
     }
 

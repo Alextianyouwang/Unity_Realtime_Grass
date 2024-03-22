@@ -24,7 +24,7 @@ public class TileChunkDispatcher
         Vector4 clumpInfo;
         float density;
         float wind;
-        int index;
+        Vector3 groundNormalWS;
     };
     private SpawnData[] _spawnData;
     private Vector3[] _groundNormals;
@@ -49,7 +49,7 @@ public class TileChunkDispatcher
         int instancePerTile = TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions;
 
         _spawnData = new SpawnData[_tileCount * instancePerTile];
-        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 11);
+        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 13);
         _rawSpawnBuffer.SetData(_spawnData);
 
         _groundNormals = new Vector3[_tileCount];
@@ -102,7 +102,7 @@ public class TileChunkDispatcher
             for (int y = 0; y < chunksPerSide; y++) 
             {
                 SpawnData[] spawnDatas = new SpawnData[totalInstancePerChunk];
-                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 11);
+                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 13);
                 chunkBuffer.SetData(spawnDatas);
                 _spawnOnTileShader.SetInt("_ChunkIndexX", x);
                 _spawnOnTileShader.SetInt("_ChunkIndexY", y);

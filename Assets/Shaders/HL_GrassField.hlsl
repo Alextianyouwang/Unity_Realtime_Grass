@@ -20,6 +20,8 @@ struct VertexOutput
     float3 positionWS : TEXCOORD2;
     float4 debug : TEXCOORD3;
     float4 clumpInfo : TEXCOORD4;
+    float3 groundNormalWS : TEXCOOR5;
+    
    
     
 };
@@ -30,11 +32,17 @@ struct SpawnData
     float4 clumpInfo;
     float density;
     float wind;
+    float3 groundNormalWS;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
+StructuredBuffer<SpawnData> _RawSpawnBuffer;
 
 StructuredBuffer<float3> _GroundNormalBuffer;
-int _InstancePerTile;
+int _IndexX, _IndexY, _NumChunkPerSide, _ChunkDimension, _InstancePerTile;
+uint ChunkToGlobalIndex(uint i, uint2 offset, uint chunkDim, uint numChunk)
+{
+    return chunkDim * chunkDim * numChunk * offset.x + chunkDim * offset.y + (i / chunkDim) * chunkDim * (numChunk - 1) + i;
+}
 
 float3 _ChunkColor,_LOD_Color;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
@@ -44,7 +52,8 @@ _HeightRandomnessAmplitude,
 _BladeThickenFactor,
 _Tilt, _Height, _Bend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
 _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeight, _ClumpHeightSmoothness,
-_GrassRandomFacing;
+_GrassRandomFacing,
+_NormalBlend;
 float4 _TopColor, _BotColor;
 
 float Perlin(float2 uv)
@@ -106,6 +115,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float distToClump = _SpawnBuffer[instanceID].clumpInfo.z;
     float clumpHash= _SpawnBuffer[instanceID].clumpInfo.w;
     float3 posOS = v.positionOS;
+    float3 groundNormalWS = _SpawnBuffer[instanceID].groundNormalWS;
     ////////////////////////////////////////////////
 
 
@@ -157,13 +167,12 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 
     posCS.xy += length(shiftDist) > 0.0001 ?shiftFactor : 0;
     ////////////////////////////////////////////////
-    
-    
-    float3 groundNormalWS = _GroundNormalBuffer[instanceID / _InstancePerTile];
+
     
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.positionWS = posWS;
     o.normalWS = normalWS;
+    o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
     o.debug = float4(groundNormalWS, 0);
     o.positionCS = posCS;
@@ -204,18 +213,25 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 float4 frag(VertexOutput v) : SV_Target
 {
     float4 color = lerp(_BotColor,_TopColor ,v.uv.y);
+    int inView = step(0, dot(normalize(_WorldSpaceCameraPos - v.positionWS), v.normalWS));
+    
     float3 normal = normalize(v.normalWS);
     float3 finalColor;
     
    Light mainLight = GetMainLight();
-    float diffuse = saturate(dot(mainLight.direction, normal));
+    float diffuseGround = saturate(dot(mainLight.direction, v.groundNormalWS));
+    float diffuse = saturate(dot(mainLight.direction,normal));
     float3 viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
     
     float specularDot = saturate(dot(v.normalWS, normalize(mainLight.direction + viewDir)));
-    float specular = pow(specularDot, 80) * diffuse;
-
+    float specular = pow(specularDot, 20) * diffuse;
+    
+    
+    float3 ambient = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+    color = color * (diffuseGround * 0.5 + diffuse * 0.5 + specular * 0.7);
+    color.xyz += ambient *0.5;
 #if _DEBUG_OFF
-        //return color * (diffuse + specular);
+        return color;
         return v.debug.xyzw;
 #elif _DEBUG_MAINWAVE
         return v.debug;
