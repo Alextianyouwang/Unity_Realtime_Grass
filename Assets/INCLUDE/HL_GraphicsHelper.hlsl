@@ -126,10 +126,6 @@ float3 ScaleWithCenter(float3 pos,float scale, float3 center)
 }
 float3 ProjectOntoPlane(float3 v, float3 planeNormal)
 {
-    // Ensure the plane normal is normalized
-    planeNormal = normalize(planeNormal);
-
-    // Calculate the projection of 'vector' onto the plane defined by 'planeNormal'
-    return v - dot(v, planeNormal) * planeNormal;
+    return v - dot(v, normalize(planeNormal)) * planeNormal;
 }
 #endif

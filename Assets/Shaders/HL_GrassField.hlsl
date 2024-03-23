@@ -148,15 +148,13 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     ////////////////////////////////////////////////
     // Apply Clip Space Adjustment
-    float offScreenFactor = smoothstep(0, 1, 1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS))));
+    float offScreenFactor =  1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS)));
     float3 posVS = mul(UNITY_MATRIX_V, float4(posWS, 1)).xyz;
     float3 curvePosVS = mul(UNITY_MATRIX_V, float4(curvePosWS, 1)).xyz;
-    float3 normalVS = mul(UNITY_MATRIX_VP, float4(normalWS, 0)).xyz;
-    float3 projectedNormalVS = normalize(ProjectOntoPlane(normalVS, float3(0, 0, 1)));
     float3 shiftDistVS = posVS - curvePosVS;
-    float3 projectedVS = normalize(dot(shiftDistVS, projectedNormalVS) * projectedNormalVS);
+    float3 projectedShiftDistVS = normalize(ProjectOntoPlane(shiftDistVS, float3(0, 0, 1)));
     posVS.xy += length(shiftDistVS) > 0.0001 ?
-    projectedVS.xy * _BladeThickenFactor * offScreenFactor * 0.05 : 0;
+    projectedShiftDistVS.xy *  _BladeThickenFactor * offScreenFactor * 0.05 : 0;
     ////////////////////////////////////////////////
 
     ////////////////////////////////////////////////
@@ -207,7 +205,7 @@ float3 CustomLightHandling(CustomInputData d, Light l)
     float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
     float specularDot = saturate(dot(d.normalWS, normalize(l.direction + d.viewDir)));
     float specular = pow(specularDot, d.smoothness) * diffuse;
-    float3 phong = ((diffuseGround * 0.5 + diffuse * 0.3) * d.albedo + specular * d.specularColor);
+    float3 phong = saturate ((diffuseGround * 0.5 + diffuse * 0.3) * d.albedo + specular * d.specularColor);
     return phong * radiance;
 }
 float3 CustomCombineLight(CustomInputData d)
