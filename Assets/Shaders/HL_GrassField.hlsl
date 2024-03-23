@@ -153,7 +153,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 curvePosVS = mul(UNITY_MATRIX_V, float4(curvePosWS, 1)).xyz;
     float3 shiftDistVS = posVS - curvePosVS;
     float3 projectedShiftDistVS = normalize(ProjectOntoPlane(shiftDistVS, float3(0, 0, 1)));
-    posVS.xy += length(shiftDistVS) > 0.0001 ?
+    posVS.xy += length(posWS - curvePosWS) > 0 ?
     projectedShiftDistVS.xy *  _BladeThickenFactor * offScreenFactor * 0.05 : 0;
     ////////////////////////////////////////////////
 
