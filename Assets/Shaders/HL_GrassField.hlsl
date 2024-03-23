@@ -109,6 +109,8 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float distToClump = _SpawnBuffer[instanceID].clumpInfo.z;
     float clumpHash= _SpawnBuffer[instanceID].clumpInfo.w;
     float3 posOS = v.positionOS;
+    float viewDist = length(_WorldSpaceCameraPos - spawnPosWS);
+    float mask = 1 - smoothstep(20, 120, viewDist);
     ////////////////////////////////////////////////
 
 
@@ -116,7 +118,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Curve
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
-    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, (wind + 0.1) * 45, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, (wind) * 45, curvePosOS, curveTangentOS);
     float3 curveNormalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
@@ -126,14 +128,14 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Transform
     float3 posWS = posOS * _GrassScale + spawnPosWS;
     float3 curvePosWS = curvePosOS * _GrassScale + spawnPosWS;
+
     ////////////////////////////////////////////////
     
     ////////////////////////////////////////////////
     // Apply Clump
     float windAngle = _GrassFacingDirection;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
-    float viewDist = length(_WorldSpaceCameraPos - posWS);
-    float mask = 1 - smoothstep(10, 70, viewDist);
+
     float rotAngle = lerp(windAngle, clumpAngle * mask, _ClumpEmergeFactor) - (frac(rand * 12.9898) - 0.5) * 120 * _GrassRandomFacing;
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
@@ -168,11 +170,10 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.bakedGI = SAMPLE_GI(lightmapUV, vertexSH, normalWS);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.positionWS = posWS;
-    o.normalWS = normalWS;
+    o.normalWS = normalize(lerp(groundNormalWS, normalWS, mask));
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
     o.debug = float4(lerp(float3(0, 0, 1),float3(1, 1, 0), wind + 0.5),rand);
-    o.debug = float4(projectedNormalVS, rand);
     o.height = max(scale, _GrassRandomLength * rand) * clumpHash;
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
