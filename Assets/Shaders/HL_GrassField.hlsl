@@ -51,14 +51,12 @@ float3 _ChunkColor, _LOD_Color;
 
 float4 _TopColor, _BotColor, _VariantTopColor, _SpecularColor;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
-float _GrassScale, _GrassFacingDirection,
-_DetailSpeed, _DetailAmplitude, _DetailFrequency,
-_GrassRandomLength,
-_BladeThickenFactor,
+float _GrassScale, _GrassFacingDirection,_GrassRandomLength,
 _GrassTilt, _GrassHeight, _GrassBend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
-_ClumpEmergeFactor, _ClumpThreshold, _ClumpHeightOffset, _ClumpHeightMultiplier,
+_ClumpEmergeFactor, _ClumpThreshold, _ClumpHeightOffset, _ClumpHeightMultiplier, _ClumpTopThreshold,
 _GrassRandomFacing,
-_SpecularTightness;
+_SpecularTightness, 
+_BladeThickenFactor;
 
 
 float Perlin(float2 uv)
@@ -78,7 +76,7 @@ float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWe
 void CalculateGrassCurve(float t, float lengthMult, float offset,float tiltFactor, out float3 pos, out float3 tan)
 {
     float2 tiltHeight = float2(_GrassTilt, _GrassHeight) * lengthMult;
-    tiltHeight = Rotate2D(tiltHeight, tiltFactor);
+    tiltHeight = Rotate2D(tiltHeight, -tiltFactor);
     float2 waveDir = normalize(tiltHeight);
     float propg = dot(waveDir, tiltHeight);
     float grassWave = 0;
@@ -118,7 +116,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     int x = (spawnPosWS.x - _ClusterBotLeftX) / _TileSize;
     int y = (spawnPosWS.z - _ClusterBotLeftY) / _TileSize;
     float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
-    float wind = _WindBuffer[x * _NumTilePerClusterSide + y] + 0.5;
+    float wind = _WindBuffer[x * _NumTilePerClusterSide + y];
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
     float rand = _SpawnBuffer[instanceID].hash * 2 - 1;
@@ -134,7 +132,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Curve
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
-    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * rand, rand * 2, (-wind + 0.5) * 45, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, (wind + 0.1) * 45, curvePosOS, curveTangentOS);
     float3 curveNormalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
@@ -148,12 +146,11 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     ////////////////////////////////////////////////
     // Apply Clump
-    float windAngle = _GrassFacingDirection - rand * 50 * _GrassRandomFacing;
+    float windAngle = _GrassFacingDirection;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
-    float rotAngle = lerp(windAngle, clumpAngle, _ClumpEmergeFactor) ;
     float viewDist = length(_WorldSpaceCameraPos - posWS);
     float mask = 1 - smoothstep(10, 70, viewDist);
-    rotAngle = windAngle + clumpAngle * _ClumpEmergeFactor * mask;
+    float rotAngle = lerp(windAngle, clumpAngle * mask, _ClumpEmergeFactor) - (frac(rand * 12.9898) - 0.5) * 50 * _GrassRandomFacing;
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
@@ -169,7 +166,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float4 curvePosCS = mul(UNITY_MATRIX_VP, float4(curvePosWS, 1));
     float4 normalCS = mul(UNITY_MATRIX_VP, float4(normalWS, 0));
     float2 shiftDist = posCS.xy - curvePosCS.xy;
-    float2 projectedFlat = normalize(dot(shiftDist, float2(1, 1)));
+    float2 projectedFlat = normalize(dot(shiftDist,normalCS.xy) * normalCS.xy);
     float2 projectedSmooth = clamp(-1, dot(shiftDist, normalize(normalCS.xy)) * normalize(normalCS.xy) * 600, 1);
    
     //float2 shiftFactor = lerp(projectedFlat,projectedSmooth,mask) * _BladeThickenFactor * offScreenFactor * 0.05;
@@ -191,8 +188,8 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.normalWS = normalWS;
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
-    o.debug = float4(lerp(float3(0, 0, 1),float3(1, 1, 0), wind),0);
-    o.height = max(scale * rand, _GrassRandomLength * rand) * clumpHash;
+    o.debug = float4(lerp(float3(0, 0, 1),float3(1, 1, 0), wind + 0.5),rand);
+    o.height = max(scale, _GrassRandomLength * rand) * clumpHash;
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
     #else
@@ -253,7 +250,7 @@ float4 frag(VertexOutput v) : SV_Target
     d.viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
     d.viewDist = length(_WorldSpaceCameraPos - v.positionWS);
     d.smoothness = exp2(_SpecularTightness * 10 + 1);
-    d.albedo = lerp(_BotColor, lerp(_TopColor, _VariantTopColor, v.height * 0.25), v.uv.y);
+    d.albedo = lerp(_BotColor, lerp(_TopColor, _VariantTopColor, saturate(v.height + _ClumpTopThreshold * 2 - 1)), v.uv.y);
     d.specularColor = _SpecularColor;
     d.bakedGI = v.bakedGI;
 
@@ -268,7 +265,9 @@ float4 frag(VertexOutput v) : SV_Target
 #elif _DEBUG_CLUMPCELL
         return v.clumpInfo.wwzz;
 #elif _DEBUG_GLOBALWIND
-        return v.debug.xyzw;
+        return v.debug;
+#elif _DEBUG_HASH
+        return v.debug.wwww;
 #else 
     return d.albedo.xyzz;
 #endif
