@@ -58,21 +58,6 @@ _GrassRandomFacing,
 _SpecularTightness, 
 _BladeThickenFactor;
 
-
-float Perlin(float2 uv)
-{
-    return perlinNoise(uv, float2(12.9898, 78.233));
-}
-
-float SinWaveWithNoise(float2 uv,float direction, float noiseFreq, float noiseWeight, float waveSpeed, float waveFreq)
-{
-    float2 rotatedUV = Rotate2D(uv,direction * 360);
-    float noise = Perlin(rotatedUV * noiseFreq) *  noiseWeight * 10;
-    float wave = sin((rotatedUV.x + rotatedUV.y + noise - _Time.y * waveSpeed * 10) * waveFreq);
-    return wave;
-}
-
-
 void CalculateGrassCurve(float t, float lengthMult, float offset,float tiltFactor, out float3 pos, out float3 tan)
 {
     float2 tiltHeight = float2(_GrassTilt, _GrassHeight) * lengthMult;
@@ -93,7 +78,6 @@ void CalculateGrassCurve(float t, float lengthMult, float offset,float tiltFacto
         speed *= 1.4;
         offset *= 78.233;
     }
-    
         
     float2 P3 = tiltHeight;
     float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * _GrassBend * lengthMult;
@@ -150,38 +134,37 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
     float viewDist = length(_WorldSpaceCameraPos - posWS);
     float mask = 1 - smoothstep(10, 70, viewDist);
-    float rotAngle = lerp(windAngle, clumpAngle * mask, _ClumpEmergeFactor) - (frac(rand * 12.9898) - 0.5) * 50 * _GrassRandomFacing;
+    float rotAngle = lerp(windAngle, clumpAngle * mask, _ClumpEmergeFactor) - (frac(rand * 12.9898) - 0.5) * 120 * _GrassRandomFacing;
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
     curvePosWS = ScaleWithCenter(curvePosWS, scale, spawnPosWS);
     curvePosWS = RotateAroundAxis(float4(curvePosWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
     float3 normalWS = RotateAroundYInDegrees(float4(curveNormalOS, 0), rotAngle).xyz;
+    float3 tangentWS = RotateAroundYInDegrees(float4(curveTangentOS, 0), rotAngle).xyz;
     ////////////////////////////////////////////////
     
     ////////////////////////////////////////////////
     // Apply Clip Space Adjustment
-    float offScreenFactor = smoothstep(0.2, 1, 1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS))));
-    float4 posCS = mul(UNITY_MATRIX_VP, float4(posWS, 1));
-    float4 curvePosCS = mul(UNITY_MATRIX_VP, float4(curvePosWS, 1));
-    float4 normalCS = mul(UNITY_MATRIX_VP, float4(normalWS, 0));
-    float2 shiftDist = posCS.xy - curvePosCS.xy;
-    float2 projectedFlat = normalize(dot(shiftDist,normalCS.xy) * normalCS.xy);
-    float2 projectedSmooth = clamp(-1, dot(shiftDist, normalize(normalCS.xy)) * normalize(normalCS.xy) * 600, 1);
-   
-    //float2 shiftFactor = lerp(projectedFlat,projectedSmooth,mask) * _BladeThickenFactor * offScreenFactor * 0.05;
-    float2 shiftFactor = projectedSmooth * _BladeThickenFactor * offScreenFactor * 0.05;
-
-    posCS.xy += length(shiftDist) > 0.0001 ?shiftFactor : 0;
+    float offScreenFactor = smoothstep(0, 1, 1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS))));
+    float3 posVS = mul(UNITY_MATRIX_V, float4(posWS, 1)).xyz;
+    float3 curvePosVS = mul(UNITY_MATRIX_V, float4(curvePosWS, 1)).xyz;
+    float3 normalVS = mul(UNITY_MATRIX_VP, float4(normalWS, 0)).xyz;
+    float3 projectedNormalVS = normalize(ProjectOntoPlane(normalVS, float3(0, 0, 1)));
+    float3 shiftDistVS = posVS - curvePosVS;
+    float3 projectedVS = normalize(dot(shiftDistVS, projectedNormalVS) * projectedNormalVS);
+    posVS.xy += length(shiftDistVS) > 0.0001 ?
+    projectedVS.xy * _BladeThickenFactor * offScreenFactor * 0.05 : 0;
     ////////////////////////////////////////////////
-    
-    
+
+    ////////////////////////////////////////////////
+    // GI
     float2 lightmapUV;
     OUTPUT_LIGHTMAP_UV(v.uv1, unity_LightmapST, lightmapUV);
-    // Samples spherical harmonics, which encode light probe data
     float3 vertexSH;
     OUTPUT_SH(normalWS, vertexSH);
-    // This function calculates the final baked lighting from light maps or probes
+    ////////////////////////////////////////////////
+
     o.bakedGI = SAMPLE_GI(lightmapUV, vertexSH, normalWS);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.positionWS = posWS;
@@ -189,11 +172,12 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
     o.debug = float4(lerp(float3(0, 0, 1),float3(1, 1, 0), wind + 0.5),rand);
+    o.debug = float4(projectedNormalVS, rand);
     o.height = max(scale, _GrassRandomLength * rand) * clumpHash;
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
     #else
-        o.positionCS = posCS;
+        o.positionCS = mul(UNITY_MATRIX_P, float4(posVS, 1));
     #endif
     return o;
    
@@ -222,7 +206,7 @@ float3 CustomLightHandling(CustomInputData d, Light l)
     float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
     float specularDot = saturate(dot(d.normalWS, normalize(l.direction + d.viewDir)));
     float specular = pow(specularDot, d.smoothness) * diffuse;
-    float3 phong = max((diffuseGround * 0.5 + diffuse * 0.3) * d.albedo, specular * d.specularColor);
+    float3 phong = ((diffuseGround * 0.5 + diffuse * 0.3) * d.albedo + specular * d.specularColor);
     return phong * radiance;
 }
 float3 CustomCombineLight(CustomInputData d)
