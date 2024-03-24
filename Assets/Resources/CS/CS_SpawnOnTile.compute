@@ -28,7 +28,7 @@ struct Args
 RWStructuredBuffer<Args> _ArgsBuffer;
 RWStructuredBuffer<float4> _NoiseBuffer;
 
-#include "../INCLUDE/HL_Noise.hlsl"
+#include "../../INCLUDE/HL_Noise.hlsl"
 float3 TriangleAverage(float3 a, float3 b, float3 c)
 {
     return (a + b + c) / 3.0;

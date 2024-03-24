@@ -11,7 +11,7 @@ struct SpawnData
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
 RWStructuredBuffer<float2> _ClumpCenterBuffer;
 
-#include "../INCLUDE/HL_Noise.hlsl"
+#include "../../INCLUDE/HL_Noise.hlsl"
 
 float _ClumpIncrement;
 uint _ClumpMaxCount;
