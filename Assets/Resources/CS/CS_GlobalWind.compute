@@ -12,8 +12,8 @@ float _DirY;
 float _Frequency;
 float _Speed;
 float _Direction;
-#include "../INCLUDE/HL_Noise.hlsl"
-#include "../INCLUDE/HL_GraphicsHelper.hlsl"
+#include "../../INCLUDE/HL_Noise.hlsl"
+#include "../../INCLUDE/HL_GraphicsHelper.hlsl"
 [numthreads(1024, 1, 1)]
 void GlobalWind(uint3 id : SV_DispatchThreadID)
 {
