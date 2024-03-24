@@ -258,7 +258,6 @@ float4 frag(VertexOutput v) : SV_Target
     d.bakedGI = v.bakedGI;
 
     float3 finalColor = CustomCombineLight(d) ;
-    //finalColor =  normalWS;
 #if _DEBUG_OFF
         return finalColor.xyzz;
         return  d.normalWS.xyzz;
