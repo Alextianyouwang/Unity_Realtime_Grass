@@ -1,6 +1,7 @@
 #ifndef GRASSFIELD_GRAPHIC_INCLUDE
 #define GRASSFIELD_GRAPHIC_INCLUDE
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "../INCLUDE/HL_GraphicsHelper.hlsl"
 #include "../INCLUDE/HL_Noise.hlsl"
 #include "../INCLUDE/HL_ShadowHelper.hlsl"
@@ -18,12 +19,13 @@ struct VertexOutput
     float4 positionCS : SV_POSITION;
     float2 uv : TEXCOORD0;
     float3 normalWS : TEXCOORD1;
-    float3 positionWS : TEXCOORD2;
-    float4 debug : TEXCOORD3;
-    float4 clumpInfo : TEXCOORD4;
-    float3 groundNormalWS : TEXCOOR5;
-    float height : TEXCOOR6;
-    float3 bakedGI : TEXCOORD7;
+    float3 groundNormalWS : TEXCOOR2;
+    float3 tangentWS : TEXCOORD3;
+    float3 positionWS : TEXCOORD4;
+    float4 clumpInfo : TEXCOORD5;
+    float4 debug : TEXCOOR6;
+    float height : TEXCOOR7;
+    float3 bakedGI : TEXCOORD8;
 };
 ////////////////////////////////////////////////
 // Spawn Data
@@ -52,11 +54,13 @@ float3 _ChunkColor, _LOD_Color;
 
 float4 _TopColor, _BotColor, _VariantTopColor, _SpecularColor;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
-float _GrassScale, _GrassFacingDirection,_GrassRandomLength,
+TEXTURE2D( _Normal);SAMPLER (sampler_Normal);float4 _Normal_ST;
+float _GrassScale, _GrassFacingDirection, _GrassRandomLength,
 _GrassTilt, _GrassHeight, _GrassBend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
 _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeightOffset, _ClumpHeightMultiplier, _ClumpTopThreshold,
 _GrassRandomFacing,
-_SpecularTightness, 
+_SpecularTightness,
+_NormalScale,
 _BladeThickenFactor;
 
 void CalculateGrassCurve(float t, float lengthMult, float offset,float tiltFactor, out float3 pos, out float3 tan)
@@ -174,6 +178,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.positionWS = posWS;
     o.normalWS = normalize(lerp(groundNormalWS, normalWS, mask));
+    o.tangentWS = tangentWS;
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
     o.debug = float4(lerp(float2(0, 1), float2(1, 0), wind + 0.5), interaction, rand);
@@ -231,8 +236,17 @@ float4 frag(VertexOutput v) : SV_Target
 #ifdef SHADOW_CASTER_PASS
     return 0;
 #else
+    float3 normalWS = normalize(v.normalWS);
+    float3 tangentWS = normalize(v.tangentWS);
+    float3 bitangentWS = cross(normalWS, tangentWS);
+    float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv), -_NormalScale);
+    normalTS.xyz = normalTS.xzy;
+    normalWS = normalize(
+    normalTS.x * tangentWS +
+    normalTS.y * normalWS +
+    normalTS.z * bitangentWS);
     CustomInputData d = (CustomInputData) 0;
-    d.normalWS = normalize(v.normalWS);
+    d.normalWS = normalize(normalWS);
     d.groundNormalWS = normalize(v.groundNormalWS);
     d.positionWS = v.positionWS;
     d.shadowCoord = CalculateShadowCoord(v.positionWS, v.positionCS);
@@ -244,6 +258,7 @@ float4 frag(VertexOutput v) : SV_Target
     d.bakedGI = v.bakedGI;
 
     float3 finalColor = CustomCombineLight(d) ;
+    //finalColor =  normalWS;
 #if _DEBUG_OFF
         return finalColor.xyzz;
         return  d.normalWS.xyzz;

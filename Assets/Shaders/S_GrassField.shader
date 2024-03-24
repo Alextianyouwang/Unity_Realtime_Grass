@@ -6,6 +6,7 @@ Shader "Procedural/S_GrassField"
 
    
         [HideInInspector]_MainTex ("Texture", 2D) = "white" {}
+        _Normal("Normal", 2D) = "bump" {}
          [Header(Shading)][Space]
         _TopColor("TopColor", Color) = (1,1,1,1)
         _BotColor("BotColor", Color) = (0,0,0,1)
@@ -13,6 +14,7 @@ Shader "Procedural/S_GrassField"
         _VariantTopColor("ClumpTopColor", Color) = (1,0,0,1)
         [HDR]_SpecularColor("SpecularColor", Color) = (1,1,1,1)
         _SpecularTightness("SpecularTightness",Range(0,1)) = 0.5
+        _NormalScale("NormalScale",Range(0,1)) = 0.5
 
         [Header(Transform)][Space]
         _GrassScale("GrassMasterScale", Range(0,1)) = 1
