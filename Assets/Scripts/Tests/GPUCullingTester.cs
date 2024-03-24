@@ -29,7 +29,7 @@ public class GPUCullingTester : MonoBehaviour
 
     private void OnEnable()
     {
-        Culler = (ComputeShader)Resources.Load("CS_GPUCulling");
+        Culler = (ComputeShader)Resources.Load("CS/CS_GPUCulling");
 
         SetUp();
     }

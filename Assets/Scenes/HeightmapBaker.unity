@@ -206,62 +206,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 664072548}
   m_Mesh: {fileID: 4300000, guid: 7a6f78d2db4228440a85da82757eccec, type: 2}
---- !u!1 &1210044159
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1210044161}
-  - component: {fileID: 1210044160}
-  m_Layer: 0
-  m_Name: TileManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1210044160
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1210044159}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 383013453dda13b4c8dd631c3fb97f87, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  TileHeightmap: {fileID: 2800000, guid: ecd5d6ec073688845b16d60b69acc56b, type: 3}
-  TileHeightMultiplier: 10
-  TileSize: 0.390625
-  TileGridDimension: 11
-  TileGridCenterXZ: {x: 0, y: 0}
-  RenderCam: {fileID: 1849821977}
-  SpawnMesh: {fileID: 4300000, guid: 696ee1f4a69d2f442add066d155d15aa, type: 2}
-  SpawnMeshMaterial: {fileID: 2100000, guid: 815a509e078cc4b43af2350162c58ce8, type: 2}
-  SpawnSubivisions: 4
-  SmoothPlacement: 1
-  ShowDebugView: 1
-  DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
---- !u!4 &1210044161
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1210044159}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1849821975
 GameObject:
   m_ObjectHideFlags: 0
@@ -298,8 +242,8 @@ Camera:
   m_GameObject: {fileID: 1849821975}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 4
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -349,7 +293,7 @@ Transform:
   m_GameObject: {fileID: 1849821975}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 14.1, z: 0}
+  m_LocalPosition: {x: 0, y: 10, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -523,5 +467,4 @@ SceneRoots:
   m_Roots:
   - {fileID: 1849821978}
   - {fileID: 2017633342}
-  - {fileID: 1210044161}
   - {fileID: 664072549}

@@ -17,7 +17,7 @@ public class SpawnOnMeshWithChunkingManager : MonoBehaviour
     private void OnEnable()
     {
 
-        _gridShader = (ComputeShader)Resources.Load("CS_ChunkGrid");
+        _gridShader = (ComputeShader)Resources.Load("CS/CS_ChunkGrid");
         TryGetMesh();
         SpawnPoint();
     }

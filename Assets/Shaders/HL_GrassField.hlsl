@@ -95,24 +95,26 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     VertexOutput o;
     ////////////////////////////////////////////////
     // Fetch Input
-    //float wind = _WindBuffer[x * _NumTilePerClusterSide + y];
     float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS;
     
     int x = (spawnPosWS.x - _ClusterBotLeftX) / _TileSize;
     int y = (spawnPosWS.z - _ClusterBotLeftY) / _TileSize;
+    // Sample Buffers Based on xy
     float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
-    float wind = _WindBuffer[x * _NumTilePerClusterSide + y];
+    float wind = _WindBuffer[x * _NumTilePerClusterSide + y]; // [-1,1]
     float interaction = _InteractionTexture[int2(x,y)];
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
-    float rand = _SpawnBuffer[instanceID].hash * 2 - 1;
+    float rand = _SpawnBuffer[instanceID].hash * 2 - 1; // [-1,1]
     float3 clumpCenter = float3(_SpawnBuffer[instanceID].clumpInfo.x, 0, _SpawnBuffer[instanceID].clumpInfo.y);
     float2 dirToClump = normalize((spawnPosWS).xz - _SpawnBuffer[instanceID].clumpInfo.xy);
     float distToClump = _SpawnBuffer[instanceID].clumpInfo.z;
-    float clumpHash= _SpawnBuffer[instanceID].clumpInfo.w;
+    float clumpHash = _SpawnBuffer[instanceID].clumpInfo.w; // [0,1]
     float3 posOS = v.positionOS;
     float viewDist = length(_WorldSpaceCameraPos - spawnPosWS);
-    float mask = 1 - smoothstep(20, 120, viewDist);
+    float nearGrass = 20;
+    float farGrass = 120;
+    float mask = 1 - smoothstep(nearGrass, farGrass, viewDist);
     ////////////////////////////////////////////////
 
 
@@ -120,7 +122,9 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Curve
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
-    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, (wind) * 45 + saturate(interaction) * 40, curvePosOS, curveTangentOS);
+    float3 windAffectDegree = 45;
+    float3 interactionAffectDegree = 45;
+    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, wind * 45 + saturate(interaction) * interactionAffectDegree, curvePosOS, curveTangentOS);
     float3 curveNormalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
@@ -130,15 +134,14 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Transform
     float3 posWS = posOS * _GrassScale + spawnPosWS;
     float3 curvePosWS = curvePosOS * _GrassScale + spawnPosWS;
-
     ////////////////////////////////////////////////
     
     ////////////////////////////////////////////////
     // Apply Clump
     float windAngle = _GrassFacingDirection;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
-
-    float rotAngle = lerp(windAngle, clumpAngle * mask, _ClumpEmergeFactor) - (frac(rand * 12.9898) - 0.5) * 120 * _GrassRandomFacing;
+    float randomRotationMaxSpan = 120;
+    float rotAngle = lerp(windAngle, clumpAngle * mask, _ClumpEmergeFactor) - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing;
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
@@ -201,6 +204,7 @@ struct CustomInputData
 };
 float3 CustomLightHandling(CustomInputData d, Light l)
 {
+    // Shadow in Project Setting set to 30 meters
     float atten = lerp(l.shadowAttenuation, 1, smoothstep(20, 30, d.viewDist)) * l.distanceAttenuation;
     float3 radiance = l.color * atten;
     float diffuse = saturate(dot(l.direction, d.normalWS));

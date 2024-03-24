@@ -38,7 +38,7 @@ public class SpawnOnMeshManager : MonoBehaviour
     private void OnEnable()
     {
 
-        _spawnShader = (ComputeShader)Resources.Load("CS_SpawnOnMesh");
+        _spawnShader = (ComputeShader)Resources.Load("CS/CS_SpawnOnMesh");
         TryGetMesh();
         SpawnPoint();
     }

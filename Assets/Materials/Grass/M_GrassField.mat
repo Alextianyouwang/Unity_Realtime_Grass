@@ -56,7 +56,7 @@ Material:
     - _GrassFacingDirection: 22
     - _GrassHeight: 1.2
     - _GrassRandoemLength: 0.5
-    - _GrassRandomFacing: 0.821
+    - _GrassRandomFacing: 0.577
     - _GrassRandomLength: 0.495
     - _GrassScale: 0.4
     - _GrassTilt: 1.2
