@@ -9,13 +9,16 @@ public class TileChunkDispatcher
     private ComputeShader _spawnOnTileShader;
     private ComputeBuffer _rawSpawnBuffer;
     private ComputeBuffer _groundNormalBuffer;
-    private ComputeBuffer _windBuffer_external; 
+    private ComputeBuffer _windBuffer_external;
+
+    private RenderTexture _interactionTexture_external;
 
     private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
     private Camera _renderCam;
 
     public static Func<int,int,float,Vector2,ComputeBuffer> OnRequestWindBuffer;
+    public static Func<RenderTexture> OnRequestInteractionTexture;
     public static Action<int> OnRequestDisposeWindBuffer;
     private int _tileCount;
 
@@ -69,6 +72,10 @@ public class TileChunkDispatcher
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
         _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
+    public void GetInteractionTexture() 
+    {
+        _interactionTexture_external = OnRequestInteractionTexture?.Invoke();
+    }
 
     public void InitializeChunks() 
     {
@@ -102,6 +109,7 @@ public class TileChunkDispatcher
                     );
                 t.SetWindBuffer(_windBuffer_external);
                 t.SetGroundNormalBuffer(_groundNormalBuffer);
+                t.SetInteractionTexture(_interactionTexture_external);
                 t.Init();
                 
             }

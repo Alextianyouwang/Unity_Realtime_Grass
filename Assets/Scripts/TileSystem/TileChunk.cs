@@ -25,6 +25,8 @@ public class TileChunk
     private ComputeBuffer _windBuffer_external;
     private ComputeBuffer _groundNormalBuffer_external;
 
+    private RenderTexture _interactionTexture_external;
+
     private int _elementCount;
     private int _groupCount;
 
@@ -56,7 +58,10 @@ public class TileChunk
     { 
         _groundNormalBuffer_external = normalBuffer;
     }
-
+    public void SetInteractionTexture(RenderTexture interactionTex) 
+    {
+        _interactionTexture_external = interactionTex;
+    }
     private void SetupCuller() 
     {
         _cullShader = (ComputeShader)GameObject.Instantiate(Resources.Load("CS_GrassCulling")) ;
@@ -126,6 +131,9 @@ public class TileChunk
         _mpb.SetFloat("_TileSize", _tileData.TileSize);
         _mpb.SetInt("_NumTilePerClusterSide", _tileData.TileGridDimension);
         _mpb.SetColor("_ChunkColor", _chunkColor);
+
+        if (_interactionTexture_external)
+            _mpb.SetTexture("_InteractionTexture", _interactionTexture_external);
     }
     private void DrawContent()
     {

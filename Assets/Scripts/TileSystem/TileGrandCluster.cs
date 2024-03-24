@@ -24,6 +24,7 @@ public class TileGrandCluster : MonoBehaviour
     public float DensityFalloffThreshold = 10;
 
     public bool ShowDebugView = true;
+    public bool EnableInteraction = true;
     public Material DebugMaterial;
 
 
@@ -102,6 +103,8 @@ public class TileGrandCluster : MonoBehaviour
             SmoothPlacement);
         _tileChunkDispatcher.InitialSpawn();
         _tileChunkDispatcher.GetWindBuffer();
+        if (EnableInteraction)
+            _tileChunkDispatcher.GetInteractionTexture();
         _tileChunkDispatcher.InitializeChunks();
     }
     void IndirectDrawPerFrame()

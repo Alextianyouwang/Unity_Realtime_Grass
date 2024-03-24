@@ -40,6 +40,7 @@ StructuredBuffer<SpawnData> _SpawnBuffer;
 // Field Data
 StructuredBuffer<float3> _GroundNormalBuffer;
 StructuredBuffer<float> _WindBuffer;
+Texture2D<float> _InteractionTexture;
 int _NumTilePerClusterSide;
 float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
 ////////////////////////////////////////////////
@@ -101,6 +102,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     int y = (spawnPosWS.z - _ClusterBotLeftY) / _TileSize;
     float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
     float wind = _WindBuffer[x * _NumTilePerClusterSide + y];
+    float interaction = _InteractionTexture[int2(x,y)];
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
     float rand = _SpawnBuffer[instanceID].hash * 2 - 1;
@@ -118,7 +120,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Curve
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
-    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, (wind) * 45, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, (wind) * 45 + saturate(interaction) * 40, curvePosOS, curveTangentOS);
     float3 curveNormalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
@@ -171,7 +173,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.normalWS = normalize(lerp(groundNormalWS, normalWS, mask));
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
-    o.debug = float4(lerp(float3(0, 0, 1),float3(1, 1, 0), wind + 0.5),rand);
+    o.debug = float4(lerp(float3(0, 0, 1), float3(1, 1, 0), wind + 0.5), rand);
     o.height = max(scale, _GrassRandomLength * rand) * clumpHash;
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
