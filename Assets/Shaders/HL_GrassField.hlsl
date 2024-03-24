@@ -173,7 +173,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.normalWS = normalize(lerp(groundNormalWS, normalWS, mask));
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
-    o.debug = float4(lerp(float3(0, 0, 1), float3(1, 1, 0), wind + 0.5), rand);
+    o.debug = float4(lerp(float2(0, 1), float2(1, 0), wind + 0.5), interaction, rand);
     o.height = max(scale, _GrassRandomLength * rand) * clumpHash;
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
@@ -241,8 +241,8 @@ float4 frag(VertexOutput v) : SV_Target
 
     float3 finalColor = CustomCombineLight(d) ;
 #if _DEBUG_OFF
-       return finalColor.xyzz;
-    return  d.normalWS.xyzz;
+        return finalColor.xyzz;
+        return  d.normalWS.xyzz;
 #elif _DEBUG_CHUNKID
         return _ChunkColor.xyzz;
 #elif _DEBUG_LOD
@@ -250,9 +250,11 @@ float4 frag(VertexOutput v) : SV_Target
 #elif _DEBUG_CLUMPCELL
         return v.clumpInfo.wwzz;
 #elif _DEBUG_GLOBALWIND
-        return v.debug;
+        return float4 (v.debug.xy,0,0);
 #elif _DEBUG_HASH
         return v.debug.wwww;
+#elif _DEBUG_INTERACTION
+        return v.debug.zzzz;
 #else 
     return d.albedo.xyzz;
 #endif

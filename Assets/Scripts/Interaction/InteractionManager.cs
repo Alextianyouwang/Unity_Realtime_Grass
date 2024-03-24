@@ -3,10 +3,11 @@ using UnityEngine;
 [DefaultExecutionOrder(-100)]
 public class InteractionManager : MonoBehaviour
 {
-    public RenderTexture InteractionRT;
+    private RenderTexture _InteractionRT;
 
     public void OnEnable()
     {
+        _InteractionRT = (RenderTexture)Resources.Load("RT/RT_GrassInteractData");
         TileChunkDispatcher.OnRequestInteractionTexture += GetInteractionBuffer;
     }
 
@@ -17,8 +18,6 @@ public class InteractionManager : MonoBehaviour
 
     public RenderTexture GetInteractionBuffer() 
     {
-        return InteractionRT;
+        return _InteractionRT;
     }
-
-  
 }

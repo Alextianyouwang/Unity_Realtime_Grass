@@ -64,7 +64,7 @@ public class TileChunk
     }
     private void SetupCuller() 
     {
-        _cullShader = (ComputeShader)GameObject.Instantiate(Resources.Load("CS_GrassCulling")) ;
+        _cullShader = (ComputeShader)GameObject.Instantiate(Resources.Load("CS/CS_GrassCulling")) ;
         
 
         _elementCount = Utility.CeilToNearestPowerOf2(_spawnBuffer.count);

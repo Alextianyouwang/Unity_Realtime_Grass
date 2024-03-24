@@ -68,7 +68,7 @@ Material:
     - _NormalBlend: 1
     - _RandomBendOffset: 0.794
     - _Scale: 0.665
-    - _SpecularTightness: 0.569
+    - _SpecularTightness: 0.449
     - _Tilt: 1.2
     - _USE_DETAIL_ON: 1
     - _USE_MAINWAVE_ON: 1
@@ -83,7 +83,7 @@ Material:
     - _WindSpeed: 0.702
     m_Colors:
     - _BotColor: {r: 0, g: 0, b: 0, a: 1}
-    - _SpecularColor: {r: 0.6509434, g: 0.63524204, b: 0.4206568, a: 1}
+    - _SpecularColor: {r: 0.735849, g: 0.735849, b: 0.735849, a: 1}
     - _TopColor: {r: 0.22448182, g: 0.8113208, b: 0.17986828, a: 1}
     - _VariantTopColor: {r: 0.66759074, g: 0.8773585, b: 0.24417053, a: 1}
     - _WindDirection: {r: 1, g: 1, b: 0, a: 0}

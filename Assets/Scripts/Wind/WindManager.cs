@@ -47,7 +47,7 @@ public class WindManager :MonoBehaviour
     }
     public ComputeBuffer SendWindBuffer(int hash, int tileGridDimension, float tileSize, Vector2 gridBotLeftCorner)
     {
-        ComputeShader windCompute = Instantiate((ComputeShader)Resources.Load("CS_GlobalWind"));
+        ComputeShader windCompute = Instantiate((ComputeShader)Resources.Load("CS/CS_GlobalWind"));
         ComputeBuffer windBuffer = new ComputeBuffer(tileGridDimension * tileGridDimension, sizeof(float));
 
         float[] windValues = new float[tileGridDimension * tileGridDimension];

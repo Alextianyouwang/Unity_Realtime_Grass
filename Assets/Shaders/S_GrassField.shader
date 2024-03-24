@@ -2,7 +2,7 @@ Shader "Procedural/S_GrassField"
 {
     Properties
     {
-        [KeywordEnum(Off,ChunkID,LOD,ClumpCell,GlobalWind,Hash)] _Debug("DebugMode", Float) = 0
+        [KeywordEnum(Off,ChunkID,LOD,ClumpCell,GlobalWind,Hash,Interaction)] _Debug("DebugMode", Float) = 0
 
    
         [HideInInspector]_MainTex ("Texture", 2D) = "white" {}
@@ -61,7 +61,7 @@ Shader "Procedural/S_GrassField"
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
       
-            #pragma shader_feature _DEBUG_OFF _DEBUG_CHUNKID _DEBUG_LOD _DEBUG_CLUMPCELL _DEBUG_GLOBALWIND _DEBUG_HASH
+            #pragma shader_feature _DEBUG_OFF _DEBUG_CHUNKID _DEBUG_LOD _DEBUG_CLUMPCELL _DEBUG_GLOBALWIND _DEBUG_HASH _DEBUG_INTERACTION
             
             #include "HL_GrassField.hlsl"
             

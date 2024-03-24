@@ -36,7 +36,7 @@ public class TileChunkDispatcher
 
     public void InitialSpawn()
     {
-        _spawnOnTileShader = GameObject.Instantiate((ComputeShader)Resources.Load("CS_InitialSpawn"));
+        _spawnOnTileShader = GameObject.Instantiate((ComputeShader)Resources.Load("CS/CS_InitialSpawn"));
         _tileCount = _tileData.TileGridDimension * _tileData.TileGridDimension;
         int instancePerTile = TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions;
 

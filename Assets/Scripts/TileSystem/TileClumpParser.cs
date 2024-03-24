@@ -20,7 +20,8 @@ public class TileClumpParser
 
     public void ParseClump() 
     {
-        _clumpShader = GameObject.Instantiate((ComputeShader)Resources.Load("CS_ClumpVoronoi"));
+
+        _clumpShader = GameObject.Instantiate((ComputeShader)Resources.Load("CS/CS_ClumpVoronoi"));
         int clumpPerSide = Mathf.CeilToInt (_numTilePerSide / TileGrandCluster._TilePerClump) ;
 ;
         _clumpCenterBuffer = new ComputeBuffer(clumpPerSide * clumpPerSide * 9, sizeof(float) * 2);
