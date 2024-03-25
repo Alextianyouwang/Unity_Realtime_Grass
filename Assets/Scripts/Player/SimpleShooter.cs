@@ -29,14 +29,14 @@ public class SimpleShooter : MonoBehaviour
     }
     private void Update()
     {
-        if (Input.GetMouseButton(0))
+        if (Input.GetKey(KeyCode.Space))
             Shoot();
     }
     private void Shoot() 
     {
         GameObject currentObj = _object_pool[_index];
         currentObj.SetActive(true);
-        currentObj.transform.position = transform.position + transform.forward * 2f;
+        currentObj.transform.position = transform.position + transform.forward * 2f + transform.up * 2f;
         currentObj.GetComponent<Rigidbody>().velocity = transform.forward * BulletVelocity;
         _index++;
         _index %= _object_pool.Length;

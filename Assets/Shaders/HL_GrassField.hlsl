@@ -129,7 +129,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 windAffectDegree = 45;
     float3 interactionAffectDegree = 45;
     CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, wind * 45 + saturate(interaction) * interactionAffectDegree, curvePosOS, curveTangentOS);
-    float3 curveNormalOS = normalize(cross(float3(-1, 0, 0), curveTangentOS));
+    float3 curveNormalOS = cross(float3(-1, 0, 0), normalize(curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
     
@@ -142,10 +142,10 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     ////////////////////////////////////////////////
     // Apply Clump
-    float windAngle = _GrassFacingDirection;
+    float windAngle = -_GrassFacingDirection + 90;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
     float randomRotationMaxSpan = 120;
-    float rotAngle = lerp(windAngle, clumpAngle * mask, _ClumpEmergeFactor) - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing;
+    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor) -(frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing;
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
@@ -156,14 +156,14 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     ////////////////////////////////////////////////
     
     ////////////////////////////////////////////////
-    // Apply Clip Space Adjustment
+    // Apply View Space Adjustment
     float offScreenFactor =  1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS)));
     float3 posVS = mul(UNITY_MATRIX_V, float4(posWS, 1)).xyz;
     float3 curvePosVS = mul(UNITY_MATRIX_V, float4(curvePosWS, 1)).xyz;
     float3 shiftDistVS = posVS - curvePosVS;
     float3 projectedShiftDistVS = normalize(ProjectOntoPlane(shiftDistVS, float3(0, 0, 1)));
     posVS.xy += length(posWS - curvePosWS) > 0.0001 ?
-    projectedShiftDistVS.xy *  _BladeThickenFactor * offScreenFactor * 0.05 : 0;
+    projectedShiftDistVS.xy *  _BladeThickenFactor * 0.05 : 0;
     ////////////////////////////////////////////////
 
     ////////////////////////////////////////////////
@@ -177,7 +177,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.bakedGI = SAMPLE_GI(lightmapUV, vertexSH, normalWS);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.positionWS = posWS;
-    o.normalWS = normalize(lerp(groundNormalWS, normalWS, mask));
+    o.normalWS = normalWS;
     o.tangentWS = tangentWS;
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
@@ -216,7 +216,7 @@ float3 CustomLightHandling(CustomInputData d, Light l)
     float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
     float specularDot = saturate(dot(d.normalWS, normalize(l.direction + d.viewDir)));
     float specular = pow(specularDot, d.smoothness) * diffuse;
-    float3 phong = saturate ((diffuseGround * 0.5 + diffuse * 0.3) * d.albedo + specular * d.specularColor);
+    float3 phong = saturate ((diffuseGround * 0.5 + diffuse * 0.5) * d.albedo + specular * d.specularColor);
     return phong * radiance;
 }
 float3 CustomCombineLight(CustomInputData d)
@@ -260,7 +260,6 @@ float4 frag(VertexOutput v) : SV_Target
     float3 finalColor = CustomCombineLight(d) ;
 #if _DEBUG_OFF
         return finalColor.xyzz;
-        return  d.normalWS.xyzz;
 #elif _DEBUG_CHUNKID
         return _ChunkColor.xyzz;
 #elif _DEBUG_LOD
