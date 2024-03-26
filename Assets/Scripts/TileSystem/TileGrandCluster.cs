@@ -61,7 +61,7 @@ public class TileGrandCluster : MonoBehaviour
         CleanupDrawBuffers();
         CleanupTileDataBuffer();
     }
-    private void Update()
+    private void LateUpdate()
     {
         if (ShowDebugView)
             DrawDebugView();
