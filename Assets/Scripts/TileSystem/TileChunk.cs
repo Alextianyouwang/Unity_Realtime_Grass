@@ -42,14 +42,7 @@ public class TileChunk
         _mpb = new MaterialPropertyBlock();
         _tileData = tileData;
     }
-    public void Init() 
-    {
-        SetupCuller();
-    }
-    public void Update() 
-    {
-        DrawContent();
-    }
+
     public void SetWindBuffer(ComputeBuffer windBuffer) 
     {
         _windBuffer_external = windBuffer;
@@ -62,7 +55,7 @@ public class TileChunk
     {
         _interactionTexture_external = interactionTex;
     }
-    private void SetupCuller() 
+    public void SetupCuller() 
     {
         _cullShader = (ComputeShader)GameObject.Instantiate(Resources.Load("CS/CS_GrassCulling")) ;
         
@@ -135,7 +128,7 @@ public class TileChunk
         if (_interactionTexture_external)
             _mpb.SetTexture("_InteractionTexture", _interactionTexture_external);
     }
-    private void DrawContent()
+    public void DrawContent(ref int instanceCount)
     {
         if (
             _spawnMesh == null
@@ -174,6 +167,13 @@ public class TileChunk
             _mpb.SetColor("_LOD_Color", Color.yellow);
 
         }
+        /*for (int i = 0; i < _spawnMesh.Length; i++) 
+        {
+            uint[] data = new uint[5];
+            _argsBuffer[i].GetData(data);
+            instanceCount += (int)data[1];
+        }*/
+           
     }
     
 

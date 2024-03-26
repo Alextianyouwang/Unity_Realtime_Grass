@@ -110,8 +110,7 @@ public class TileChunkDispatcher
                 t.SetWindBuffer(_windBuffer_external);
                 t.SetGroundNormalBuffer(_groundNormalBuffer);
                 t.SetInteractionTexture(_interactionTexture_external);
-                t.Init();
-                
+                t.SetupCuller();
             }
         }
     }
@@ -119,11 +118,13 @@ public class TileChunkDispatcher
 
     public void DispatchTileChunksDrawCall() 
     {
+        int totalInstance = 0;
         Plane[] p= GeometryUtility.CalculateFrustumPlanes(_renderCam);
         foreach (TileChunk t in Chunks)
             if (GeometryUtility.TestPlanesAABB(p, t.ChunkBounds))
                 if (t != null)
-                    t.Update();
+                    t.DrawContent(ref totalInstance);
+        //Debug.Log(totalInstance);
     }
     public void ReleaseBuffer()
     {
