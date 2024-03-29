@@ -3,15 +3,12 @@ using UnityEngine;
 public class SimpleShooter : MonoBehaviour
 {
     private GameObject _object;
-
     private GameObject[] _object_pool;
 
     public int PoolSize = 20;
     private int _index = 0;
 
-    public float TimeBetweenShoot = 0.5f;
     public float BulletVelocity = 10f;
-
     private void OnEnable()
     {
         Initialize();

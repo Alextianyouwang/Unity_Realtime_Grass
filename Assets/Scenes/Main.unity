@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 23002981675cee84bbbebf0794b85ea2, type: 2}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 818673443}
-  m_IndirectSpecularColor: {r: 0.5931648, g: 0.6237047, b: 0.6789119, a: 1}
+  m_IndirectSpecularColor: {r: 0.4455747, g: 0.49525422, b: 0.57414407, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: f354d5144e4f7bd47b9dfee19ecaf356, type: 2}
+  m_LightingDataAsset: {fileID: 0}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 33661c0129bba6a45915cd43e57a9ea4, type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -168,7 +168,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TileHeightmap: {fileID: 2800000, guid: ecd5d6ec073688845b16d60b69acc56b, type: 3}
-  TileTypemap: {fileID: 2800000, guid: ab99ff7fc2c79264eac2b84e068cb824, type: 3}
+  TileTypemap: {fileID: 2800000, guid: 53132e2a3adc9e74b9da408bd5e3fb05, type: 3}
   TileHeightMultiplier: 10
   TileSize: 0.390625
   TileGridDimension: 512
@@ -369,13 +369,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 583219401}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.21724631, y: -0.27717835, z: 0.06185572, w: 0.93388975}
-  m_LocalPosition: {x: 77.6, y: 8.7, z: -86}
+  m_LocalRotation: {x: -0.188823, y: 0.2227151, z: -0.044342477, w: -0.9553939}
+  m_LocalPosition: {x: 56.35, y: 7.51, z: -96.41}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 26.108, y: 1406.866, z: -0.313}
+  m_LocalEulerAnglesHint: {x: 22.368, y: 1413.763, z: 0.039}
 --- !u!114 &583219406
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -429,7 +429,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PoolSize: 20
-  TimeBetweenShoot: 0.5
   BulletVelocity: 10
 --- !u!1 &818673441
 GameObject:
@@ -834,7 +833,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2133137462}
   - component: {fileID: 2133137461}
-  - component: {fileID: 2133137463}
   m_Layer: 0
   m_Name: Global Volume
   m_TagString: Untagged
@@ -874,27 +872,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &2133137463
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2133137460}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
