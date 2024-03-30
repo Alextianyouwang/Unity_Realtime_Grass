@@ -56,17 +56,17 @@ Material:
     - _DetailFrequency: 0.768
     - _DetailSpeed: 0.285
     - _DetailWeight: 0.175
-    - _GrassBend: 0.697
+    - _GrassBend: 0.926
     - _GrassFacingDirection: 45
-    - _GrassHeight: 1.2
+    - _GrassHeight: 2.5
     - _GrassRandoemLength: 0.5
-    - _GrassRandomFacing: 0.768
+    - _GrassRandomFacing: 0.408
     - _GrassRandomLength: 0.495
-    - _GrassScale: 0.4
-    - _GrassTilt: 1.2
-    - _GrassWaveAmplitude: 0.041
-    - _GrassWaveFrequency: 0.812
-    - _GrassWaveSpeed: 0.39
+    - _GrassScale: 0.234
+    - _GrassTilt: 2.5
+    - _GrassWaveAmplitude: 0.118
+    - _GrassWaveFrequency: 0.972
+    - _GrassWaveSpeed: 0.432
     - _Height: 1.2
     - _HeightRandomnessAmplitude: 0.272
     - _NormalBlend: 1

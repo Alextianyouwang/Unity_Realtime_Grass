@@ -128,7 +128,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 curveTangentOS = 0;
     float3 windAffectDegree = 45;
     float3 interactionAffectDegree = 45;
-    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, wind * 45 + saturate(interaction) * interactionAffectDegree, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, min(wind * 45 + saturate(interaction) * interactionAffectDegree, 50).x, curvePosOS, curveTangentOS);
     float3 curveNormalOS = cross(float3(-1, 0, 0), normalize(curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////

@@ -9,10 +9,16 @@ public class WindManager :MonoBehaviour
 
     [Header("Unit : M/s")]
     public float WindSpeed = 10f;
-    public float WindFrequencyMultiplier = 0.05f;
+    public float WindSpeedBuildup = 0.5f;
     [Header("Unit : Degree")]
     [Range (0,360)]
     public float WindDirection = 45;
+    public float WindAmplitudeMultiplier = 1.0f;
+    public float WindAmplitudeFalloff = 0.5f;
+    public float WindFrequencyMultiplier = 0.05f;
+    public float WindFrequencyBuildup = 1.5f;
+    [Range(1,7)]
+    public int WindOcatves = 4;
     public struct WindDataPerTileCluster 
     {
         public ComputeShader WindCompute;
@@ -57,8 +63,14 @@ public class WindManager :MonoBehaviour
         windCompute.SetFloat("_TileDimension", tileGridDimension);
         windCompute.SetFloat("_CornerX", gridBotLeftCorner.x);
         windCompute.SetFloat("_CornerY", gridBotLeftCorner.y);
+
         windCompute.SetFloat("_Frequency", WindFrequencyMultiplier);
+        windCompute.SetFloat("_FrequencyBuildup", WindFrequencyBuildup);
         windCompute.SetFloat("_Speed", WindSpeed);
+        windCompute.SetFloat("_SpeedBuildup", WindSpeedBuildup);
+        windCompute.SetFloat("_Amplitude", WindAmplitudeMultiplier);
+        windCompute.SetFloat("_AmplitudeFalloff", WindAmplitudeFalloff);
+        windCompute.SetInt("_Octaves", WindOcatves);
         windCompute.SetFloat("_Direction", WindDirection);
         windCompute.SetBuffer(0, "_WindBuffer", windBuffer);
         _windDataTracker.Add(hash,InitializeWindData(windBuffer,windCompute,windValues));

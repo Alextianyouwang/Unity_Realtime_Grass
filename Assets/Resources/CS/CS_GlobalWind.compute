@@ -9,8 +9,14 @@ float _CornerY;
 float _Time;
 float _DirX;
 float _DirY;
+
+int _Octaves;
 float _Frequency;
+float _FrequencyBuildup;
+float _Amplitude;
+float _AmplitudeFalloff;
 float _Speed;
+float _SpeedBuildup;
 float _Direction;
 #include "../../INCLUDE/HL_Noise.hlsl"
 #include "../../INCLUDE/HL_GraphicsHelper.hlsl"
@@ -26,16 +32,16 @@ void GlobalWind(uint3 id : SV_DispatchThreadID)
     posXZ = Rotate2D(posXZ, -_Direction);
     
     float freq = _Frequency;
-    float amp = 1;
+    float amp = _Amplitude;
     float speedRamp = 0;
     float2 offset = float2(_Time * _Frequency * _Speed, 0);
     float noise = 0;
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < _Octaves; i++)
     {
         noise +=  perlinNoise(posXZ * freq - offset, float2(12.9898, 78.233)) * amp;
-        freq *= 1.5;
-        amp *= 0.5;
-        speedRamp += 2;
+        freq *= _FrequencyBuildup;
+        amp *= _AmplitudeFalloff;
+        speedRamp += _SpeedBuildup;
         offset = float2(_Time * freq * (_Speed + speedRamp), 0);
     }
 
