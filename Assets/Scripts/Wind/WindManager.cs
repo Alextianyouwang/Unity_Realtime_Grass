@@ -9,16 +9,21 @@ public class WindManager :MonoBehaviour
 
     [Header("Unit : M/s")]
     public float WindSpeed = 10f;
-    public float WindSpeedBuildup = 0.5f;
+
     [Header("Unit : Degree")]
     [Range (0,360)]
     public float WindDirection = 45;
+    [Space]
     public float WindAmplitudeMultiplier = 1.0f;
-    public float WindAmplitudeFalloff = 0.5f;
     public float WindFrequencyMultiplier = 0.05f;
-    public float WindFrequencyBuildup = 1.5f;
-    [Range(1,7)]
+
+    [Header("Layering Parameters")]
+    [Range(1, 7)]
     public int WindOcatves = 4;
+    public float WindSpeedBuildup = 0.5f;
+    public float WindAmplitudeFalloff = 0.5f;
+    public float WindFrequencyBuildup = 1.5f;
+
     public struct WindDataPerTileCluster 
     {
         public ComputeShader WindCompute;

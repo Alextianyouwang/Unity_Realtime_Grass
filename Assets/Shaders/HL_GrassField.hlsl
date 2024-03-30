@@ -63,7 +63,7 @@ _SpecularTightness,
 _NormalScale,
 _BladeThickenFactor;
 
-void CalculateGrassCurve(float t, float lengthMult, float offset,float tiltFactor, out float3 pos, out float3 tan)
+void CalculateGrassCurve(float t, float lengthMult, float waveAmplitudeMult, float offset,float tiltFactor, out float3 pos, out float3 tan)
 {
     float2 tiltHeight = float2(_GrassTilt, _GrassHeight) * lengthMult;
     tiltHeight = Rotate2D(tiltHeight, -tiltFactor);
@@ -71,7 +71,7 @@ void CalculateGrassCurve(float t, float lengthMult, float offset,float tiltFacto
     float propg = dot(waveDir, tiltHeight);
     float grassWave = 0;
     float freq = 5 * _GrassWaveFrequency;
-    float amplitude = _GrassWaveAmplitude ;
+    float amplitude = _GrassWaveAmplitude * waveAmplitudeMult ;
     float speed = _Time.y * _GrassWaveSpeed * 10;
     [unroll]
     for (int i = 0; i < 3; i++)
@@ -106,7 +106,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Sample Buffers Based on xy
     float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
     float wind = _WindBuffer[x * _NumTilePerClusterSide + y]; // [-1,1]
-    float interaction = _InteractionTexture[int2(x,y)];
+    float interaction = saturate(_InteractionTexture[int2(x, y)]);
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
     float rand = _SpawnBuffer[instanceID].hash * 2 - 1; // [-1,1]
@@ -128,7 +128,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 curveTangentOS = 0;
     float3 windAffectDegree = 45;
     float3 interactionAffectDegree = 45;
-    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), rand * 39.346, min(wind * 45 + saturate(interaction) * interactionAffectDegree, 50).x, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), 1-interaction,rand * 39.346, min(wind * 45 + interaction * interactionAffectDegree, 50).x, curvePosOS, curveTangentOS);
     float3 curveNormalOS = cross(float3(-1, 0, 0), normalize(curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////

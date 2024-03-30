@@ -235,13 +235,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WindSpeed: 6
-  WindSpeedBuildup: 0.2
   WindDirection: 45
   WindAmplitudeMultiplier: 1
-  WindAmplitudeFalloff: 0.6
   WindFrequencyMultiplier: 0.05
-  WindFrequencyBuildup: 1.8
-  WindOcatves: 5
+  WindOcatves: 6
+  WindSpeedBuildup: 0.5
+  WindAmplitudeFalloff: 0.5
+  WindFrequencyBuildup: 2
 --- !u!1 &583219401
 GameObject:
   m_ObjectHideFlags: 0
