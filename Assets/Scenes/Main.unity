@@ -238,10 +238,10 @@ MonoBehaviour:
   WindDirection: 45
   WindAmplitudeMultiplier: 1
   WindFrequencyMultiplier: 0.05
-  WindOcatves: 6
+  WindOcatves: 4
   WindSpeedBuildup: 0.5
-  WindAmplitudeFalloff: 0.5
-  WindFrequencyBuildup: 2
+  WindAmplitudeFalloff: 0.7
+  WindFrequencyBuildup: 1.8
 --- !u!1 &583219401
 GameObject:
   m_ObjectHideFlags: 0
