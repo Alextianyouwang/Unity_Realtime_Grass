@@ -43,7 +43,7 @@ Material:
     - USE_MAINWAVE_ON: 1
     - _Bend: 0.537
     - _BladeThickenFactor: 0.2
-    - _ClumpEmergeFactor: 0.14
+    - _ClumpEmergeFactor: 0.464
     - _ClumpHeight: 1
     - _ClumpHeightMultiplier: 0.256
     - _ClumpHeightOffset: 1
@@ -56,21 +56,21 @@ Material:
     - _DetailFrequency: 0.768
     - _DetailSpeed: 0.285
     - _DetailWeight: 0.175
-    - _GrassBend: 0.45
+    - _GrassBend: 0.5
     - _GrassFacingDirection: 45
     - _GrassHeight: 2
     - _GrassRandoemLength: 0.5
-    - _GrassRandomFacing: 0.741
+    - _GrassRandomFacing: 0.8
     - _GrassRandomLength: 0.495
-    - _GrassScale: 0.234
+    - _GrassScale: 0.25
     - _GrassTilt: 2
-    - _GrassWaveAmplitude: 0.077
-    - _GrassWaveFrequency: 0.938
-    - _GrassWaveSpeed: 0.327
+    - _GrassWaveAmplitude: 0.106
+    - _GrassWaveFrequency: 0.807
+    - _GrassWaveSpeed: 0.32
     - _Height: 1.2
     - _HeightRandomnessAmplitude: 0.272
     - _NormalBlend: 1
-    - _NormalScale: 0.5
+    - _NormalScale: 0.421
     - _RandomBendOffset: 0.794
     - _Scale: 0.665
     - _SpecularTightness: 0.396
@@ -88,9 +88,9 @@ Material:
     - _WindSpeed: 0.702
     m_Colors:
     - _BotColor: {r: 0, g: 0, b: 0, a: 1}
-    - _SpecularColor: {r: 0.49056602, g: 0.49056602, b: 0.49056602, a: 1}
-    - _TopColor: {r: 0.26312745, g: 0.764151, b: 0.30106953, a: 1}
-    - _VariantTopColor: {r: 0.5650695, g: 0.85882354, b: 0.34509802, a: 1}
+    - _SpecularColor: {r: 0.8018868, g: 0.8018868, b: 0.8018868, a: 1}
+    - _TopColor: {r: 0.27059898, g: 0.4811321, b: 0.20652369, a: 1}
+    - _VariantTopColor: {r: 0.5481291, g: 0.6509804, b: 0.2784314, a: 1}
     - _WindDirection: {r: 1, g: 1, b: 0, a: 0}
     - _WindNoiseFrequency: {r: 0.3, g: 0.3, b: 0, a: 0}
   m_BuildTextureStacks: []
