@@ -56,7 +56,7 @@ Material:
     - _DetailFrequency: 0.768
     - _DetailSpeed: 0.285
     - _DetailWeight: 0.175
-    - _GrassBend: 1
+    - _GrassBend: 0.45
     - _GrassFacingDirection: 45
     - _GrassHeight: 2
     - _GrassRandoemLength: 0.5

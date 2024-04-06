@@ -63,10 +63,13 @@ _SpecularTightness,
 _NormalScale,
 _BladeThickenFactor;
 
-void CalculateGrassCurve(float t, float lengthMult, float waveAmplitudeMult, float offset,float tiltFactor, out float3 pos, out float3 tan)
+void CalculateGrassCurve(float t, float lengthMult, float waveAmplitudeMult, float offset,float tiltFactor,float bendFactor, out float3 pos, out float3 tan)
 {
     float2 tiltHeight = float2(_GrassTilt, _GrassHeight) * lengthMult;
-    tiltHeight = Rotate2D(tiltHeight, -tiltFactor);
+    // Maximum tilt angle
+    tiltFactor *= -50;
+    tiltFactor = max(-50, tiltFactor);
+    tiltHeight = Rotate2D(tiltHeight, tiltFactor);
     float2 waveDir = normalize(tiltHeight);
     float propg = dot(waveDir, tiltHeight);
     float grassWave = 0;
@@ -85,7 +88,7 @@ void CalculateGrassCurve(float t, float lengthMult, float waveAmplitudeMult, flo
     }
         
     float2 P3 = tiltHeight;
-    float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * _GrassBend * lengthMult;
+    float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * lengthMult * (_GrassBend + bendFactor * 0.5);
     P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave ;
     P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
@@ -127,8 +130,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
     float3 windAffectDegree = 45;
-    float3 interactionAffectDegree = 45;
-    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), 1-interaction,rand * 39.346, min(wind * 45 + interaction * interactionAffectDegree, 50).x, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y, 1 + _GrassRandomLength * frac(rand * 78.233), 1-interaction,rand * 39.346, wind + interaction ,wind * 0.5 + 0.5, curvePosOS, curveTangentOS);
     float3 curveNormalOS = cross(float3(-1, 0, 0), normalize(curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
