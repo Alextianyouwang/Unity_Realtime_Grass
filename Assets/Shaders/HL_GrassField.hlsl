@@ -81,8 +81,8 @@ void CalculateGrassCurve(float t, float interaction,float wind, float hash, out 
     float propg = dot(waveDir, tiltHeight);
     float grassWave = 0;
     float freq = 5 * _GrassWaveFrequency;
-    float amplitude = _GrassWaveAmplitude * waveAmplitudeMult ;
-    float speed = _Time.y * _GrassWaveSpeed * 10;
+    float amplitude = _GrassWaveAmplitude * waveAmplitudeMult * bendFactor ; 
+    float speed = _Time.y * _GrassWaveSpeed * 10 ;
     [unroll]
     for (int i = 0; i < 3; i++)
     {
@@ -95,7 +95,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float hash, out 
     }
         
     float2 P3 = tiltHeight;
-    float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * lengthMult * (_GrassBend * 2 * hash + bendFactor );
+    float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * lengthMult * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
     P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave ;
     P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
@@ -262,8 +262,8 @@ float4 frag(VertexOutput v) : SV_Target
     d.viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
     d.viewDist = length(_WorldSpaceCameraPos - v.positionWS);
     d.smoothness = exp2(_SpecularTightness * 10 + 1);
-    d.albedo = lerp(_BotColor, lerp(_TopColor, _VariantTopColor, saturate(v.height + _ClumpTopThreshold * 2 - 1)), v.uv.y);
-    d.specularColor = _SpecularColor;
+    d.albedo = lerp(_BotColor, lerp(_TopColor, _VariantTopColor, saturate(v.height + _ClumpTopThreshold * 2 - 1)), v.uv.y).xyz;
+    d.specularColor = _SpecularColor.xyz;
     d.bakedGI = v.bakedGI;
 
     float3 finalColor = CustomCombineLight(d) ;
