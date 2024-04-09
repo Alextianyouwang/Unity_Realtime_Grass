@@ -33,6 +33,7 @@ Shader "Utility/S_TestOpaqueDepthTexture"
                 float2 uv : TEXCOORD0;
             };
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex); float4 _MainTex_ST;
+            TEXTURE2D(_HiZTexture); SAMPLER(sampler_HiZTexture); float4 _HiZTexture_ST;
 
             VertexOutput vert(VertexInput v)
             {
@@ -48,7 +49,8 @@ Shader "Utility/S_TestOpaqueDepthTexture"
                 float4 normal = SAMPLE_TEXTURE2D(_CameraNormalsTexture,sampler_CameraNormalsTexture,v.uv);
                 float4 depth = SAMPLE_TEXTURE2D(_CameraDepthTexture,sampler_CameraDepthTexture,v.uv);
                 float4 color = SAMPLE_TEXTURE2D(_CameraOpaqueTexture,sampler_CameraOpaqueTexture,v.uv);
-                return depth;
+                float4 custom = SAMPLE_TEXTURE2D(_HiZTexture,sampler_HiZTexture,v.uv);
+                return custom;
             }
             ENDHLSL
         }
