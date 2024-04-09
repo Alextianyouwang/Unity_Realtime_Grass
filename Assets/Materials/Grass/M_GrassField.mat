@@ -43,7 +43,7 @@ Material:
     - USE_MAINWAVE_ON: 1
     - _Bend: 0.537
     - _BladeThickenFactor: 0.2
-    - _ClumpEmergeFactor: 0.464
+    - _ClumpEmergeFactor: 0.244
     - _ClumpHeight: 1
     - _ClumpHeightMultiplier: 0.256
     - _ClumpHeightOffset: 1

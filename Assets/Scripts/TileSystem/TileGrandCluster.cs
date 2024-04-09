@@ -61,6 +61,7 @@ public class TileGrandCluster : MonoBehaviour
         CleanupDrawBuffers();
         CleanupTileDataBuffer();
     }
+
     private void LateUpdate()
     {
         if (ShowDebugView)
@@ -109,6 +110,7 @@ public class TileGrandCluster : MonoBehaviour
     }
     void IndirectDrawPerFrame()
     {
+        _tileChunkDispatcher?.BlitDepthTexture();
         _tileChunkDispatcher?.DispatchTileChunksDrawCall();
     }
     void CleanupDrawBuffers()

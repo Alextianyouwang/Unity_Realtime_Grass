@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
+
 public class TileChunkDispatcher
 {
     public TileChunk[] Chunks { get; private set; }
@@ -12,6 +14,7 @@ public class TileChunkDispatcher
     private ComputeBuffer _windBuffer_external;
 
     private RenderTexture _interactionTexture_external;
+    private RenderTexture _zTex;
 
     private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
@@ -31,6 +34,7 @@ public class TileChunkDispatcher
         _tileData = tileData;
         _renderCam = renderCam;
         _smoothPlacement = smoothPlacement;
+        _zTex = RenderTexture.GetTemporary(_renderCam.pixelWidth, _renderCam.pixelHeight, 0, RenderTextureFormat.R16, RenderTextureReadWrite.Linear);
     }
 
 
@@ -53,6 +57,8 @@ public class TileChunkDispatcher
         _spawnOnTileShader.SetBuffer(0, "_GroundNormalBuffer", _groundNormalBuffer);
 
         _spawnOnTileShader.Dispatch(0, Mathf.CeilToInt(_tileCount / 128f), 1, 1);
+
+
     }
 
     private ComputeBuffer ProcessWithClumpData() 
@@ -114,7 +120,14 @@ public class TileChunkDispatcher
             }
         }
     }
-
+    public void BlitDepthTexture() 
+    {
+        CommandBuffer depthBuffer = new CommandBuffer();
+        depthBuffer.name = "GetDepthTexture";
+        depthBuffer.Blit(Shader.GetGlobalTexture("_HiZTexture"), _zTex);
+        Graphics.ExecuteCommandBuffer(depthBuffer);
+        depthBuffer.Release();
+    }
 
     public void DispatchTileChunksDrawCall() 
     {
@@ -123,7 +136,10 @@ public class TileChunkDispatcher
         foreach (TileChunk t in Chunks)
             if (GeometryUtility.TestPlanesAABB(p, t.ChunkBounds))
                 if (t != null)
+                {
+                    t.SetZTex(_zTex);
                     t.DrawContent(ref totalInstance);
+                }
         //Debug.Log(totalInstance);
     }
     public void ReleaseBuffer()
@@ -131,7 +147,7 @@ public class TileChunkDispatcher
         _rawSpawnBuffer?.Dispose();
         _groundNormalBuffer?.Dispose();
         OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
-
+        _zTex.Release();
         foreach (TileChunk t in Chunks)
             t?.ReleaseBuffer();
         _tileClumpParser?.ReleaseBuffer();

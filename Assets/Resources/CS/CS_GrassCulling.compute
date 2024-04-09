@@ -39,6 +39,9 @@ float4x4 _Camera_V;
 int _NumTilePerClusterSide;
 float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
 
+Texture2D<float> _HiZTexture;
+SamplerState sampler_HiZTexture;
+#include "UnityCG.cginc"
 
 
 #define NUM_THREAD_GROUP 64
@@ -65,20 +68,43 @@ void Vote (uint3 id : SV_DispatchThreadID)
     int x = (pos.x - _ClusterBotLeftX) / _TileSize;
     int y = (pos.z - _ClusterBotLeftY) / _TileSize;
     
-    float density = _DensityBuffer[x * _NumTilePerClusterSide + y];
-    
     float3 posVS = mul(_Camera_V, float4(pos, 1)).xyz;
     float4 posCS = mul(_Camera_P, float4(posVS, 1));
     float3 posNDS = posCS.xyz / posCS.w;
     posNDS.z = -posCS.w;
+    float2 uv = posNDS.xy * 0.5 + 0.5;
+    uv = 1 - uv;
 
     float dist = posNDS.z / dot(normalize(posVS), float3(0, 0, 1));
+    
+    ///////////////////////////////////////////////////
+    //  Does current spawn pos has grass? 
+    float density = _DensityBuffer[x * _NumTilePerClusterSide + y];
+    bool hasGrass = step(hash, density);
+    ///////////////////////////////////////////////////
+    
+    ///////////////////////////////////////////////////
+    //  Does current spawn pos passes distance drop?
     float remap = saturate(invLerp(_DensityFalloffDist, _MaxRenderDist, dist));
     remap = pow(remap, 0.5);
-   
-    bool hasGrass = step(hash, density);
-    bool isInView = (posNDS.x < -1.1 || posNDS.x > 1.1 || posNDS.z < -0.1 || dist > _MaxRenderDist) ? 0 : 1;
     bool passedDistDrop = step(hash, remap) == 0;
+    ///////////////////////////////////////////////////
+    
+    ///////////////////////////////////////////////////
+    //  Does current spawn pos passes frustum culling?
+    bool isInView = (
+    posNDS.x < -1.1 
+    || posNDS.x > 1.1 
+    || posNDS.y < - 1.1
+    || posNDS.z < -0.1 
+    || dist > _MaxRenderDist) ? 0 : 1;
+    ///////////////////////////////////////////////////
+
+    ///////////////////////////////////////////////////
+    //  Does current spawn pos passes frustum culling?
+    // float geoDepthLinear = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture,uv,0));
+    // bool passedOcclusionTest = posNDS.z < geoDepthLinear;
+    ///////////////////////////////////////////////////
 
     _VoteBuffer[id.x] = passedDistDrop && isInView && hasGrass;
 }

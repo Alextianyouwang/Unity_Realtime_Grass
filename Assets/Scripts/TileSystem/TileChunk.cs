@@ -26,6 +26,7 @@ public class TileChunk
     private ComputeBuffer _groundNormalBuffer_external;
 
     private RenderTexture _interactionTexture_external;
+    private RenderTexture _zTex_external;
 
     private int _elementCount;
     private int _groupCount;
@@ -54,6 +55,10 @@ public class TileChunk
     public void SetInteractionTexture(RenderTexture interactionTex) 
     {
         _interactionTexture_external = interactionTex;
+    }
+    public void SetZTex(RenderTexture zTex) 
+    {
+        _zTex_external = zTex;
     }
     public void SetupCuller() 
     {
@@ -139,6 +144,7 @@ public class TileChunk
 
         _cullShader.SetMatrix("_Camera_P", _renderCam.projectionMatrix);
         _cullShader.SetMatrix("_Camera_V", _renderCam.transform.worldToLocalMatrix);
+        _cullShader.SetTexture(0, "_HiZTexture", _zTex_external);
         _cullShader.Dispatch(4, 1, 1, 1);
         _cullShader.Dispatch(0, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);
         _cullShader.Dispatch(1, _groupCount, 1, 1);
@@ -173,9 +179,9 @@ public class TileChunk
             _argsBuffer[i].GetData(data);
             instanceCount += (int)data[1];
         }*/
-           
+
     }
-    
+
 
     public void ReleaseBuffer() 
     {
