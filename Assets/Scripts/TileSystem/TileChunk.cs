@@ -143,7 +143,7 @@ public class TileChunk
             return;
 
         _cullShader.SetMatrix("_Camera_P", _renderCam.projectionMatrix);
-        _cullShader.SetMatrix("_Camera_V", _renderCam.transform.worldToLocalMatrix);
+        _cullShader.SetMatrix("_Camera_V", _renderCam.worldToCameraMatrix);
         _cullShader.SetTexture(0, "_HiZTexture", _zTex_external);
         _cullShader.Dispatch(4, 1, 1, 1);
         _cullShader.Dispatch(0, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);

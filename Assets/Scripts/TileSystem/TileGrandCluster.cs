@@ -27,6 +27,8 @@ public class TileGrandCluster : MonoBehaviour
     public bool EnableInteraction = true;
     public Material DebugMaterial;
 
+    public Renderer[] Occluders;
+
 
     private TileData _tileData;
     private TileVisualizer _tileVisualizer;
@@ -101,7 +103,8 @@ public class TileGrandCluster : MonoBehaviour
             SpawnMeshMaterial, 
             _tileData, 
             RenderCam, 
-            SmoothPlacement);
+            SmoothPlacement,
+            Occluders);
         _tileChunkDispatcher.InitialSpawn();
         _tileChunkDispatcher.GetWindBuffer();
         if (EnableInteraction)
@@ -112,6 +115,8 @@ public class TileGrandCluster : MonoBehaviour
     {
         _tileChunkDispatcher?.BlitDepthTexture();
         _tileChunkDispatcher?.DispatchTileChunksDrawCall();
+
+
     }
     void CleanupDrawBuffers()
     {

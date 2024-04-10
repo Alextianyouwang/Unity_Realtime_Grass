@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RendererUtils;
 
 public class TileChunkDispatcher
 {
@@ -15,10 +17,12 @@ public class TileChunkDispatcher
 
     private RenderTexture _interactionTexture_external;
     private RenderTexture _zTex;
+    private Material _zMat;
 
     private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
     private Camera _renderCam;
+    private Renderer[] _occluders;
 
     public static Func<int,int,float,Vector2,ComputeBuffer> OnRequestWindBuffer;
     public static Func<RenderTexture> OnRequestInteractionTexture;
@@ -27,14 +31,17 @@ public class TileChunkDispatcher
 
     private bool _smoothPlacement;
 
-    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, bool smoothPlacement)
+    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, bool smoothPlacement, Renderer[] occluders)
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
         _tileData = tileData;
         _renderCam = renderCam;
         _smoothPlacement = smoothPlacement;
-        _zTex = RenderTexture.GetTemporary(_renderCam.pixelWidth, _renderCam.pixelHeight, 0, RenderTextureFormat.R16, RenderTextureReadWrite.Linear);
+        _zTex = RenderTexture.GetTemporary(_renderCam.pixelWidth, _renderCam.pixelHeight, 0, RenderTextureFormat.R16, RenderTextureReadWrite.Default);
+        
+        _zMat = new Material(Shader.Find("Utility/S_DepthOnly"));
+        _occluders = occluders;
     }
 
 
@@ -122,11 +129,24 @@ public class TileChunkDispatcher
     }
     public void BlitDepthTexture() 
     {
-        CommandBuffer depthBuffer = new CommandBuffer();
-        depthBuffer.name = "GetDepthTexture";
-        depthBuffer.Blit(Shader.GetGlobalTexture("_HiZTexture"), _zTex);
-        Graphics.ExecuteCommandBuffer(depthBuffer);
-        depthBuffer.Release();
+        CommandBuffer cmd = new CommandBuffer();
+        cmd.name = "DrawOccluderDepth";
+
+        cmd.SetViewMatrix(_renderCam.worldToCameraMatrix);
+        cmd.SetProjectionMatrix(_renderCam.projectionMatrix);
+        cmd.SetRenderTarget(_zTex);
+        cmd.ClearRenderTarget(true, true, Color.clear);
+
+        foreach (Renderer r in _occluders)
+        {
+            if (GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(_renderCam), r.bounds))
+            {
+                cmd.DrawRenderer(r, _zMat);
+            }
+        }
+
+        Graphics.ExecuteCommandBuffer(cmd);
+        cmd.Clear();
     }
 
     public void DispatchTileChunksDrawCall() 
@@ -147,7 +167,8 @@ public class TileChunkDispatcher
         _rawSpawnBuffer?.Dispose();
         _groundNormalBuffer?.Dispose();
         OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
-        _zTex.Release();
+        RenderTexture.ReleaseTemporary(_zTex);
+        _zTex = null;_zMat = null;
         foreach (TileChunk t in Chunks)
             t?.ReleaseBuffer();
         _tileClumpParser?.ReleaseBuffer();

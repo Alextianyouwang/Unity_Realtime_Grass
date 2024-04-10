@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec2386511e8f2674c85649c6be375ce5, type: 3}
   m_Name: RenderZBuffer
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   RenderEvent: 250
   CullingMask:
     serializedVersion: 2

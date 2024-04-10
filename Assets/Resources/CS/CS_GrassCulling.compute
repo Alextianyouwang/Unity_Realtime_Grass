@@ -71,11 +71,10 @@ void Vote (uint3 id : SV_DispatchThreadID)
     float3 posVS = mul(_Camera_V, float4(pos, 1)).xyz;
     float4 posCS = mul(_Camera_P, float4(posVS, 1));
     float3 posNDS = posCS.xyz / posCS.w;
-    posNDS.z = -posCS.w;
+    posNDS.z = posCS.w;
     float2 uv = posNDS.xy * 0.5 + 0.5;
-    uv = 1 - uv;
 
-    float dist = posNDS.z / dot(normalize(posVS), float3(0, 0, 1));
+    float dist = posNDS.z / dot(normalize(posVS), float3(0, 0, -1));
     
     ///////////////////////////////////////////////////
     //  Does current spawn pos has grass? 
@@ -95,18 +94,18 @@ void Vote (uint3 id : SV_DispatchThreadID)
     bool isInView = (
     posNDS.x < -1.1 
     || posNDS.x > 1.1 
-    || posNDS.y < - 1.1
+    || posNDS.y > 1.1
     || posNDS.z < -0.1 
     || dist > _MaxRenderDist) ? 0 : 1;
     ///////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////
-    //  Does current spawn pos passes frustum culling?
-    // float geoDepthLinear = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture,uv,0));
-    // bool passedOcclusionTest = posNDS.z < geoDepthLinear;
+    //  Does current spawn pos passes occlusion culling?
+     float geoDepthLinear = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture,uv,0));
+     bool passedOcclusionTest = posNDS.z < geoDepthLinear + 0.1;
     ///////////////////////////////////////////////////
 
-    _VoteBuffer[id.x] = passedDistDrop && isInView && hasGrass;
+    _VoteBuffer[id.x] = passedDistDrop && isInView && hasGrass && passedOcclusionTest;
 }
 [numthreads(NUM_THREAD_GROUP, 1, 1)]
 void ScanThreadGroup(uint3 id : SV_DispatchThreadID, uint3 groupTID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
