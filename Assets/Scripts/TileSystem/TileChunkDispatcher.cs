@@ -38,8 +38,8 @@ public class TileChunkDispatcher
         _tileData = tileData;
         _renderCam = renderCam;
         _smoothPlacement = smoothPlacement;
-        _zTex = RenderTexture.GetTemporary(_renderCam.pixelWidth, _renderCam.pixelHeight, 0, RenderTextureFormat.R16, RenderTextureReadWrite.Default);
-        
+        _zTex = RenderTexture.GetTemporary(_renderCam.pixelWidth, _renderCam.pixelHeight, 0, RenderTextureFormat.R16, RenderTextureReadWrite.Linear);
+        _zTex.filterMode = FilterMode.Bilinear;
         _zMat = new Material(Shader.Find("Utility/S_DepthOnly"));
         _occluders = occluders;
     }

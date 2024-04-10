@@ -80,6 +80,11 @@ void Vote (uint3 id : SV_DispatchThreadID)
     //  Does current spawn pos has grass? 
     float density = _DensityBuffer[x * _NumTilePerClusterSide + y];
     bool hasGrass = step(hash, density);
+    if (!hasGrass)
+    {
+        _VoteBuffer[id.x] = false;
+        return;
+    }
     ///////////////////////////////////////////////////
     
     ///////////////////////////////////////////////////
@@ -87,25 +92,40 @@ void Vote (uint3 id : SV_DispatchThreadID)
     float remap = saturate(invLerp(_DensityFalloffDist, _MaxRenderDist, dist));
     remap = pow(remap, 0.5);
     bool passedDistDrop = step(hash, remap) == 0;
+    if (!passedDistDrop)
+    {
+        _VoteBuffer[id.x] = false;
+        return;
+    }
     ///////////////////////////////////////////////////
     
     ///////////////////////////////////////////////////
     //  Does current spawn pos passes frustum culling?
-    bool isInView = (
-    posNDS.x < -1.1 
-    || posNDS.x > 1.1 
+        bool isInView = (
+    posNDS.x < -1.1
+    || posNDS.x > 1.1
     || posNDS.y > 1.1
-    || posNDS.z < -0.1 
+    || posNDS.z < -0.1
     || dist > _MaxRenderDist) ? 0 : 1;
+    if (!isInView)
+    {
+        _VoteBuffer[id.x] = false;
+        return;
+    }
     ///////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////
     //  Does current spawn pos passes occlusion culling?
-     float geoDepthLinear = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture,uv,0));
-     bool passedOcclusionTest = posNDS.z < geoDepthLinear + 0.1;
+    float geoDepthLinear = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, uv, 0));
+    bool passedOcclusion = posNDS.z < geoDepthLinear + 0.5;
+    if (!passedOcclusion)
+    {
+        _VoteBuffer[id.x] = false;
+        return;
+    }
     ///////////////////////////////////////////////////
 
-    _VoteBuffer[id.x] = passedDistDrop && isInView && hasGrass && passedOcclusionTest;
+    _VoteBuffer[id.x] = true;
 }
 [numthreads(NUM_THREAD_GROUP, 1, 1)]
 void ScanThreadGroup(uint3 id : SV_DispatchThreadID, uint3 groupTID : SV_GroupThreadID, uint3 groupID : SV_GroupID)

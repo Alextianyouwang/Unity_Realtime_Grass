@@ -191,6 +191,7 @@ MonoBehaviour:
   EnableInteraction: 1
   DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
   Occluders:
+  - {fileID: 1814955406}
   - {fileID: 1827396027}
 --- !u!1 &243803249
 GameObject:
@@ -236,11 +237,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 274a32c52955af5439f8cdac934a3d71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WindSpeed: 6
+  WindSpeed: 5
   WindDirection: 45
-  WindAmplitudeMultiplier: 0.7
-  WindFrequencyMultiplier: 0.05
-  WindOcatves: 5
+  WindAmplitudeMultiplier: 0.65
+  WindFrequencyMultiplier: 0.1
+  WindOcatves: 3
   WindSpeedBuildup: 0.2
   WindAmplitudeFalloff: 0.55
   WindFrequencyBuildup: 1.8
@@ -928,13 +929,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1827396025}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 39.61, y: 2.8, z: -80.06}
-  m_LocalScale: {x: 9.271032, y: 9.271032, z: 9.271032}
+  m_LocalRotation: {x: -0, y: 0.27145085, z: -0, w: 0.96245235}
+  m_LocalPosition: {x: 38.86, y: 5.42, z: -73.77}
+  m_LocalScale: {x: 9.271032, y: 10.153634, z: 9.271032}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 31.501, z: 0}
 --- !u!1 &2133137460
 GameObject:
   m_ObjectHideFlags: 0

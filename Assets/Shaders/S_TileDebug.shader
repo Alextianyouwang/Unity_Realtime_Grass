@@ -45,7 +45,7 @@ Shader "Procedural/S_TileDebug"
             
             VertexOutput vert( uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
             {
-                VertexOutput o;
+                VertexOutput o = (VertexOutput)0;
                 InstanceData i = _InstanceDataBuffer[instanceID];
                 o.positionWS = _VertBuffer[_TriangleBuffer[vertexID]] * i.size + i.position;
                 o.positionCS = mul(UNITY_MATRIX_VP, float4(o.positionWS, 1));

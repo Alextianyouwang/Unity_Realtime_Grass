@@ -97,7 +97,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float hash, out 
     float2 P3 = tiltHeight;
     float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * lengthMult * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
     P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave ;
-    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave;
+    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * 1.2;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
 }
 
