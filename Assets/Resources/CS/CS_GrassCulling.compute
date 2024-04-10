@@ -35,14 +35,14 @@ float _MaxRenderDist;
 float _DensityFalloffDist;
 float4x4 _Camera_P;
 float4x4 _Camera_V;
+float _Camera_Near; 
+float _Camera_Far;
 
 int _NumTilePerClusterSide;
 float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
 
 Texture2D<float> _HiZTexture;
 SamplerState sampler_HiZTexture;
-#include "UnityCG.cginc"
-
 
 #define NUM_THREAD_GROUP 64
 #define NUM_GROUP 1024
@@ -50,7 +50,16 @@ SamplerState sampler_HiZTexture;
 groupshared int temp[2 * NUM_THREAD_GROUP];
 groupshared int tempGroup[2 * NUM_GROUP];
 
-
+inline float LinearEyeDepth(float depth)
+{
+    // Reversed Z
+    depth = 1 - depth;
+    float x = 1 - _Camera_Far / _Camera_Near;
+    float y = _Camera_Far / _Camera_Near;
+    float z = x / _Camera_Far;
+    float w = y / _Camera_Far;
+    return 1.0 / ( z * depth  + w);
+}
 float invLerp(float from, float to, float value)
 {
     return (value - from) / (to - from);
