@@ -191,7 +191,6 @@ MonoBehaviour:
   EnableInteraction: 1
   DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
   Occluders:
-  - {fileID: 1814955406}
   - {fileID: 1827396027}
 --- !u!1 &243803249
 GameObject:
@@ -930,7 +929,7 @@ Transform:
   m_GameObject: {fileID: 1827396025}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.27145085, z: -0, w: 0.96245235}
-  m_LocalPosition: {x: 38.86, y: 5.42, z: -73.77}
+  m_LocalPosition: {x: 42.47, y: 5.42, z: -74.4}
   m_LocalScale: {x: 9.271032, y: 10.153634, z: 9.271032}
   m_ConstrainProportionsScale: 0
   m_Children: []
