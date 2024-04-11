@@ -29,17 +29,16 @@ RWStructuredBuffer<Args> _ArgsBuffer0;
 RWStructuredBuffer<Args> _ArgsBuffer1;
 RWStructuredBuffer<Args> _ArgsBuffer2;
 
-
 uint _InstanceCount;
-float _MaxRenderDist;
-float _DensityFalloffDist;
-float4x4 _Camera_P;
-float4x4 _Camera_V;
-float _Camera_Near; 
-float _Camera_Far;
-
 int _NumTilePerClusterSide;
 float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
+
+float _MaxRenderDist;
+float _DensityFalloffDist;
+float4x4 _Camera_P, _Camera_V;
+float _Camera_Near, _Camera_Far;
+float _GrassBoundScale;
+bool _EnableOcclusionCulling;
 
 Texture2D<float> _HiZTexture;
 SamplerState sampler_HiZTexture;
@@ -64,6 +63,14 @@ float invLerp(float from, float to, float value)
 {
     return (value - from) / (to - from);
 }
+void SpaceConversion(float3 pos, out float3 posVS, out float3 posNDS, out float2 uv)
+{
+    posVS = mul(_Camera_V, float4(pos, 1)).xyz;
+    float4 posCS = mul(_Camera_P, float4(posVS, 1));
+    posNDS = posCS.xyz / posCS.w;
+    posNDS.z = posCS.w;
+    uv = posNDS.xy * 0.5 + 0.5;
+}
 
 [numthreads(128, 1, 1)]
 void Vote (uint3 id : SV_DispatchThreadID)
@@ -72,16 +79,17 @@ void Vote (uint3 id : SV_DispatchThreadID)
         return;
     
     float3 pos = _SpawnBuffer[id.x].positionWS;
+
     float hash = _SpawnBuffer[id.x].hash;
     
     int x = (pos.x - _ClusterBotLeftX) / _TileSize;
     int y = (pos.z - _ClusterBotLeftY) / _TileSize;
     
-    float3 posVS = mul(_Camera_V, float4(pos, 1)).xyz;
-    float4 posCS = mul(_Camera_P, float4(posVS, 1));
-    float3 posNDS = posCS.xyz / posCS.w;
-    posNDS.z = posCS.w;
-    float2 uv = posNDS.xy * 0.5 + 0.5;
+
+    float3 posNDS;
+    float3 posVS;
+    float2 uv;
+    SpaceConversion(pos, posVS, posNDS, uv);
 
     float dist = posNDS.z / dot(normalize(posVS), float3(0, 0, -1));
     
@@ -114,6 +122,7 @@ void Vote (uint3 id : SV_DispatchThreadID)
     posNDS.x < -1.1
     || posNDS.x > 1.1
     || posNDS.y > 1.1
+    || posNDS.y < -2.1
     || posNDS.z < -0.1
     || dist > _MaxRenderDist) ? 0 : 1;
     if (!isInView)
@@ -125,8 +134,29 @@ void Vote (uint3 id : SV_DispatchThreadID)
 
     ///////////////////////////////////////////////////
     //  Does current spawn pos passes occlusion culling?
-    float geoDepthLinear = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, uv, 0));
-    bool passedOcclusion = posNDS.z < geoDepthLinear + 0.5;
+    
+    if (!_EnableOcclusionCulling)
+    {
+        _VoteBuffer[id.x] = true;
+        return;
+    }
+        
+    float b = _GrassBoundScale;
+    float3 upperBoundPos = pos + float3(b, b, b);
+    float3 upperBoundPosVS;
+    float3 upperBoundPosNDS;
+    float2 upperBoundUV;
+    
+    float3 lowerBoundPos = pos - float3(b, 0, b);
+    float3 lowerBoundPosVS;
+    float3 lowerBoundPosNDS;
+    float2 lowerBoundUV;
+    SpaceConversion(upperBoundPos, upperBoundPosVS, upperBoundPosNDS, upperBoundUV);
+    SpaceConversion(lowerBoundPos, lowerBoundPosVS, lowerBoundPosNDS, lowerBoundUV);
+
+    float lboundDepth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, lowerBoundUV, 0));
+    float uboundDepth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, upperBoundUV, 0));
+    bool passedOcclusion = posNDS.z < lboundDepth || upperBoundPosNDS.z < uboundDepth;
     if (!passedOcclusion)
     {
         _VoteBuffer[id.x] = false;

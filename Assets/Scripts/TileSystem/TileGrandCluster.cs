@@ -3,7 +3,7 @@ using UnityEngine;
 [DefaultExecutionOrder(-99)]
 public class TileGrandCluster : MonoBehaviour
 {
-
+    [Header("re-enable to preview changes")]
     public Texture2D TileHeightmap;
     public Texture2D TileTypemap;
     public float TileHeightMultiplier = 1;
@@ -14,21 +14,25 @@ public class TileGrandCluster : MonoBehaviour
 
     public Mesh[] SpawnMesh;
     public Material SpawnMeshMaterial;
-    public int SpawnSubivisions = 3;
+    public int SquaredInstancePerTile = 3;
+    public int SquaredChunksPerCluster = 4;
+    public int SquaredTilePerClump = 8;
     public bool SmoothPlacement = true;
-    public int ChunksPerSide = 4;
-    public int TilePerClump = 8;
+    public bool EnableInteraction = true;
+
+
     public float LOD_Threshold_01 = 45;
     public float LOD_Threshold_12 = 125;
     public float MaxRenderDistance = 200;
     public float DensityFalloffThreshold = 10;
 
-    public bool ShowDebugView = true;
-    public bool EnableInteraction = true;
+    public bool ShowDebugTile = true;
     public Material DebugMaterial;
 
+    public bool EnableOcclusionCulling = true;
     public Renderer[] Occluders;
-
+    [Range(0f, 3f)]
+    public float OccludeeBoundScaleMultiplier = 1;
 
     private TileData _tileData;
     private TileVisualizer _tileVisualizer;
@@ -38,20 +42,15 @@ public class TileGrandCluster : MonoBehaviour
     public static float _LOD_Threshold_12 { get; private set; }
     public static float _MaxRenderDistance { get; private set; }
     public static float _DensityFalloffThreshold { get; private set; }
-    public static int _SpawnSubdivisions { get; private set; }
-    public static int _ChunksPerSide { get; private set; }
-    public static int _TilePerClump { get; private set; }
-
+    public static int _SquaredInstancePerTile { get; private set; }
+    public static int _SquaredChunkPerCluster { get; private set; }
+    public static int _SquaredTilePerClump { get; private set; }
+    public static float _OccludeeBoundScaleMultiplier { get; private set; }
+    public static bool _EnableOcclusionCulling { get; private set; }
 
     private void OnEnable()
     {
-        _LOD_Threshold_01 = LOD_Threshold_01;
-        _LOD_Threshold_12 = LOD_Threshold_12;
-        _MaxRenderDistance = MaxRenderDistance;
-        _DensityFalloffThreshold = DensityFalloffThreshold;
-        _SpawnSubdivisions = SpawnSubivisions;
-        _ChunksPerSide = ChunksPerSide;
-        _TilePerClump = TilePerClump;
+        UpdateParam();
         SetupTileData();
         SetupTileDebug();
         SetupDrawers();
@@ -63,10 +62,22 @@ public class TileGrandCluster : MonoBehaviour
         CleanupDrawBuffers();
         CleanupTileDataBuffer();
     }
-
+    private void UpdateParam() 
+    {
+        _LOD_Threshold_01 = LOD_Threshold_01;
+        _LOD_Threshold_12 = LOD_Threshold_12;
+        _MaxRenderDistance = MaxRenderDistance;
+        _DensityFalloffThreshold = DensityFalloffThreshold;
+        _SquaredInstancePerTile = SquaredInstancePerTile;
+        _SquaredChunkPerCluster = SquaredChunksPerCluster;
+        _SquaredTilePerClump = SquaredTilePerClump;
+        _OccludeeBoundScaleMultiplier = OccludeeBoundScaleMultiplier;
+        _EnableOcclusionCulling = EnableOcclusionCulling;
+    }
     private void LateUpdate()
     {
-        if (ShowDebugView)
+        UpdateParam();
+        if (ShowDebugTile)
             DrawDebugView();
         IndirectDrawPerFrame();
     }

@@ -91,8 +91,6 @@ public class TileChunk
         Vector2 bl = _tileData.TileGridCenterXZ - (Vector2.one * _tileData.TileSize * _tileData.TileGridDimension / 2);
 
         _cullShader.SetInt("_InstanceCount", _spawnBuffer.count);
-        _cullShader.SetFloat("_MaxRenderDist", TileGrandCluster._MaxRenderDistance);
-        _cullShader.SetFloat("_DensityFalloffDist", TileGrandCluster._DensityFalloffThreshold);
         _cullShader.SetFloat("_ClusterBotLeftX", bl.x);
         _cullShader.SetFloat("_ClusterBotLeftY", bl.y);
         _cullShader.SetFloat("_TileSize", _tileData.TileSize);
@@ -146,7 +144,13 @@ public class TileChunk
         _cullShader.SetMatrix("_Camera_V", _renderCam.worldToCameraMatrix);
         _cullShader.SetFloat("_Camera_Near", _renderCam.nearClipPlane);
         _cullShader.SetFloat("_Camera_Far", _renderCam.farClipPlane);
+        _cullShader.SetFloat("_MaxRenderDist", TileGrandCluster._MaxRenderDistance);
+        _cullShader.SetFloat("_DensityFalloffDist", TileGrandCluster._DensityFalloffThreshold);
+        _cullShader.SetFloat("_GrassBoundScale", TileGrandCluster._OccludeeBoundScaleMultiplier);
+        _cullShader.SetBool("_EnableOcclusionCulling", TileGrandCluster._EnableOcclusionCulling);
+
         _cullShader.SetTexture(0, "_HiZTexture", _zTex_external);
+
         _cullShader.Dispatch(4, 1, 1, 1);
         _cullShader.Dispatch(0, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);
         _cullShader.Dispatch(1, _groupCount, 1, 1);

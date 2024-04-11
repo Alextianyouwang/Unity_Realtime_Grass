@@ -1,9 +1,6 @@
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.RendererUtils;
-
 public class TileChunkDispatcher
 {
     public TileChunk[] Chunks { get; private set; }
@@ -49,13 +46,13 @@ public class TileChunkDispatcher
     {
         _spawnOnTileShader = GameObject.Instantiate((ComputeShader)Resources.Load("CS/CS_InitialSpawn"));
         _tileCount = _tileData.TileGridDimension * _tileData.TileGridDimension;
-        int instancePerTile = TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions;
+        int instancePerTile = TileGrandCluster._SquaredInstancePerTile * TileGrandCluster._SquaredInstancePerTile;
 
         _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 8);
         _groundNormalBuffer = new ComputeBuffer(_tileCount, sizeof(float) * 3);
 
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
-        _spawnOnTileShader.SetInt("_Subdivisions", TileGrandCluster._SpawnSubdivisions);
+        _spawnOnTileShader.SetInt("_Subdivisions", TileGrandCluster._SquaredInstancePerTile);
         _spawnOnTileShader.SetInt("_NumTilesPerSide", _tileData.TileGridDimension);
         _spawnOnTileShader.SetBool("_SmoothPlacement", _smoothPlacement);
 
@@ -93,10 +90,10 @@ public class TileChunkDispatcher
     public void InitializeChunks() 
     {
         _rawSpawnBuffer =  ProcessWithClumpData();
-        int chunksPerSide = TileGrandCluster._ChunksPerSide;
+        int chunksPerSide = TileGrandCluster._SquaredChunkPerCluster;
         Chunks = new TileChunk[chunksPerSide * chunksPerSide];
         int chunkDimension = _tileData.TileGridDimension / chunksPerSide;
-        int totalInstancePerChunk = chunkDimension * chunkDimension * TileGrandCluster._SpawnSubdivisions * TileGrandCluster._SpawnSubdivisions;
+        int totalInstancePerChunk = chunkDimension * chunkDimension * TileGrandCluster._SquaredInstancePerTile * TileGrandCluster._SquaredInstancePerTile;
         float chunkSize = _tileData.TileGridDimension * _tileData.TileSize / chunksPerSide;
         Vector2 botLeft = _tileData.TileGridCenterXZ - chunkSize * chunksPerSide * Vector2.one / 2 + Vector2.one * chunkSize / 2;
         
@@ -129,6 +126,8 @@ public class TileChunkDispatcher
     }
     public void BlitDepthTexture() 
     {
+        if (!TileGrandCluster._EnableOcclusionCulling)
+            return;
         CommandBuffer cmd = new CommandBuffer();
         cmd.name = "DrawOccluderDepth";
 
@@ -139,6 +138,8 @@ public class TileChunkDispatcher
 
         foreach (Renderer r in _occluders)
         {
+            if (r == null)
+                continue;
             if (GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(_renderCam), r.bounds))
             {
                 cmd.DrawRenderer(r, _zMat);

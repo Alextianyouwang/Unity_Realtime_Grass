@@ -22,11 +22,11 @@ public class TileClumpParser
     {
 
         _clumpShader = GameObject.Instantiate((ComputeShader)Resources.Load("CS/CS_ClumpVoronoi"));
-        int clumpPerSide = Mathf.CeilToInt (_numTilePerSide / TileGrandCluster._TilePerClump) ;
+        int clumpPerSide = Mathf.CeilToInt (_numTilePerSide / TileGrandCluster._SquaredTilePerClump) ;
 ;
         _clumpCenterBuffer = new ComputeBuffer(clumpPerSide * clumpPerSide * 9, sizeof(float) * 2);
 
-        float clumpIncrement = _tileSize * TileGrandCluster._TilePerClump;
+        float clumpIncrement = _tileSize * TileGrandCluster._SquaredTilePerClump;
         _clumpShader.SetFloat("_ClumpIncrement", clumpIncrement);
         _clumpShader.SetFloat("_CornerX", _botLeftCorner.x);
         _clumpShader.SetFloat("_CornerY", _botLeftCorner.y);
