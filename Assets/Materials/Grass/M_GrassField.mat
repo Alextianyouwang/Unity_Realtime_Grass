@@ -45,7 +45,7 @@ Material:
     - _BladeThickenFactor: 0.2
     - _ClumpEmergeFactor: 0.244
     - _ClumpHeight: 1
-    - _ClumpHeightMultiplier: 0.256
+    - _ClumpHeightMultiplier: 0.286
     - _ClumpHeightOffset: 1
     - _ClumpHeightSmoothness: 0.109
     - _ClumpThreshold: 0
@@ -60,9 +60,9 @@ Material:
     - _GrassFacingDirection: 45
     - _GrassHeight: 2
     - _GrassRandoemLength: 0.5
-    - _GrassRandomFacing: 0.8
+    - _GrassRandomFacing: 1
     - _GrassRandomLength: 0.495
-    - _GrassScale: 0.2
+    - _GrassScale: 0.15
     - _GrassTilt: 2
     - _GrassWaveAmplitude: 0.2
     - _GrassWaveFrequency: 1
@@ -87,10 +87,10 @@ Material:
     - _WindNoiseWeight: 1
     - _WindSpeed: 0.702
     m_Colors:
-    - _BotColor: {r: 0, g: 0, b: 0, a: 1}
+    - _BotColor: {r: 0.07164994, g: 0.11320752, b: 0.034709856, a: 1}
     - _SpecularColor: {r: 0.8018868, g: 0.8018868, b: 0.8018868, a: 1}
-    - _TopColor: {r: 0.27059898, g: 0.4811321, b: 0.20652369, a: 1}
-    - _VariantTopColor: {r: 0.5481291, g: 0.6509804, b: 0.2784314, a: 1}
+    - _TopColor: {r: 0.25030124, g: 0.3962264, b: 0.12522249, a: 1}
+    - _VariantTopColor: {r: 0.487369, g: 0.5377358, b: 0.18516374, a: 1}
     - _WindDirection: {r: 1, g: 1, b: 0, a: 0}
     - _WindNoiseFrequency: {r: 0.3, g: 0.3, b: 0, a: 0}
   m_BuildTextureStacks: []
