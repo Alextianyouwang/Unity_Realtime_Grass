@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 public class TileChunkDispatcher
@@ -20,6 +21,7 @@ public class TileChunkDispatcher
     private Material _spawnMeshMaterial;
     private Camera _renderCam;
     private Renderer[] _occluders;
+    private Mesh _occluder;
 
     public static Func<int,int,float,Vector2,ComputeBuffer> OnRequestWindBuffer;
     public static Func<RenderTexture> OnRequestInteractionTexture;
@@ -35,10 +37,10 @@ public class TileChunkDispatcher
         _tileData = tileData;
         _renderCam = renderCam;
         _smoothPlacement = smoothPlacement;
-        _zTex = RenderTexture.GetTemporary(_renderCam.pixelWidth, _renderCam.pixelHeight, 0, RenderTextureFormat.R16, RenderTextureReadWrite.Linear);
-        _zTex.filterMode = FilterMode.Bilinear;
+        _zTex = RenderTexture.GetTemporary(_renderCam.pixelWidth, _renderCam.pixelHeight, 32, RenderTextureFormat.R16, RenderTextureReadWrite.Linear);
+        _zTex.Create();
         _zMat = new Material(Shader.Find("Utility/S_DepthOnly"));
-        _occluders = occluders;
+        _occluder = Utility.CombineMeshes(occluders.Select(x => x.gameObject).ToArray());
     }
 
 
@@ -135,17 +137,7 @@ public class TileChunkDispatcher
         cmd.SetProjectionMatrix(_renderCam.projectionMatrix);
         cmd.SetRenderTarget(_zTex);
         cmd.ClearRenderTarget(true, true, Color.clear);
-
-        foreach (Renderer r in _occluders)
-        {
-            if (r == null)
-                continue;
-            if (GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(_renderCam), r.bounds))
-            {
-                cmd.DrawRenderer(r, _zMat);
-            }
-        }
-
+        cmd.DrawMesh(_occluder, Matrix4x4.identity, _zMat);
         Graphics.ExecuteCommandBuffer(cmd);
         cmd.Clear();
     }

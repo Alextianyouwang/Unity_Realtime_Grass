@@ -156,7 +156,10 @@ void Vote (uint3 id : SV_DispatchThreadID)
 
     float lboundDepth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, lowerBoundUV, 0));
     float uboundDepth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, upperBoundUV, 0));
-    bool passedOcclusion = posNDS.z < lboundDepth || upperBoundPosNDS.z < uboundDepth;
+    float depth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, uv, 0));
+    bool passedOcclusion = posNDS.z > depth + 0.5 ?
+        lowerBoundPosNDS.z < lboundDepth || upperBoundPosNDS.z < uboundDepth :
+        true;
     if (!passedOcclusion)
     {
         _VoteBuffer[id.x] = false;
