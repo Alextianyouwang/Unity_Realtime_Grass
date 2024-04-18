@@ -18,7 +18,6 @@ Shader "Procedural/S_GrassField"
 
         [Header(Transform)][Space]
         _GrassScale("GrassMasterScale", Range(0,1)) = 1
-        _GrassFacingDirection("GrassFacingDirection", Range(0,360)) = 0
         _GrassRandomLength("GrassRandomLength", Range(0,1)) = 0.5
         _GrassRandomFacing("GrassRandomFacing",Range(0,1)) = 0.1
 
@@ -40,9 +39,9 @@ Shader "Procedural/S_GrassField"
         _ClumpHeightOffset("ClumpHeightOffset",Range(0,1)) = 0.1
         _ClumpHeightMultiplier("ClumpHeightMultiplier",Range(0,1)) = 0.1
 
-
         [Header(Utility)][Space]
         _BladeThickenFactor("ViewSpaceThickenFactor",Range(0,1)) = 0
+
 
     }
     SubShader

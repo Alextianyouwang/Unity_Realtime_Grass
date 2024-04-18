@@ -1,6 +1,6 @@
 #pragma kernel GlobalWind
 
-RWStructuredBuffer<float> _WindBuffer;
+RWStructuredBuffer<float2> _WindBuffer;
 uint _MaxCount;
 float _TileSize;
 float _TileDimension;
@@ -45,6 +45,7 @@ void GlobalWind(uint3 id : SV_DispatchThreadID)
         offset = float2(_Time * freq * (_Speed + speedRamp), 0);
     }
 
-    _WindBuffer[id.x] =noise ;
+    
+    _WindBuffer[id.x] = float2(noise, (_Direction + noise / _Amplitude * 45) / 360.0);
 
 }

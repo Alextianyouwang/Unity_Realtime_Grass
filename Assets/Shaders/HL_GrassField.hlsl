@@ -41,7 +41,7 @@ StructuredBuffer<SpawnData> _SpawnBuffer;
 ////////////////////////////////////////////////
 // Field Data
 StructuredBuffer<float3> _GroundNormalBuffer;
-StructuredBuffer<float> _WindBuffer;
+StructuredBuffer<float2> _WindBuffer;
 Texture2D<float> _InteractionTexture;
 int _NumTilePerClusterSide;
 float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
@@ -55,7 +55,7 @@ float3 _ChunkColor, _LOD_Color;
 float4 _TopColor, _BotColor, _VariantTopColor, _SpecularColor;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 TEXTURE2D( _Normal);SAMPLER (sampler_Normal);float4 _Normal_ST;
-float _GrassScale, _GrassFacingDirection, _GrassRandomLength,
+float _GrassScale, _GrassRandomLength,
 _GrassTilt, _GrassHeight, _GrassBend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
 _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeightOffset, _ClumpHeightMultiplier, _ClumpTopThreshold,
 _GrassRandomFacing,
@@ -115,7 +115,8 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     int y = (spawnPosWS.z - _ClusterBotLeftY) / _TileSize;
     // Sample Buffers Based on xy
     float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
-    float wind = _WindBuffer[x * _NumTilePerClusterSide + y]; // [-1,1]
+    float windStrength = _WindBuffer[x * _NumTilePerClusterSide + y].x; // [-1,1]
+    float windDir = _WindBuffer[x * _NumTilePerClusterSide + y].y * 360; // [0,360]
     float interaction = saturate(_InteractionTexture[int2(x, y)]);
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
@@ -137,7 +138,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
     float3 windAffectDegree = 45;
-    CalculateGrassCurve(uv.y, interaction, wind , rand, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y, interaction, windStrength * 0.65, rand, curvePosOS, curveTangentOS);
     float3 curveNormalOS = cross(float3(-1, 0, 0), normalize(curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
@@ -151,10 +152,11 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     ////////////////////////////////////////////////
     // Apply Clump
-    float windAngle = -_GrassFacingDirection + 90;
+    float windAngle = -windDir + 90;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
     float randomRotationMaxSpan = 120;
-    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor) -(frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing;
+    float reverseWind01 = 1 - (windStrength * 0.5  + 0.5);
+    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01) - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing;
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
@@ -190,7 +192,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.tangentWS = tangentWS;
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
-    o.debug = float4(lerp(float2(0, 1), float2(1, 0), wind + 0.5), interaction, rand);
+    o.debug = float4(lerp(float2(0, 1), float2(1, 0), windStrength + 0.5), interaction,rand);
     o.height = max(scale, _GrassRandomLength * rand) * clumpHash;
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
