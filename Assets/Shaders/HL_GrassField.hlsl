@@ -162,8 +162,8 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
     curvePosWS = ScaleWithCenter(curvePosWS, scale, spawnPosWS);
     curvePosWS = RotateAroundAxis(float4(curvePosWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
-    float3 normalWS = RotateAroundYInDegrees(float4(curveNormalOS, 0), rotAngle).xyz;
-    float3 tangentWS = RotateAroundYInDegrees(float4(curveTangentOS, 0), rotAngle).xyz;
+    float3 normalWS = normalize(RotateAroundYInDegrees(float4(curveNormalOS, 0), rotAngle).xyz);
+    float3 tangentWS = normalize(RotateAroundYInDegrees(float4(curveTangentOS, 0), rotAngle).xyz);
     ////////////////////////////////////////////////
     
     ////////////////////////////////////////////////
