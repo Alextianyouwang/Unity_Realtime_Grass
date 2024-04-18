@@ -242,7 +242,7 @@ float3 CustomCombineLight(CustomInputData d)
     return color;
 }
 
-float4 frag(VertexOutput v) : SV_Target
+float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 {
 #ifdef SHADOW_CASTER_PASS
     return 0;
@@ -256,6 +256,7 @@ float4 frag(VertexOutput v) : SV_Target
     normalTS.x * tangentWS +
     normalTS.y * normalWS +
     normalTS.z * bitangentWS);
+    normalWS = frontFace ? normalWS : -normalWS;
     CustomInputData d = (CustomInputData) 0;
     d.normalWS = normalize(normalWS);
     d.groundNormalWS = normalize(v.groundNormalWS);
