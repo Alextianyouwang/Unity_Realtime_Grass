@@ -187,7 +187,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.bakedGI = SAMPLE_GI(lightmapUV, vertexSH, normalWS);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.positionWS = posWS;
-    o.normalWS = normalize(lerp(groundNormalWS, normalWS, mask));
+    o.normalWS = normalWS;
     o.tangentWS = tangentWS;
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
@@ -225,7 +225,8 @@ float3 CustomLightHandling(CustomInputData d, Light l)
     float diffuse = saturate(dot(l.direction, d.normalWS));
     float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
     float specularDot = saturate(dot(d.normalWS, normalize(l.direction + d.viewDir)));
-    float specular = pow(specularDot, d.smoothness) * diffuse;
+    float specularDotGround = saturate(dot(d.groundNormalWS, normalize(l.direction + d.viewDir)));
+    float specular = pow(specularDotGround * 0.4 + specularDot * 0.6, d.smoothness) * diffuse;
     float3 phong = saturate ((diffuseGround * 0.5 + diffuse * 0.5) * d.albedo + specular * d.specularColor);
     return phong * radiance;
 }

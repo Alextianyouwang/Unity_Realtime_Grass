@@ -1,7 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
-using System.Linq;
 [ExecuteInEditMode]
 [DefaultExecutionOrder(-99)]
 public class TileGrandCluster : MonoBehaviour
@@ -13,15 +11,13 @@ public class TileGrandCluster : MonoBehaviour
     public int TileGridDimension = 512;
     public Vector2 TileGridCenterXZ;
     public Camera RenderCam;
-    public bool EnableOcclusionCulling = true;
-    public Renderer[] Occluders;
     public bool ShowDebugTile = true;
     public Material DebugMaterial;
-
-
     public float LOD_Threshold_01 = 45;
     public float LOD_Threshold_12 = 125;
     public float MaxRenderDistance = 200;
+
+    public bool EnableOcclusionCulling = true;
 
     public FoliageObjectData[] ObjectData;
 
@@ -29,16 +25,13 @@ public class TileGrandCluster : MonoBehaviour
     private TileVisualizer _tileVisualizer;
     private  TileChunkDispatcher[] _tileChunkDispatcher;
 
-    private RenderTexture _zTex;
-    private Material _zMat;
-    private Mesh _occluder;
-
     private ComputeBuffer _windBuffer_external;
     private RenderTexture _interactionTexture_external;
 
     public static Func<RenderTexture> OnRequestInteractionTexture;
     public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestWindBuffer;
     public static Action<int> OnRequestDisposeWindBuffer;
+    public static Func<RenderTexture> OnRequestOcclusionTexture;
 
     public static float _LOD_Threshold_01 { get; private set; }
     public static float _LOD_Threshold_12 { get; private set; }
@@ -49,7 +42,6 @@ public class TileGrandCluster : MonoBehaviour
     {
         SetupTileData();
         SetupTileDebug();
-        InitializeOcclusionSetup();
         InitializeInteractionTexture();
         InitializeWindBuffer();
         InitializeDispatcher();
@@ -71,7 +63,6 @@ public class TileGrandCluster : MonoBehaviour
         UpdateParam();
         if (ShowDebugTile)
             DrawDebugView();
-        DrawOcclusionTexture();
         IndirectDrawPerFrame();
     }
 
@@ -85,20 +76,7 @@ public class TileGrandCluster : MonoBehaviour
         _tileData.ConstructTileGrid();
     }
 
-    public void DrawOcclusionTexture()
-    {
-        if (!_EnableOcclusionCulling)
-            return;
-        CommandBuffer cmd = new CommandBuffer();
-        cmd.name = "DrawOccluderDepth";
-        cmd.SetViewMatrix(RenderCam.worldToCameraMatrix);
-        cmd.SetProjectionMatrix(RenderCam.projectionMatrix);
-        cmd.SetRenderTarget(_zTex);
-        cmd.ClearRenderTarget(true, true, Color.clear);
-        cmd.DrawMesh(_occluder, Matrix4x4.identity, _zMat);
-        Graphics.ExecuteCommandBuffer(cmd);
-        cmd.Clear();
-    }
+ 
     public void InitializeInteractionTexture()
     {
         _interactionTexture_external = OnRequestInteractionTexture?.Invoke();
@@ -138,7 +116,7 @@ public class TileGrandCluster : MonoBehaviour
            _tileData,
            RenderCam,
            _windBuffer_external,
-           _zTex,
+           OnRequestOcclusionTexture.Invoke(),
            _interactionTexture_external,
            data.DensityMap,
            data.SquaredInstancePerTile,
@@ -154,21 +132,11 @@ public class TileGrandCluster : MonoBehaviour
         }
 
     }
-    void InitializeOcclusionSetup() 
-    {
-        if (!EnableOcclusionCulling)
-            return;
-        _zTex = RenderTexture.GetTemporary(RenderCam.pixelWidth, RenderCam.pixelHeight, 32, RenderTextureFormat.R16, RenderTextureReadWrite.Linear);
-        _zTex.Create();
-        _zMat = new Material(Shader.Find("Utility/S_DepthOnly"));
-        _occluder = Utility.CombineMeshes(Occluders.Select(x => x.gameObject).ToArray());
-    }
+ 
     void IndirectDrawPerFrame()
     {
         foreach (TileChunkDispatcher d in _tileChunkDispatcher) 
-        {
             d?.DispatchTileChunksDrawCall();
-        }
 
     }
     void CleanupBuffers()
@@ -176,12 +144,8 @@ public class TileGrandCluster : MonoBehaviour
         _tileData?.ReleaseBuffer();
         OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
         _tileVisualizer?.ReleaseBuffer();
-        RenderTexture.ReleaseTemporary(_zTex);
         foreach (TileChunkDispatcher d in _tileChunkDispatcher)
-        {
             d?.ReleaseBuffer();
-        }
-
     }
     void SetupTileDebug() 
     {

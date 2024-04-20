@@ -160,9 +160,10 @@ public class TileChunk
         _cullShader.SetFloat("_DensityFalloffDist", _densityFalloffThreshold);
 
         _cullShader.SetFloat("_MaxRenderDist", TileGrandCluster._MaxRenderDistance);
-        _cullShader.SetBool("_EnableOcclusionCulling", TileGrandCluster._EnableOcclusionCulling);
+        _cullShader.SetBool("_EnableOcclusionCulling", _zTex_external && TileGrandCluster._EnableOcclusionCulling);
 
-        _cullShader.SetTexture(0, "_HiZTexture", _zTex_external);
+        if (_zTex_external)
+            _cullShader.SetTexture(0, "_HiZTexture", _zTex_external);
 
         _cullShader.Dispatch(4, 1, 1, 1);
         _cullShader.Dispatch(0, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);
