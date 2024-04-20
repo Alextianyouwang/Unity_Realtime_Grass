@@ -34,11 +34,12 @@ public class TileChunk
     private int _groupCount;
     private float _occludeeBoundScaleMultiplier;
     private float _densityFilter;
+    private float _densityFalloffThreshold;
 
     private Color _chunkColor;
 
     public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat, Camera renderCam, ComputeBuffer initialBuffer, Bounds chunkBounds, TileData tileData, Texture2D densityMap,
-        float occludeeBoundScaleMultiplier, float densityFilter) 
+        float occludeeBoundScaleMultiplier, float densityFilter, float densityFalloffThreshold)
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -50,6 +51,7 @@ public class TileChunk
         _densityMap = densityMap;
         _occludeeBoundScaleMultiplier = occludeeBoundScaleMultiplier;
         _densityFilter = densityFilter;
+        _densityFalloffThreshold = densityFalloffThreshold;
     }
 
     public void SetWindBuffer(ComputeBuffer windBuffer) 
@@ -155,9 +157,9 @@ public class TileChunk
         _cullShader.SetMatrix("_Camera_V", _renderCam.worldToCameraMatrix);
         _cullShader.SetFloat("_Camera_Near", _renderCam.nearClipPlane);
         _cullShader.SetFloat("_Camera_Far", _renderCam.farClipPlane);
-        _cullShader.SetFloat("_MaxRenderDist", TileGrandCluster._MaxRenderDistance);
-        _cullShader.SetFloat("_DensityFalloffDist", TileGrandCluster._DensityFalloffThreshold);
+        _cullShader.SetFloat("_DensityFalloffDist", _densityFalloffThreshold);
 
+        _cullShader.SetFloat("_MaxRenderDist", TileGrandCluster._MaxRenderDistance);
         _cullShader.SetBool("_EnableOcclusionCulling", TileGrandCluster._EnableOcclusionCulling);
 
         _cullShader.SetTexture(0, "_HiZTexture", _zTex_external);

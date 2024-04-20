@@ -28,16 +28,17 @@ public class TileChunkDispatcher
 
     private float _occludeeBoundScaleMultiplier;
     private float _densityFilter;
+    private float _densityFalloffThreshold;
 
 
-    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, ComputeBuffer windBuffer_external,RenderTexture zTex_external,RenderTexture interactionTexture_external,Texture2D densityMap,
-        int squaredInstancePerTile, int squaredChunksPerCluster, int squaredTilePerClump, float occludeeBoundScaleMultiplier, float densityFilter)
+    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, ComputeBuffer windBuffer_external,RenderTexture zTex_external, RenderTexture interactionTexture_external, Texture2D densityMap,
+        int squaredInstancePerTile, int squaredChunksPerCluster, int squaredTilePerClump, float occludeeBoundScaleMultiplier, float densityFilter, float densityFalloffThreshold)
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
         _tileData = tileData;
         _renderCam = renderCam;
-        _windBuffer_external= windBuffer_external;
+        _windBuffer_external = windBuffer_external;
         _zTex_external = zTex_external;
         _interactionTexture_external = interactionTexture_external;
         _densityMap = densityMap;
@@ -46,6 +47,7 @@ public class TileChunkDispatcher
         _squaredTilePerClump = squaredTilePerClump;
         _occludeeBoundScaleMultiplier = occludeeBoundScaleMultiplier;
         _densityFilter = densityFilter;
+        _densityFalloffThreshold = densityFalloffThreshold;
     }
 
 
@@ -117,7 +119,8 @@ public class TileChunkDispatcher
                     _tileData,
                     _densityMap,
                     _occludeeBoundScaleMultiplier,
-                    _densityFilter
+                    _densityFilter,
+                    _densityFalloffThreshold
                     );
                 t.SetWindBuffer(_windBuffer_external);
                 t.SetGroundNormalBuffer(_groundNormalBuffer);

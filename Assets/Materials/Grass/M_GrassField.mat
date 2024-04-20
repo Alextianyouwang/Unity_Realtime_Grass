@@ -65,7 +65,7 @@ Material:
     - _GrassRandomLength: 0.646
     - _GrassScale: 0.15
     - _GrassTilt: 2
-    - _GrassWaveAmplitude: 0.136
+    - _GrassWaveAmplitude: 0.133
     - _GrassWaveFrequency: 1
     - _GrassWaveSpeed: 0.363
     - _Height: 1.2
@@ -74,7 +74,7 @@ Material:
     - _NormalScale: 0.421
     - _RandomBendOffset: 0.794
     - _Scale: 0.665
-    - _SpecularTightness: 0.396
+    - _SpecularTightness: 0.371
     - _Tilt: 1.2
     - _USE_DETAIL_ON: 1
     - _USE_MAINWAVE_ON: 1

@@ -22,7 +22,6 @@ public class TileGrandCluster : MonoBehaviour
     public float LOD_Threshold_01 = 45;
     public float LOD_Threshold_12 = 125;
     public float MaxRenderDistance = 200;
-    public float DensityFalloffThreshold = 10;
 
     public FoliageObjectData[] ObjectData;
 
@@ -44,7 +43,6 @@ public class TileGrandCluster : MonoBehaviour
     public static float _LOD_Threshold_01 { get; private set; }
     public static float _LOD_Threshold_12 { get; private set; }
     public static float _MaxRenderDistance { get; private set; }
-    public static float _DensityFalloffThreshold { get; private set; }
     public static bool _EnableOcclusionCulling { get; private set; }
 
     private void OnEnable()
@@ -66,7 +64,6 @@ public class TileGrandCluster : MonoBehaviour
         _LOD_Threshold_01 = LOD_Threshold_01;
         _LOD_Threshold_12 = LOD_Threshold_12;
         _MaxRenderDistance = MaxRenderDistance;
-        _DensityFalloffThreshold = DensityFalloffThreshold;
         _EnableOcclusionCulling = EnableOcclusionCulling;
     }
     private void LateUpdate()
@@ -148,7 +145,8 @@ public class TileGrandCluster : MonoBehaviour
            data.SquaredChunksPerCluster,
            data.SquaredTilePerClump,
            data.OccludeeBoundScaleMultiplier,
-           data.DensityFilter) ;
+           data.DensityFilter,
+           data.DensityFalloffThreshold) ;
 
             dispatcher.InitialSpawn();
             dispatcher.InitializeChunks();

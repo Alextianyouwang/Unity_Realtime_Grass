@@ -13,5 +13,6 @@ public class FoliageObjectData : ScriptableObject
     public float OccludeeBoundScaleMultiplier = 1;
     [Range(0f, 1f)]
     public float DensityFilter = 1;
+    public float DensityFalloffThreshold = 30;
 
 }

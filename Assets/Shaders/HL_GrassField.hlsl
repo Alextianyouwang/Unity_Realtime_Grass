@@ -67,7 +67,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float hash, out 
 {
     float lengthMult = 1 + _GrassRandomLength * frac(hash * 78.233);
     float waveAmplitudeMult = 1 - interaction;
-    float offset = frac(hash * 12.9898) * 0.2;
+    float offset = hash * 12.9898;
     float bendFactor = wind * 0.5 + 0.5;
     float tiltFactor = wind + interaction;
     // Maximum tilt angle
@@ -164,6 +164,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 tangentWS = normalize(RotateAroundYInDegrees(float4(curveTangentOS, 0), rotAngle).xyz);
     ////////////////////////////////////////////////
     
+    
     ////////////////////////////////////////////////
     // Apply View Space Adjustment
     float offScreenFactor =  1 - abs(dot(normalWS, normalize(_WorldSpaceCameraPos - posWS)));
@@ -186,7 +187,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.bakedGI = SAMPLE_GI(lightmapUV, vertexSH, normalWS);
     o.uv = TRANSFORM_TEX(v.uv, _MainTex);
     o.positionWS = posWS;
-    o.normalWS = normalWS;
+    o.normalWS = normalize(lerp(groundNormalWS, normalWS, mask));
     o.tangentWS = tangentWS;
     o.groundNormalWS = groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
