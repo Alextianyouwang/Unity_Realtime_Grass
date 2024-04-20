@@ -1,4 +1,7 @@
+using System;
 using UnityEngine;
+using UnityEngine.Rendering;
+using System.Linq;
 [ExecuteInEditMode]
 [DefaultExecutionOrder(-99)]
 public class TileGrandCluster : MonoBehaviour
@@ -15,8 +18,6 @@ public class TileGrandCluster : MonoBehaviour
     public Renderer[] Occluders;
     public bool ShowDebugTile = true;
     public Material DebugMaterial;
-    public bool SmoothPlacement = true;
-    public bool EnableInteraction = true;
 
 
     public float LOD_Threshold_01 = 45;
@@ -24,11 +25,22 @@ public class TileGrandCluster : MonoBehaviour
     public float MaxRenderDistance = 200;
     public float DensityFalloffThreshold = 10;
 
-    public FoliageObjectData ObjectData;
+    public FoliageObjectData[] ObjectData;
 
     private TileData _tileData;
     private TileVisualizer _tileVisualizer;
-    private TileChunkDispatcher _tileChunkDispatcher;
+    private  TileChunkDispatcher[] _tileChunkDispatcher;
+
+    private RenderTexture _zTex;
+    private Material _zMat;
+    private Mesh _occluder;
+
+    private ComputeBuffer _windBuffer_external;
+    private RenderTexture _interactionTexture_external;
+
+    public static Func<RenderTexture> OnRequestInteractionTexture;
+    public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestWindBuffer;
+    public static Action<int> OnRequestDisposeWindBuffer;
 
     public static float _LOD_Threshold_01 { get; private set; }
     public static float _LOD_Threshold_12 { get; private set; }
@@ -38,17 +50,17 @@ public class TileGrandCluster : MonoBehaviour
 
     private void OnEnable()
     {
-        UpdateParam();
         SetupTileData();
         SetupTileDebug();
-        SetupDrawers();
-   
+        InitializeOcclusionSetup();
+        InitializeInteractionTexture();
+        InitializeWindBuffer();
+        InitializeDispatcher();
+
     }
     private void OnDisable()
     {
-        CleanupDebugVisualBuffers();
-        CleanupDrawBuffers();
-        CleanupTileDataBuffer();
+        CleanupBuffers();
     }
     private void UpdateParam() 
     {
@@ -63,6 +75,7 @@ public class TileGrandCluster : MonoBehaviour
         UpdateParam();
         if (ShowDebugTile)
             DrawDebugView();
+        DrawOcclusionTexture();
         IndirectDrawPerFrame();
     }
 
@@ -76,55 +89,102 @@ public class TileGrandCluster : MonoBehaviour
         _tileData.ConstructTileGrid();
     }
 
-    void CleanupTileDataBuffer() 
+    public void DrawOcclusionTexture()
     {
-        _tileData?.ReleaseBuffer();
+        if (!_EnableOcclusionCulling)
+            return;
+        CommandBuffer cmd = new CommandBuffer();
+        cmd.name = "DrawOccluderDepth";
+        cmd.SetViewMatrix(RenderCam.worldToCameraMatrix);
+        cmd.SetProjectionMatrix(RenderCam.projectionMatrix);
+        cmd.SetRenderTarget(_zTex);
+        cmd.ClearRenderTarget(true, true, Color.clear);
+        cmd.DrawMesh(_occluder, Matrix4x4.identity, _zMat);
+        Graphics.ExecuteCommandBuffer(cmd);
+        cmd.Clear();
     }
-    void SetupDrawers()
+    public void InitializeInteractionTexture()
     {
+        _interactionTexture_external = OnRequestInteractionTexture?.Invoke();
+    }
+    void InitializeWindBuffer()
+    {
+        float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
+        Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
+        _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+    }
+    void InitializeDispatcher() 
+    {
+
         if (_tileData == null)
             return;
         if (RenderCam == null)
             return;
         if (ObjectData == null)
             return;
-        if (ObjectData.SpawnMesh == null)
+        if (ObjectData.Length == 0)
             return;
-        foreach (Mesh m in ObjectData.SpawnMesh)
-            if (m == null)
-                return;
-        if (ObjectData.SpawnMeshMaterial == null) 
+        _tileChunkDispatcher = new TileChunkDispatcher[ObjectData.Length];
+        for (int i = 0; i < _tileChunkDispatcher.Length; i++) 
+        {
+            FoliageObjectData data = ObjectData[i];
+            if (data.SpawnMesh == null)
+                continue;
+            foreach (Mesh m in data.SpawnMesh)
+                if (m == null)
+                    continue;
+            if (data.SpawnMeshMaterial == null)
+                continue;
+
+            TileChunkDispatcher dispatcher = new TileChunkDispatcher(
+           data.SpawnMesh,
+           data.SpawnMeshMaterial,
+           _tileData,
+           RenderCam,
+           _windBuffer_external,
+           _zTex,
+           _interactionTexture_external,
+           data.SquaredInstancePerTile,
+           data.SquaredChunksPerCluster,
+           data.SquaredTilePerClump,
+           data.OccludeeBoundScaleMultiplier,
+           data.DensityFilter);
+
+            dispatcher.InitialSpawn();
+            dispatcher.InitializeChunks();
+            _tileChunkDispatcher[i] = dispatcher;
+        }
+
+    }
+    void InitializeOcclusionSetup() 
+    {
+        if (!EnableOcclusionCulling)
             return;
-        _tileChunkDispatcher = new TileChunkDispatcher(
-            ObjectData.SpawnMesh,
-            ObjectData.SpawnMeshMaterial, 
-            _tileData, 
-            RenderCam, 
-            SmoothPlacement,
-            Occluders,
-            ObjectData.SquaredInstancePerTile,
-            ObjectData.SquaredChunksPerCluster,
-            ObjectData.SquaredTilePerClump,
-            ObjectData.OccludeeBoundScaleMultiplier,
-            ObjectData.DensityFilter);
-        _tileChunkDispatcher.InitialSpawn();
-        _tileChunkDispatcher.GetWindBuffer();
-        if (EnableInteraction)
-            _tileChunkDispatcher.GetInteractionTexture();
-        _tileChunkDispatcher.InitializeChunks();
+        _zTex = RenderTexture.GetTemporary(RenderCam.pixelWidth, RenderCam.pixelHeight, 32, RenderTextureFormat.R16, RenderTextureReadWrite.Linear);
+        _zTex.Create();
+        _zMat = new Material(Shader.Find("Utility/S_DepthOnly"));
+        _occluder = Utility.CombineMeshes(Occluders.Select(x => x.gameObject).ToArray());
     }
     void IndirectDrawPerFrame()
     {
-        _tileChunkDispatcher?.BlitDepthTexture();
-        _tileChunkDispatcher?.DispatchTileChunksDrawCall();
-
+        foreach (TileChunkDispatcher d in _tileChunkDispatcher) 
+        {
+            d?.DispatchTileChunksDrawCall();
+        }
 
     }
-    void CleanupDrawBuffers()
+    void CleanupBuffers()
     {
-        _tileChunkDispatcher?.ReleaseBuffer();
-    }
+        _tileData?.ReleaseBuffer();
+        OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
+        _tileVisualizer?.ReleaseBuffer();
+        RenderTexture.ReleaseTemporary(_zTex);
+        foreach (TileChunkDispatcher d in _tileChunkDispatcher)
+        {
+            d?.ReleaseBuffer();
+        }
 
+    }
     void SetupTileDebug() 
     {
         if (_tileData == null)
@@ -136,24 +196,24 @@ public class TileGrandCluster : MonoBehaviour
     {
         _tileVisualizer?.DrawIndirect();
     }
-    void CleanupDebugVisualBuffers() 
-    {
-        _tileVisualizer?.ReleaseBuffer();
-    }
 
     private void OnDrawGizmos()
     {
-        if (_tileChunkDispatcher == null)
-            return;
-        if (_tileChunkDispatcher.Chunks == null)
-            return;
-        foreach (TileChunk c in _tileChunkDispatcher.Chunks) 
+      
+        foreach (TileChunkDispatcher d in _tileChunkDispatcher)
         {
-            if (c == null)
-                continue;
-            Gizmos.DrawWireCube(c.ChunkBounds.center, c.ChunkBounds.size);
-        }
+            if (d == null)
+                return;
+            if (d.Chunks == null)
+                return;
 
+            foreach (TileChunk c in d.Chunks)
+            {
+                if (c == null)
+                    continue;
+                Gizmos.DrawWireCube(c.ChunkBounds.center, c.ChunkBounds.size);
+            }
+        }
     }
 
 }

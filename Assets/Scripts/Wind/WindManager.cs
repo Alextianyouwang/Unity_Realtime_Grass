@@ -40,15 +40,15 @@ public class WindManager :MonoBehaviour
     }
     private void OnEnable()
     {
-        TileChunkDispatcher.OnRequestWindBuffer += SendWindBuffer;
-        TileChunkDispatcher.OnRequestDisposeWindBuffer += DisposeWindBuffer;
+        TileGrandCluster.OnRequestWindBuffer += SendWindBuffer;
+        TileGrandCluster.OnRequestDisposeWindBuffer += DisposeWindBuffer;
         TileVisualizer.OnRequestWindBuffer += SendWindBuffer;
         TileVisualizer.OnRequestDisposeWindBuffer += DisposeWindBuffer;
     }
     private void OnDisable()
     {
-        TileChunkDispatcher.OnRequestWindBuffer -= SendWindBuffer;
-        TileChunkDispatcher.OnRequestDisposeWindBuffer -= DisposeWindBuffer;
+        TileGrandCluster.OnRequestWindBuffer -= SendWindBuffer;
+        TileGrandCluster.OnRequestDisposeWindBuffer -= DisposeWindBuffer;
         TileVisualizer.OnRequestWindBuffer -= SendWindBuffer;
         TileVisualizer.OnRequestDisposeWindBuffer -= DisposeWindBuffer;
 

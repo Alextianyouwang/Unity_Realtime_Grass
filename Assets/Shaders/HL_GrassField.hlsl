@@ -95,9 +95,9 @@ void CalculateGrassCurve(float t, float interaction,float wind, float hash, out 
     }
         
     float2 P3 = tiltHeight;
-    float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * lengthMult * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
-    P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave ;
-    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * 1.2;
+    float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
+    P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * lengthMult;
+    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * 1.2* lengthMult;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
 }
 
@@ -154,9 +154,9 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Clump
     float windAngle = -windDir + 90;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
-    float randomRotationMaxSpan = 120;
+    float randomRotationMaxSpan = 180;
     float reverseWind01 = 1 - (windStrength * 0.5  + 0.5);
-    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01) - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing;
+    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01) - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01+0.2);
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;

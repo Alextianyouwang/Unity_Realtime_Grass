@@ -1,7 +1,5 @@
 using System;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 public class TileChunkDispatcher
 {
     public TileChunk[] Chunks { get; private set; }
@@ -14,17 +12,13 @@ public class TileChunkDispatcher
     private ComputeBuffer _windBuffer_external;
 
     private RenderTexture _interactionTexture_external;
-    private RenderTexture _zTex;
-    private Material _zMat;
+    private RenderTexture _zTex_external;
 
     private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
     private Camera _renderCam;
-    private Mesh _occluder;
 
-    public static Func<int,int,float,Vector2,ComputeBuffer> OnRequestWindBuffer;
-    public static Func<RenderTexture> OnRequestInteractionTexture;
-    public static Action<int> OnRequestDisposeWindBuffer;
+
     private int _tileCount;
 
     private int _squaredInstancePerTile;
@@ -34,20 +28,17 @@ public class TileChunkDispatcher
     private float _occludeeBoundScaleMultiplier;
     private float _densityFilter;
 
-    private bool _smoothPlacement;
 
-    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, bool smoothPlacement, Renderer[] occluders,
+    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, ComputeBuffer windBuffer_external,RenderTexture zTex_external,RenderTexture interactionTexture_external,
         int squaredInstancePerTile, int squaredChunksPerCluster, int squaredTilePerClump, float occludeeBoundScaleMultiplier, float densityFilter)
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
         _tileData = tileData;
         _renderCam = renderCam;
-        _smoothPlacement = smoothPlacement;
-        _zTex = RenderTexture.GetTemporary(_renderCam.pixelWidth, _renderCam.pixelHeight, 32, RenderTextureFormat.R16, RenderTextureReadWrite.Linear);
-        _zTex.Create();
-        _zMat = new Material(Shader.Find("Utility/S_DepthOnly"));
-        _occluder = Utility.CombineMeshes(occluders.Select(x => x.gameObject).ToArray());
+        _windBuffer_external= windBuffer_external;
+        _zTex_external = zTex_external;
+        _interactionTexture_external = interactionTexture_external;
         _squaredInstancePerTile = squaredInstancePerTile;
         _squaredChunksPerCluster = squaredChunksPerCluster;
         _squaredTilePerClump = squaredTilePerClump;
@@ -68,7 +59,6 @@ public class TileChunkDispatcher
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
         _spawnOnTileShader.SetInt("_Subdivisions", _squaredInstancePerTile);
         _spawnOnTileShader.SetInt("_NumTilesPerSide", _tileData.TileGridDimension);
-        _spawnOnTileShader.SetBool("_SmoothPlacement", _smoothPlacement);
 
         _spawnOnTileShader.SetBuffer(0, "_VertBuffer", _tileData.VertBuffer);
         _spawnOnTileShader.SetBuffer(0, "_SpawnBuffer", _rawSpawnBuffer);
@@ -91,16 +81,8 @@ public class TileChunkDispatcher
         _tileClumpParser.ParseClump();
         return _tileClumpParser.ShareSpawnBuffer();
     }
-    public void GetWindBuffer() 
-    {
-        float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
-        Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
-    }
-    public void GetInteractionTexture() 
-    {
-        _interactionTexture_external = OnRequestInteractionTexture?.Invoke();
-    }
+
+
 
     public void InitializeChunks() 
     {
@@ -141,21 +123,6 @@ public class TileChunkDispatcher
             }
         }
     }
-    public void BlitDepthTexture() 
-    {
-        if (!TileGrandCluster._EnableOcclusionCulling)
-            return;
-        CommandBuffer cmd = new CommandBuffer();
-        cmd.name = "DrawOccluderDepth";
-
-        cmd.SetViewMatrix(_renderCam.worldToCameraMatrix);
-        cmd.SetProjectionMatrix(_renderCam.projectionMatrix);
-        cmd.SetRenderTarget(_zTex);
-        cmd.ClearRenderTarget(true, true, Color.clear);
-        cmd.DrawMesh(_occluder, Matrix4x4.identity, _zMat);
-        Graphics.ExecuteCommandBuffer(cmd);
-        cmd.Clear();
-    }
 
     public void DispatchTileChunksDrawCall() 
     {
@@ -165,7 +132,7 @@ public class TileChunkDispatcher
             if (GeometryUtility.TestPlanesAABB(p, t.ChunkBounds))
                 if (t != null)
                 {
-                    t.SetZTex(_zTex);
+                    t.SetZTex(_zTex_external);
                     t.DrawContent(ref totalInstance);
                 }
         //Debug.Log(totalInstance);
@@ -174,9 +141,6 @@ public class TileChunkDispatcher
     {
         _rawSpawnBuffer?.Dispose();
         _groundNormalBuffer?.Dispose();
-        OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
-        RenderTexture.ReleaseTemporary(_zTex);
-        _zTex = null;_zMat = null;
         foreach (TileChunk t in Chunks)
             t?.ReleaseBuffer();
         _tileClumpParser?.ReleaseBuffer();

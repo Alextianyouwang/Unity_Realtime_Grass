@@ -3,8 +3,6 @@
 uint _NumTiles;
 uint _NumTilesPerSide;
 uint _Subdivisions;
-bool _SmoothPlacement;
-
 StructuredBuffer<float3> _VertBuffer;
 struct SpawnData
 {
@@ -106,12 +104,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         return;
     
     float3 verts[4];
-    if (_SmoothPlacement)
-        GetNeighborAveragedVerts(id.x, verts);
-    else
-        GetVertsAtCurrentTile(id.x, verts);
+    GetNeighborAveragedVerts(id.x, verts);
     uint iteration = _Subdivisions;
 
+    
     float3 chunkSize = verts[2] - verts[0];
     float3 inc = chunkSize / iteration;
     
@@ -130,7 +126,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             float r1 = lerp(verts[3].y, verts[2].y, float(x) / float(iteration) + noisePercent.x);
             float r2 = lerp(verts[0].y, verts[1].y, float(x) / float(iteration) + noisePercent.x);
             float y = lerp(r2, r1, float(z) / float(iteration) + noisePercent.y);
-            float3 pos = float3(verts[0].x + inc.x * x + noise.x, _SmoothPlacement? y : verts[0].y, verts[0].z + inc.z * z + noise.y);
+            float3 pos = float3(verts[0].x + inc.x * x + noise.x, y, verts[0].z + inc.z * z + noise.y);
          
             SpawnData o;
             o.positionWS = pos;
