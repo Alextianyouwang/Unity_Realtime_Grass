@@ -67,7 +67,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float hash, out 
 {
     float lengthMult = 1 + _GrassRandomLength * frac(hash * 78.233);
     float waveAmplitudeMult = 1 - interaction;
-    float offset = hash * 39.346;
+    float offset = frac(hash * 12.9898) * 0.2;
     float bendFactor = wind * 0.5 + 0.5;
     float tiltFactor = wind + interaction;
     // Maximum tilt angle
@@ -95,13 +95,11 @@ void CalculateGrassCurve(float t, float interaction,float wind, float hash, out 
     }
         
     float2 P3 = tiltHeight;
-    float2 P2 = tiltHeight / 2 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
+    float2 P2 = tiltHeight * 0.6 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
     P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * lengthMult;
     P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * 1.2* lengthMult;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
 }
-
-
 
 
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
@@ -138,7 +136,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
     float3 windAffectDegree = 45;
-    CalculateGrassCurve(uv.y, interaction, windStrength * 0.65, rand, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y, interaction, windStrength * 0.55, rand, curvePosOS, curveTangentOS);
     float3 curveNormalOS = cross(float3(-1, 0, 0), normalize(curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////

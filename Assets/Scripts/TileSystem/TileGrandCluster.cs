@@ -8,7 +8,6 @@ public class TileGrandCluster : MonoBehaviour
 {
     [Header("re-enable to preview changes")]
     public Texture2D TileHeightmap;
-    public Texture2D TileTypemap;
     public float TileHeightMultiplier = 1;
     public float TileSize = 39.0625f;
     public int TileGridDimension = 512;
@@ -83,9 +82,9 @@ public class TileGrandCluster : MonoBehaviour
     void SetupTileData() 
     {
         if (TileHeightmap)
-            _tileData = new TileData(TileGridCenterXZ, TileHeightmap.width, TileSize, TileHeightmap,TileHeightMultiplier,TileTypemap);
+            _tileData = new TileData(TileGridCenterXZ, TileHeightmap.width, TileSize, TileHeightmap,TileHeightMultiplier);
         else
-            _tileData = new TileData(TileGridCenterXZ, TileGridDimension, TileSize, null, TileHeightMultiplier, TileTypemap);
+            _tileData = new TileData(TileGridCenterXZ, TileGridDimension, TileSize, null, TileHeightMultiplier);
         _tileData.ConstructTileGrid();
     }
 
@@ -144,11 +143,12 @@ public class TileGrandCluster : MonoBehaviour
            _windBuffer_external,
            _zTex,
            _interactionTexture_external,
+           data.DensityMap,
            data.SquaredInstancePerTile,
            data.SquaredChunksPerCluster,
            data.SquaredTilePerClump,
            data.OccludeeBoundScaleMultiplier,
-           data.DensityFilter);
+           data.DensityFilter) ;
 
             dispatcher.InitialSpawn();
             dispatcher.InitializeChunks();

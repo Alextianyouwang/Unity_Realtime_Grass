@@ -5,6 +5,7 @@ public class FoliageObjectData : ScriptableObject
 {
     public Mesh[] SpawnMesh;
     public Material SpawnMeshMaterial;
+    public Texture2D DensityMap;
     public int SquaredInstancePerTile = 3;
     public int SquaredChunksPerCluster = 4;
     public int SquaredTilePerClump = 8;

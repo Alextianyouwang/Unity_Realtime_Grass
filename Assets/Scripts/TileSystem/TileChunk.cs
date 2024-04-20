@@ -28,6 +28,8 @@ public class TileChunk
     private RenderTexture _interactionTexture_external;
     private RenderTexture _zTex_external;
 
+    private Texture2D _densityMap;
+
     private int _elementCount;
     private int _groupCount;
     private float _occludeeBoundScaleMultiplier;
@@ -35,7 +37,7 @@ public class TileChunk
 
     private Color _chunkColor;
 
-    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,Bounds chunkBounds, TileData tileData, 
+    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat, Camera renderCam, ComputeBuffer initialBuffer, Bounds chunkBounds, TileData tileData, Texture2D densityMap,
         float occludeeBoundScaleMultiplier, float densityFilter) 
     {
         _spawnMesh = spawnMesh;
@@ -45,6 +47,7 @@ public class TileChunk
         ChunkBounds = chunkBounds;
         _mpb = new MaterialPropertyBlock();
         _tileData = tileData;
+        _densityMap = densityMap;
         _occludeeBoundScaleMultiplier = occludeeBoundScaleMultiplier;
         _densityFilter = densityFilter;
     }
@@ -103,9 +106,10 @@ public class TileChunk
         _cullShader.SetFloat("_GrassBoundScale", _occludeeBoundScaleMultiplier);
         _cullShader.SetFloat("_DensityFilter", _densityFilter);
 
+        if (_densityMap != null)
+            _cullShader.SetTexture(0, "_DensityMap", _densityMap);
         _cullShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
         _cullShader.SetBuffer(0, "_VoteBuffer", _voteBuffer);
-        _cullShader.SetBuffer(0, "_DensityBuffer", _tileData.TypeBuffer);
 
         _cullShader.SetBuffer(1, "_VoteBuffer", _voteBuffer);
         _cullShader.SetBuffer(1, "_ScanBuffer", _scanBuffer);

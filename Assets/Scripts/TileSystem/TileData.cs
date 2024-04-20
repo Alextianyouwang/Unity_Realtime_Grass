@@ -9,21 +9,18 @@ public class TileData
     public Tile[] TileGrid { get; private set; }
 
     public ComputeBuffer VertBuffer { get; private set; }
-    public ComputeBuffer TypeBuffer { get; private set; }
 
     private Texture2D _heightMap;
-    private Texture2D _typeMap;
     private float _tileHeightMult;
     private Vector3[] _tileVerts;
     private Vector2 _botLeftCorner;
-    public TileData(Vector2 tileGridCenterXZ, int tileGridDimension, float tileSize, Texture2D heightMap,float tileHeightMult , Texture2D typeMap)
+    public TileData(Vector2 tileGridCenterXZ, int tileGridDimension, float tileSize, Texture2D heightMap,float tileHeightMult)
     {
       
         TileSize = tileSize;  
         TileGridDimension = tileGridDimension;
         TileGridCenterXZ = tileGridCenterXZ;
         _heightMap = heightMap;
-        _typeMap = typeMap;
         _tileHeightMult = tileHeightMult;
     }
     public void ConstructTileGrid()
@@ -38,8 +35,7 @@ public class TileData
             {
                 Vector2 tilePos = _botLeftCorner + new Vector2(TileSize * x, TileSize * y);
                 float height = _heightMap ? _heightMap.GetPixel(x, y).r * _tileHeightMult : 0;
-                float type = _typeMap ? _typeMap.GetPixel(x, y).r : 1;
-                tiles[x * TileGridDimension + y] = new Tile(TileSize, height, tilePos, type);
+                tiles[x * TileGridDimension + y] = new Tile(TileSize, height, tilePos);
             }
         }
         TileGrid = tiles;
@@ -47,8 +43,6 @@ public class TileData
         VertBuffer = new ComputeBuffer(TileGrid.Length * 4, sizeof(float) * 3);
         VertBuffer.SetData(GetTileVerts());
 
-        TypeBuffer = new ComputeBuffer(TileGrid.Length, sizeof(float));
-        TypeBuffer.SetData(GetTileType());
     }
     public Vector3[] GetTileVerts() 
     {
@@ -65,12 +59,10 @@ public class TileData
         }
         return _tileVerts;
     }
-    public float[] GetTileType() => TileGrid?.Select(t => t.GetTileType()).ToArray();
 
     public void ReleaseBuffer() 
     {
         VertBuffer?.Dispose();
-        TypeBuffer?.Dispose();
     }
 }
 
@@ -79,15 +71,12 @@ public class Tile
     private float _tileSize;
     private float _tileHeight;
     private Vector2 _tilePosition;
-    private float _tileType;
-    public float GetTileType() => _tileType;
 
-    public Tile(float tileSize, float tileHeight,Vector2 tilePosition, float tileType) 
+    public Tile(float tileSize, float tileHeight,Vector2 tilePosition) 
     {
         _tileSize = tileSize;
         _tilePosition = tilePosition;
         _tileHeight = tileHeight;
-        _tileType = tileType;
     }
 
     public Vector4 GetTilePosSize() 

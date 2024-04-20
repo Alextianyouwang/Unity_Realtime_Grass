@@ -62,12 +62,12 @@ Material:
     - _GrassHeight: 2
     - _GrassRandoemLength: 0.5
     - _GrassRandomFacing: 0.742
-    - _GrassRandomLength: 0.51
+    - _GrassRandomLength: 0.646
     - _GrassScale: 0.15
     - _GrassTilt: 2
     - _GrassWaveAmplitude: 0.136
     - _GrassWaveFrequency: 1
-    - _GrassWaveSpeed: 0.409
+    - _GrassWaveSpeed: 0.363
     - _Height: 1.2
     - _HeightRandomnessAmplitude: 0.272
     - _NormalBlend: 1

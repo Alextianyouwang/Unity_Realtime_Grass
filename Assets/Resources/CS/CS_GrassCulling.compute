@@ -18,7 +18,7 @@ struct SpawnData
     float4 clumpInfo;
 };
 
-StructuredBuffer<float> _DensityBuffer;
+Texture2D<float4> _DensityMap;
 StructuredBuffer<SpawnData> _SpawnBuffer;
 RWStructuredBuffer<uint> _VoteBuffer;
 RWStructuredBuffer<uint> _ScanBuffer;
@@ -96,7 +96,7 @@ void Vote (uint3 id : SV_DispatchThreadID)
     
     ///////////////////////////////////////////////////
     //  Does current spawn pos has grass? 
-    float density = _DensityBuffer[x * _NumTilePerClusterSide + y];
+    float density = _DensityMap[int2(x,y)].x;
     bool hasGrass = step(hash, density);
     if (!hasGrass)
     {

@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 public class TileChunkDispatcher
 {
@@ -13,6 +12,8 @@ public class TileChunkDispatcher
 
     private RenderTexture _interactionTexture_external;
     private RenderTexture _zTex_external;
+
+    private Texture2D _densityMap;
 
     private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
@@ -29,7 +30,7 @@ public class TileChunkDispatcher
     private float _densityFilter;
 
 
-    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, ComputeBuffer windBuffer_external,RenderTexture zTex_external,RenderTexture interactionTexture_external,
+    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, ComputeBuffer windBuffer_external,RenderTexture zTex_external,RenderTexture interactionTexture_external,Texture2D densityMap,
         int squaredInstancePerTile, int squaredChunksPerCluster, int squaredTilePerClump, float occludeeBoundScaleMultiplier, float densityFilter)
     {
         _spawnMesh = spawnMesh;
@@ -39,6 +40,7 @@ public class TileChunkDispatcher
         _windBuffer_external= windBuffer_external;
         _zTex_external = zTex_external;
         _interactionTexture_external = interactionTexture_external;
+        _densityMap = densityMap;
         _squaredInstancePerTile = squaredInstancePerTile;
         _squaredChunksPerCluster = squaredChunksPerCluster;
         _squaredTilePerClump = squaredTilePerClump;
@@ -113,6 +115,7 @@ public class TileChunkDispatcher
                     chunkBuffer, 
                     b,
                     _tileData,
+                    _densityMap,
                     _occludeeBoundScaleMultiplier,
                     _densityFilter
                     );
