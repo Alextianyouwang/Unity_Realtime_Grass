@@ -12,8 +12,11 @@ StructuredBuffer <SourceVertex> _SourceVerticesBuffer;
 
 StructuredBuffer <int> _SourceTrianglesBuffer;
 
-struct SpawnData {
-	float3 positionWS;
+struct SpawnData
+{
+    float3 positionWS;
+    float hash;
+    float4 clumpInfo;
 };
 AppendStructuredBuffer<SpawnData> _SpawnBuffer;
 
@@ -67,6 +70,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 			
 			output.positionWS = input[1].positionWS + float3(inc.x * x + noise.x, 0, inc.z * z + noise.y);
 			output.positionWS.y = y;
+            output.hash = 0;
+            output.clumpInfo = 0;
             _SpawnBuffer.Append(output);
         }
 	}

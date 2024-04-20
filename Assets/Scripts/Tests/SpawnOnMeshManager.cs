@@ -11,7 +11,6 @@ public class SpawnOnMeshManager : MonoBehaviour
     private ComputeBuffer _spawnBuffer;
 
     private SourceVertex[] _sourceVertices;
-    private SpawnData[] _spawnPositions;
     private int[] _sourceTriangles;
     private int _quadCount;
 
@@ -30,10 +29,6 @@ public class SpawnOnMeshManager : MonoBehaviour
         public Vector3 normalOS;
     };
 
-    struct SpawnData
-    {
-        public Vector3 positionWS;
-    }
 
     private void OnEnable()
     {
@@ -84,8 +79,6 @@ public class SpawnOnMeshManager : MonoBehaviour
         _sourceTriangles = mesh.triangles;
         _quadCount = _sourceTriangles.Length / 6;
 
-        _spawnPositions = new SpawnData[_quadCount * Subdivision * Subdivision];
-
     }
 
     private void InitializeShader() 
@@ -94,14 +87,14 @@ public class SpawnOnMeshManager : MonoBehaviour
         _sourceTrianglesBuffer.SetData(_sourceTriangles);
         _sourceVerticesBuffer = new ComputeBuffer(_sourceVertices.Length, sizeof(float) * 8);
         _sourceVerticesBuffer.SetData(_sourceVertices);
-        _spawnBuffer = new ComputeBuffer(_spawnPositions.Length, sizeof(float) * 3, ComputeBufferType.Append);
+        _spawnBuffer = new ComputeBuffer(_quadCount * Subdivision * Subdivision, sizeof(float) * 8, ComputeBufferType.Append);
         _spawnBuffer.SetCounterValue(0);
 
         if (TestMesh) 
         {
             uint[] args = new uint[] {
             TestMesh.GetIndexCount(0),
-            (uint)_spawnPositions.Length,
+            (uint)(_quadCount * Subdivision * Subdivision),
             TestMesh.GetIndexStart(0),
             TestMesh.GetBaseVertex(0),
             0

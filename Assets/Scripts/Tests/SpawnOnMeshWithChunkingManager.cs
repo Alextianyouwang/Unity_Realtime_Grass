@@ -70,14 +70,12 @@ public class SpawnOnMeshWithChunkingManager : MonoBehaviour
             for (int z = 0; z < NumChunk; z++) 
             {
                 Vector2 root = new Vector2 (initialPoint.x,initialPoint.z) + new Vector2 (x * chunkInc,z * chunkInc);
-                Vector3[] flatPositions = new Vector3[InstancePerChunk * InstancePerChunk];
 
                 Chunk c = new Chunk() {
-                    spawnBuffer = new ComputeBuffer(flatPositions.Length, sizeof(float) * 3),
+                    spawnBuffer = new ComputeBuffer(InstancePerChunk * InstancePerChunk, sizeof(float) * 8),
                     argsBuffer = new ComputeBuffer(1, sizeof(float) * 5,ComputeBufferType.IndirectArguments),
                     mpb = new MaterialPropertyBlock()
                 };
-                c.spawnBuffer.SetData(flatPositions);
                 c.argsBuffer.SetData(_chunkArgs);
 
                 c.mpb.SetBuffer("_SpawnBuffer", c.spawnBuffer);

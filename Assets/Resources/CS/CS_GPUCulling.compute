@@ -14,12 +14,19 @@ struct Args
     uint reserved;
 };
 
-StructuredBuffer<float3> _SpawnBuffer;
+struct SpawnData
+{
+    float3 positionWS;
+    float hash;
+    float4 clumpInfo;
+};
+
+StructuredBuffer<SpawnData> _SpawnBuffer;
 RWStructuredBuffer<uint> _VoteBuffer;
 RWStructuredBuffer<uint> _ScanBuffer;
 RWStructuredBuffer<uint> _GroupScanBufferIn;
 RWStructuredBuffer<uint> _GroupScanBufferOut;
-RWStructuredBuffer<float3> _CompactBuffer;
+RWStructuredBuffer<SpawnData> _CompactBuffer;
 RWStructuredBuffer<Args> _ArgsBuffer;
 
 
@@ -38,7 +45,7 @@ void Vote (uint3 id : SV_DispatchThreadID)
     if (id.x >= _InstanceCount)
         return;
     
-    float3 pos = _SpawnBuffer[(int)id.x];
+    float3 pos = _SpawnBuffer[(int)id.x].positionWS;
     
     float4 posCS = mul(_Camera_VP, float4(pos,1));
     float3 posNDS = posCS.xyz / posCS.w;

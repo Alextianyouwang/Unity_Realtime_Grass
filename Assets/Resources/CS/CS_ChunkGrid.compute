@@ -12,6 +12,8 @@ float4x4 _LocalToWorld;
 struct SpawnData
 {
     float3 positionWS;
+    float hash;
+    float4 clumpInfo;
 };
 RWStructuredBuffer<SpawnData> _SpawnDataBuffer;
 
@@ -26,6 +28,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     pos.xz += noise;
     
     SpawnData o;
+    o.hash = 0;
+    o.clumpInfo = 0;
     o.positionWS = mul(_LocalToWorld, float4(pos,1)).xyz;
     
     _SpawnDataBuffer[id.x * _NumPointPerSide + id.y] = o;
