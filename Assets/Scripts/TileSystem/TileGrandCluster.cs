@@ -105,7 +105,8 @@ public class TileGrandCluster : MonoBehaviour
             ObjectData.SquaredInstancePerTile,
             ObjectData.SquaredChunksPerCluster,
             ObjectData.SquaredTilePerClump,
-            ObjectData.OccludeeBoundScaleMultiplier);
+            ObjectData.OccludeeBoundScaleMultiplier,
+            ObjectData.DensityFilter);
         _tileChunkDispatcher.InitialSpawn();
         _tileChunkDispatcher.GetWindBuffer();
         if (EnableInteraction)

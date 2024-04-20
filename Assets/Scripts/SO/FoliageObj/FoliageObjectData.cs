@@ -10,5 +10,7 @@ public class FoliageObjectData : ScriptableObject
     public int SquaredTilePerClump = 8;
     [Range(0f, 3f)]
     public float OccludeeBoundScaleMultiplier = 1;
+    [Range(0f, 1f)]
+    public float DensityFilter = 1;
 
 }

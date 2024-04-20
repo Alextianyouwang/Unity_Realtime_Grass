@@ -21,3 +21,4 @@ MonoBehaviour:
   SquaredChunksPerCluster: 1
   SquaredTilePerClump: 4
   OccludeeBoundScaleMultiplier: 0
+  DensityFilter: 0.031

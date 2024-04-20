@@ -20,9 +20,5 @@ MonoBehaviour:
   SquaredInstancePerTile: 4
   SquaredChunksPerCluster: 8
   SquaredTilePerClump: 4
-  SmoothPlacement: 1
-  EnableInteraction: 1
-  LOD_Threshold_01: 30
-  LOD_Threshold_12: 80
-  MaxRenderDistance: 200
-  DensityFalloffThreshold: 30
+  OccludeeBoundScaleMultiplier: 1
+  DensityFilter: 1

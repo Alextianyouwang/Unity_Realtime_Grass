@@ -31,10 +31,12 @@ public class TileChunk
     private int _elementCount;
     private int _groupCount;
     private float _occludeeBoundScaleMultiplier;
+    private float _densityFilter;
 
     private Color _chunkColor;
 
-    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,Bounds chunkBounds, TileData tileData, float occludeeBoundScaleMultiplier) 
+    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,Bounds chunkBounds, TileData tileData, 
+        float occludeeBoundScaleMultiplier, float densityFilter) 
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -44,6 +46,7 @@ public class TileChunk
         _mpb = new MaterialPropertyBlock();
         _tileData = tileData;
         _occludeeBoundScaleMultiplier = occludeeBoundScaleMultiplier;
+        _densityFilter = densityFilter;
     }
 
     public void SetWindBuffer(ComputeBuffer windBuffer) 
@@ -97,6 +100,8 @@ public class TileChunk
         _cullShader.SetFloat("_ClusterBotLeftY", bl.y);
         _cullShader.SetFloat("_TileSize", _tileData.TileSize);
         _cullShader.SetInt("_NumTilePerClusterSide", _tileData.TileGridDimension);
+        _cullShader.SetFloat("_GrassBoundScale", _occludeeBoundScaleMultiplier);
+        _cullShader.SetFloat("_DensityFilter", _densityFilter);
 
         _cullShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
         _cullShader.SetBuffer(0, "_VoteBuffer", _voteBuffer);
@@ -148,7 +153,7 @@ public class TileChunk
         _cullShader.SetFloat("_Camera_Far", _renderCam.farClipPlane);
         _cullShader.SetFloat("_MaxRenderDist", TileGrandCluster._MaxRenderDistance);
         _cullShader.SetFloat("_DensityFalloffDist", TileGrandCluster._DensityFalloffThreshold);
-        _cullShader.SetFloat("_GrassBoundScale", _occludeeBoundScaleMultiplier);
+
         _cullShader.SetBool("_EnableOcclusionCulling", TileGrandCluster._EnableOcclusionCulling);
 
         _cullShader.SetTexture(0, "_HiZTexture", _zTex_external);

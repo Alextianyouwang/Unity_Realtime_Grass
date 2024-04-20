@@ -32,11 +32,12 @@ public class TileChunkDispatcher
     private int _squaredTilePerClump;
 
     private float _occludeeBoundScaleMultiplier;
+    private float _densityFilter;
 
     private bool _smoothPlacement;
 
     public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, bool smoothPlacement, Renderer[] occluders,
-        int squaredInstancePerTile, int squaredChunksPerCluster, int squaredTilePerClump, float occludeeBoundScaleMultiplier)
+        int squaredInstancePerTile, int squaredChunksPerCluster, int squaredTilePerClump, float occludeeBoundScaleMultiplier, float densityFilter)
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -51,6 +52,7 @@ public class TileChunkDispatcher
         _squaredChunksPerCluster = squaredChunksPerCluster;
         _squaredTilePerClump = squaredTilePerClump;
         _occludeeBoundScaleMultiplier = occludeeBoundScaleMultiplier;
+        _densityFilter = densityFilter;
     }
 
 
@@ -129,7 +131,8 @@ public class TileChunkDispatcher
                     chunkBuffer, 
                     b,
                     _tileData,
-                    _occludeeBoundScaleMultiplier
+                    _occludeeBoundScaleMultiplier,
+                    _densityFilter
                     );
                 t.SetWindBuffer(_windBuffer_external);
                 t.SetGroundNormalBuffer(_groundNormalBuffer);
