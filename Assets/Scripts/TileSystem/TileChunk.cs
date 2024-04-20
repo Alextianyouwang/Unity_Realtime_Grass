@@ -30,10 +30,11 @@ public class TileChunk
 
     private int _elementCount;
     private int _groupCount;
+    private float _occludeeBoundScaleMultiplier;
 
     private Color _chunkColor;
 
-    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,Bounds chunkBounds, TileData tileData) 
+    public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat,  Camera renderCam, ComputeBuffer initialBuffer,Bounds chunkBounds, TileData tileData, float occludeeBoundScaleMultiplier) 
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -42,6 +43,7 @@ public class TileChunk
         ChunkBounds = chunkBounds;
         _mpb = new MaterialPropertyBlock();
         _tileData = tileData;
+        _occludeeBoundScaleMultiplier = occludeeBoundScaleMultiplier;
     }
 
     public void SetWindBuffer(ComputeBuffer windBuffer) 
@@ -146,7 +148,7 @@ public class TileChunk
         _cullShader.SetFloat("_Camera_Far", _renderCam.farClipPlane);
         _cullShader.SetFloat("_MaxRenderDist", TileGrandCluster._MaxRenderDistance);
         _cullShader.SetFloat("_DensityFalloffDist", TileGrandCluster._DensityFalloffThreshold);
-        _cullShader.SetFloat("_GrassBoundScale", TileGrandCluster._OccludeeBoundScaleMultiplier);
+        _cullShader.SetFloat("_GrassBoundScale", _occludeeBoundScaleMultiplier);
         _cullShader.SetBool("_EnableOcclusionCulling", TileGrandCluster._EnableOcclusionCulling);
 
         _cullShader.SetTexture(0, "_HiZTexture", _zTex_external);

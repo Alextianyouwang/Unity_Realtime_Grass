@@ -31,8 +31,13 @@ Shader "Procedural/S_MeshIndirectSimple"
                 float3 normalWS : TEXCOORD1;
                 float3 positionWS : TEXCOORD2;
             };
-            
-            StructuredBuffer<float3> _SpawnBuffer;
+            struct SpawnData
+            {
+                float3 positionWS;
+                float hash;
+                float4 clumpInfo;
+            };
+            StructuredBuffer<SpawnData> _SpawnBuffer;
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex); float4 _MainTex_ST;
             float _Scale;
             float3 _ChunkColor;
@@ -40,8 +45,8 @@ Shader "Procedural/S_MeshIndirectSimple"
             VertexOutput vert(VertexInput v, uint instanceID : SV_InstanceID)
             {
                 VertexOutput o;
-                o.positionWS = v.positionOS * _Scale + _SpawnBuffer[instanceID];
-                o.positionCS = TransformObjectToHClip(o.positionWS);
+                o.positionWS = v.positionOS * _Scale + _SpawnBuffer[instanceID].positionWS;
+                o.positionCS = TransformWorldToHClip(o.positionWS);
                 o.normalWS = TransformObjectToWorldNormal(v.normalOS);
                 return o;
             }

@@ -20,7 +20,6 @@ public class TileChunkDispatcher
     private Mesh[] _spawnMesh;
     private Material _spawnMeshMaterial;
     private Camera _renderCam;
-    private Renderer[] _occluders;
     private Mesh _occluder;
 
     public static Func<int,int,float,Vector2,ComputeBuffer> OnRequestWindBuffer;
@@ -28,9 +27,16 @@ public class TileChunkDispatcher
     public static Action<int> OnRequestDisposeWindBuffer;
     private int _tileCount;
 
+    private int _squaredInstancePerTile;
+    private int _squaredChunksPerCluster;
+    private int _squaredTilePerClump;
+
+    private float _occludeeBoundScaleMultiplier;
+
     private bool _smoothPlacement;
 
-    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, bool smoothPlacement, Renderer[] occluders)
+    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, bool smoothPlacement, Renderer[] occluders,
+        int squaredInstancePerTile, int squaredChunksPerCluster, int squaredTilePerClump, float occludeeBoundScaleMultiplier)
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -41,6 +47,10 @@ public class TileChunkDispatcher
         _zTex.Create();
         _zMat = new Material(Shader.Find("Utility/S_DepthOnly"));
         _occluder = Utility.CombineMeshes(occluders.Select(x => x.gameObject).ToArray());
+        _squaredInstancePerTile = squaredInstancePerTile;
+        _squaredChunksPerCluster = squaredChunksPerCluster;
+        _squaredTilePerClump = squaredTilePerClump;
+        _occludeeBoundScaleMultiplier = occludeeBoundScaleMultiplier;
     }
 
 
@@ -48,13 +58,13 @@ public class TileChunkDispatcher
     {
         _spawnOnTileShader = GameObject.Instantiate((ComputeShader)Resources.Load("CS/CS_InitialSpawn"));
         _tileCount = _tileData.TileGridDimension * _tileData.TileGridDimension;
-        int instancePerTile = TileGrandCluster._SquaredInstancePerTile * TileGrandCluster._SquaredInstancePerTile;
+        int instancePerTile = _squaredInstancePerTile * _squaredInstancePerTile;
 
         _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 8);
         _groundNormalBuffer = new ComputeBuffer(_tileCount, sizeof(float) * 3);
 
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
-        _spawnOnTileShader.SetInt("_Subdivisions", TileGrandCluster._SquaredInstancePerTile);
+        _spawnOnTileShader.SetInt("_Subdivisions", _squaredInstancePerTile);
         _spawnOnTileShader.SetInt("_NumTilesPerSide", _tileData.TileGridDimension);
         _spawnOnTileShader.SetBool("_SmoothPlacement", _smoothPlacement);
 
@@ -73,7 +83,8 @@ public class TileChunkDispatcher
             _rawSpawnBuffer,
             _tileData.TileGridDimension,
             _tileData.TileSize,
-            _tileData.TileGridCenterXZ - Vector2.one * _tileData.TileGridDimension * _tileData.TileSize * 0.5f
+            _tileData.TileGridCenterXZ - Vector2.one * _tileData.TileGridDimension * _tileData.TileSize * 0.5f,
+            _squaredTilePerClump
             );
         _tileClumpParser.ParseClump();
         return _tileClumpParser.ShareSpawnBuffer();
@@ -92,10 +103,10 @@ public class TileChunkDispatcher
     public void InitializeChunks() 
     {
         _rawSpawnBuffer =  ProcessWithClumpData();
-        int chunksPerSide = TileGrandCluster._SquaredChunkPerCluster;
+        int chunksPerSide = _squaredChunksPerCluster;
         Chunks = new TileChunk[chunksPerSide * chunksPerSide];
         int chunkDimension = _tileData.TileGridDimension / chunksPerSide;
-        int totalInstancePerChunk = chunkDimension * chunkDimension * TileGrandCluster._SquaredInstancePerTile * TileGrandCluster._SquaredInstancePerTile;
+        int totalInstancePerChunk = chunkDimension * chunkDimension * _squaredInstancePerTile * _squaredInstancePerTile;
         float chunkSize = _tileData.TileGridDimension * _tileData.TileSize / chunksPerSide;
         Vector2 botLeft = _tileData.TileGridCenterXZ - chunkSize * chunksPerSide * Vector2.one / 2 + Vector2.one * chunkSize / 2;
         
@@ -117,7 +128,8 @@ public class TileChunkDispatcher
                     _renderCam, 
                     chunkBuffer, 
                     b,
-                    _tileData
+                    _tileData,
+                    _occludeeBoundScaleMultiplier
                     );
                 t.SetWindBuffer(_windBuffer_external);
                 t.SetGroundNormalBuffer(_groundNormalBuffer);

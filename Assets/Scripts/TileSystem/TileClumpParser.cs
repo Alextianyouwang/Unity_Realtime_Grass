@@ -7,26 +7,28 @@ public class TileClumpParser
     private ComputeBuffer _clumpCenterBuffer;
     private ComputeShader _clumpShader;
 
+    private int _squaredTilePerClump;
     private int _numTilePerSide;
     private float _tileSize;
     private Vector2 _botLeftCorner;
-    public TileClumpParser(ComputeBuffer rawSpawnBuffer, int numTilePerSide, float tileSize ,Vector2 botLeftCorner) 
+    public TileClumpParser(ComputeBuffer rawSpawnBuffer, int numTilePerSide, float tileSize ,Vector2 botLeftCorner, int squaredTilePerClump) 
     {
         _rawSpawnBuffer_external = rawSpawnBuffer;
         _numTilePerSide = numTilePerSide;
         _tileSize = tileSize;
         _botLeftCorner = botLeftCorner;
+        _squaredTilePerClump = squaredTilePerClump;
     }
 
     public void ParseClump() 
     {
 
         _clumpShader = GameObject.Instantiate((ComputeShader)Resources.Load("CS/CS_ClumpVoronoi"));
-        int clumpPerSide = Mathf.CeilToInt (_numTilePerSide / TileGrandCluster._SquaredTilePerClump) ;
+        int clumpPerSide = Mathf.CeilToInt (_numTilePerSide / _squaredTilePerClump);
 ;
         _clumpCenterBuffer = new ComputeBuffer(clumpPerSide * clumpPerSide * 9, sizeof(float) * 2);
 
-        float clumpIncrement = _tileSize * TileGrandCluster._SquaredTilePerClump;
+        float clumpIncrement = _tileSize * _squaredTilePerClump;
         _clumpShader.SetFloat("_ClumpIncrement", clumpIncrement);
         _clumpShader.SetFloat("_CornerX", _botLeftCorner.x);
         _clumpShader.SetFloat("_CornerY", _botLeftCorner.y);

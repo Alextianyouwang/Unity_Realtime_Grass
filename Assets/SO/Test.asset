@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a9916dc538f0c94f8860f5df032b2a5, type: 3}
+  m_Name: Test
+  m_EditorClassIdentifier: 
+  SpawnMesh:
+  - {fileID: 4300000, guid: 19e6c15522128ae49b60270e1ac4575a, type: 2}
+  - {fileID: 4300000, guid: 19e6c15522128ae49b60270e1ac4575a, type: 2}
+  - {fileID: 4300000, guid: 19e6c15522128ae49b60270e1ac4575a, type: 2}
+  SpawnMeshMaterial: {fileID: 2100000, guid: c241a132619fcad4b92fd89f85c8dff7, type: 2}
+  SquaredInstancePerTile: 1
+  SquaredChunksPerCluster: 1
+  SquaredTilePerClump: 4
+  OccludeeBoundScaleMultiplier: 0

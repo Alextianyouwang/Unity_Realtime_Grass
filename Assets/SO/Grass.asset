@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a9916dc538f0c94f8860f5df032b2a5, type: 3}
+  m_Name: Grass
+  m_EditorClassIdentifier: 
+  SpawnMesh:
+  - {fileID: 4300000, guid: 2f5f0c371f17fe040a8092f24eb8b4e0, type: 2}
+  - {fileID: 4300000, guid: 2f5f0c371f17fe040a8092f24eb8b4e0, type: 2}
+  - {fileID: 4300000, guid: 94d77166164be5c4781fb928853d95b6, type: 2}
+  SpawnMeshMaterial: {fileID: 2100000, guid: 815a509e078cc4b43af2350162c58ce8, type: 2}
+  SquaredInstancePerTile: 4
+  SquaredChunksPerCluster: 8
+  SquaredTilePerClump: 4
+  SmoothPlacement: 1
+  EnableInteraction: 1
+  LOD_Threshold_01: 30
+  LOD_Threshold_12: 80
+  MaxRenderDistance: 200
+  DensityFalloffThreshold: 30

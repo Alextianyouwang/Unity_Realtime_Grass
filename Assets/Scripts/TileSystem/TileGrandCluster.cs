@@ -11,12 +11,10 @@ public class TileGrandCluster : MonoBehaviour
     public int TileGridDimension = 512;
     public Vector2 TileGridCenterXZ;
     public Camera RenderCam;
-
-    public Mesh[] SpawnMesh;
-    public Material SpawnMeshMaterial;
-    public int SquaredInstancePerTile = 3;
-    public int SquaredChunksPerCluster = 4;
-    public int SquaredTilePerClump = 8;
+    public bool EnableOcclusionCulling = true;
+    public Renderer[] Occluders;
+    public bool ShowDebugTile = true;
+    public Material DebugMaterial;
     public bool SmoothPlacement = true;
     public bool EnableInteraction = true;
 
@@ -26,13 +24,7 @@ public class TileGrandCluster : MonoBehaviour
     public float MaxRenderDistance = 200;
     public float DensityFalloffThreshold = 10;
 
-    public bool ShowDebugTile = true;
-    public Material DebugMaterial;
-
-    public bool EnableOcclusionCulling = true;
-    public Renderer[] Occluders;
-    [Range(0f, 3f)]
-    public float OccludeeBoundScaleMultiplier = 1;
+    public FoliageObjectData ObjectData;
 
     private TileData _tileData;
     private TileVisualizer _tileVisualizer;
@@ -42,10 +34,6 @@ public class TileGrandCluster : MonoBehaviour
     public static float _LOD_Threshold_12 { get; private set; }
     public static float _MaxRenderDistance { get; private set; }
     public static float _DensityFalloffThreshold { get; private set; }
-    public static int _SquaredInstancePerTile { get; private set; }
-    public static int _SquaredChunkPerCluster { get; private set; }
-    public static int _SquaredTilePerClump { get; private set; }
-    public static float _OccludeeBoundScaleMultiplier { get; private set; }
     public static bool _EnableOcclusionCulling { get; private set; }
 
     private void OnEnable()
@@ -68,10 +56,6 @@ public class TileGrandCluster : MonoBehaviour
         _LOD_Threshold_12 = LOD_Threshold_12;
         _MaxRenderDistance = MaxRenderDistance;
         _DensityFalloffThreshold = DensityFalloffThreshold;
-        _SquaredInstancePerTile = SquaredInstancePerTile;
-        _SquaredChunkPerCluster = SquaredChunksPerCluster;
-        _SquaredTilePerClump = SquaredTilePerClump;
-        _OccludeeBoundScaleMultiplier = OccludeeBoundScaleMultiplier;
         _EnableOcclusionCulling = EnableOcclusionCulling;
     }
     private void LateUpdate()
@@ -102,20 +86,26 @@ public class TileGrandCluster : MonoBehaviour
             return;
         if (RenderCam == null)
             return;
-        if (SpawnMesh == null)
+        if (ObjectData == null)
             return;
-        foreach (Mesh m in SpawnMesh)
+        if (ObjectData.SpawnMesh == null)
+            return;
+        foreach (Mesh m in ObjectData.SpawnMesh)
             if (m == null)
                 return;
-        if (SpawnMeshMaterial == null) 
+        if (ObjectData.SpawnMeshMaterial == null) 
             return;
         _tileChunkDispatcher = new TileChunkDispatcher(
-            SpawnMesh, 
-            SpawnMeshMaterial, 
+            ObjectData.SpawnMesh,
+            ObjectData.SpawnMeshMaterial, 
             _tileData, 
             RenderCam, 
             SmoothPlacement,
-            Occluders);
+            Occluders,
+            ObjectData.SquaredInstancePerTile,
+            ObjectData.SquaredChunksPerCluster,
+            ObjectData.SquaredTilePerClump,
+            ObjectData.OccludeeBoundScaleMultiplier);
         _tileChunkDispatcher.InitialSpawn();
         _tileChunkDispatcher.GetWindBuffer();
         if (EnableInteraction)
