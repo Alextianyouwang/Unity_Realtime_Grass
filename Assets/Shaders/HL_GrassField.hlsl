@@ -82,7 +82,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float hash, out 
     float grassWave = 0;
     float freq = 5 * _GrassWaveFrequency;
     float amplitude = _GrassWaveAmplitude * waveAmplitudeMult * bendFactor ; 
-    float speed = _Time.y * _GrassWaveSpeed * 10 ;
+    float speed = _Time.y * _GrassWaveSpeed * 10 + bendFactor * 10 ;
     [unroll]
     for (int i = 0; i < 3; i++)
     {
@@ -226,8 +226,10 @@ float3 CustomLightHandling(CustomInputData d, Light l)
     float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
     float specularDot = saturate(dot(d.normalWS, normalize(l.direction + d.viewDir)));
     float specularDotGround = saturate(dot(d.groundNormalWS, normalize(l.direction + d.viewDir)));
-    float specular = pow(specularDotGround * 0.4 + specularDot * 0.6, d.smoothness) * diffuse;
-    float3 phong = saturate ((diffuseGround * 0.5 + diffuse * 0.5) * d.albedo + specular * d.specularColor);
+    float specularBlend = lerp(specularDot, specularDotGround, smoothstep(20, 120, d.viewDist));
+    float diffuseBlend = diffuseGround * 0.5 + diffuse * 0.5;
+    float specular = pow(specularBlend, d.smoothness) * diffuseBlend;
+    float3 phong = saturate (diffuseBlend * d.albedo + specular * d.specularColor);
     return phong * radiance;
 }
 float3 CustomCombineLight(CustomInputData d)
@@ -256,7 +258,6 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     normalTS.x * tangentWS +
     normalTS.y * normalWS +
     normalTS.z * bitangentWS);
-    normalWS = frontFace ? normalWS : -normalWS;
     CustomInputData d = (CustomInputData) 0;
     d.normalWS = normalize(normalWS);
     d.groundNormalWS = normalize(v.groundNormalWS);
