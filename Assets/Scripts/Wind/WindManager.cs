@@ -28,9 +28,9 @@ public class WindManager :MonoBehaviour
     {
         public ComputeShader WindCompute;
         public ComputeBuffer WindBuffer;
-        public Vector2[] WindValues; 
+        public Vector3[] WindValues; 
     }
-    public WindDataPerTileCluster InitializeWindData(ComputeBuffer windBuffer, ComputeShader windCompute, Vector2[] windValues) 
+    public WindDataPerTileCluster InitializeWindData(ComputeBuffer windBuffer, ComputeShader windCompute, Vector3[] windValues) 
     {
         return new WindDataPerTileCluster {
             WindCompute = windCompute,
@@ -59,9 +59,9 @@ public class WindManager :MonoBehaviour
     public ComputeBuffer SendWindBuffer(int hash, int tileGridDimension, float tileSize, Vector2 gridBotLeftCorner)
     {
         ComputeShader windCompute = Instantiate((ComputeShader)Resources.Load("CS/CS_GlobalWind"));
-        ComputeBuffer windBuffer = new ComputeBuffer(tileGridDimension * tileGridDimension, sizeof(float) * 2);
+        ComputeBuffer windBuffer = new ComputeBuffer(tileGridDimension * tileGridDimension, sizeof(float) * 3);
 
-        Vector2[] windValues = new Vector2[tileGridDimension * tileGridDimension];
+        Vector3[] windValues = new Vector3[tileGridDimension * tileGridDimension];
         windBuffer.SetData(windValues);
         windCompute.SetInt("_MaxCount", windValues.Length);
         windCompute.SetFloat("_TileSize", tileSize);

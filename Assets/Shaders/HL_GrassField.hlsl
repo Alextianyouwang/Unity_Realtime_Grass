@@ -41,7 +41,7 @@ StructuredBuffer<SpawnData> _SpawnBuffer;
 ////////////////////////////////////////////////
 // Field Data
 StructuredBuffer<float3> _GroundNormalBuffer;
-StructuredBuffer<float2> _WindBuffer;
+StructuredBuffer<float3> _WindBuffer;
 Texture2D<float> _InteractionTexture;
 int _NumTilePerClusterSide;
 float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
@@ -63,11 +63,11 @@ _SpecularTightness,
 _NormalScale,
 _BladeThickenFactor;
 
-void CalculateGrassCurve(float t, float interaction,float wind, float hash, out float3 pos, out float3 tan)
+void CalculateGrassCurve(float t, float interaction,float wind, float variance, float hash, out float3 pos, out float3 tan)
 {
     float lengthMult = 1 + _GrassRandomLength * frac(hash * 78.233);
     float waveAmplitudeMult = 1 - interaction;
-    float offset = hash * 12.9898;
+    float offset = hash * 12.9898 * 0.2 + variance * 30;
     float bendFactor = wind * 0.5 + 0.5;
     float tiltFactor = wind + interaction;
     // Maximum tilt angle
@@ -80,11 +80,11 @@ void CalculateGrassCurve(float t, float interaction,float wind, float hash, out 
     float2 waveDir = normalize(tiltHeight);
     float propg = dot(waveDir, tiltHeight);
     float grassWave = 0;
-    float freq = 5 * _GrassWaveFrequency;
+    float freq = 20 * _GrassWaveFrequency;
     float amplitude = _GrassWaveAmplitude * waveAmplitudeMult * bendFactor ; 
-    float speed = _Time.y * _GrassWaveSpeed * 10 + bendFactor * 10 ;
+    float speed = _Time.y * _GrassWaveSpeed * 10 +bendFactor * 10;
     [unroll]
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 1; i++)
     {
 
         grassWave += sin(t * freq - speed + offset) * amplitude * lengthMult;
@@ -94,10 +94,10 @@ void CalculateGrassCurve(float t, float interaction,float wind, float hash, out 
         offset *= 78.233;
     }
         
-    float2 P3 = tiltHeight;
+    float2 P3 = tiltHeight ;
     float2 P2 = tiltHeight * 0.6 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
     P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * lengthMult;
-    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * 1.2* lengthMult;
+    P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * 1.3* lengthMult;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
 }
 
@@ -115,6 +115,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
     float windStrength = _WindBuffer[x * _NumTilePerClusterSide + y].x; // [-1,1]
     float windDir = _WindBuffer[x * _NumTilePerClusterSide + y].y * 360; // [0,360]
+    float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].z; // [0,1]
     float interaction = saturate(_InteractionTexture[int2(x, y)]);
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
@@ -136,7 +137,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
     float3 windAffectDegree = 45;
-    CalculateGrassCurve(uv.y, interaction, windStrength * 0.55, rand, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y, interaction, windStrength * 0.55, windVariance, rand, curvePosOS, curveTangentOS);
     float3 curveNormalOS = cross(float3(-1, 0, 0), normalize(curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
@@ -153,7 +154,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float windAngle = -windDir + 90;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
     float randomRotationMaxSpan = 180;
-    float reverseWind01 = 1 - (windStrength * 0.5  + 0.5);
+    float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
     float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01) - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01+0.2);
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
