@@ -29,7 +29,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Scale: 0.7
+    - _Scale: 1
     - _USE_CHUNKID_ON: 0
     m_Colors: []
   m_BuildTextureStacks: []

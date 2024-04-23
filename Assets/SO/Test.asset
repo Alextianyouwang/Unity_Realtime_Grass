@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Test
   m_EditorClassIdentifier: 
   SpawnMesh:
-  - {fileID: 4300000, guid: be6b16d87d3d8064db846bcf54bb629f, type: 2}
-  - {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  - {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  SpawnMeshMaterial: {fileID: 2100000, guid: d169d4accae9d264ca64e695bdbf6df4, type: 2}
+  - {fileID: 4300000, guid: b924facaa1044a346bda84bc7d89e67e, type: 2}
+  - {fileID: 4300000, guid: b924facaa1044a346bda84bc7d89e67e, type: 2}
+  - {fileID: 4300000, guid: b924facaa1044a346bda84bc7d89e67e, type: 2}
+  SpawnMeshMaterial: {fileID: 2100000, guid: d3848c282b8930b479dff5478320ebb7, type: 2}
   DensityMap: {fileID: 2800000, guid: ab99ff7fc2c79264eac2b84e068cb824, type: 3}
   SquaredInstancePerTile: 1
-  SquaredChunksPerCluster: 1
+  SquaredChunksPerCluster: 4
   SquaredTilePerClump: 4
   OccludeeBoundScaleMultiplier: 0
   DensityFilter: 0.031
