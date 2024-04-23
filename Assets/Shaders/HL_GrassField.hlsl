@@ -67,7 +67,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float variance, 
 {
     float lengthMult = 1 + _GrassRandomLength * frac(hash * 78.233);
     float waveAmplitudeMult = 1 - interaction;
-    float offset = hash * 12.9898 * 0.2 + variance * 30;
+    float offset = hash * 12.9898 * 0.15 + variance * 30;
     float bendFactor = wind * 0.5 + 0.5;
     float tiltFactor = wind + interaction;
     // Maximum tilt angle
@@ -82,7 +82,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float variance, 
     float grassWave = 0;
     float freq = 20 * _GrassWaveFrequency;
     float amplitude = _GrassWaveAmplitude * waveAmplitudeMult * bendFactor ; 
-    float speed = _Time.y * _GrassWaveSpeed * 10 +bendFactor * 10;
+    float speed = _Time.y * _GrassWaveSpeed * 10 + bendFactor * 10;
     [unroll]
     for (int i = 0; i < 1; i++)
     {
@@ -95,7 +95,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float variance, 
     }
         
     float2 P3 = tiltHeight ;
-    float2 P2 = tiltHeight * 0.6 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
+    float2 P2 = tiltHeight * 0.7 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
     P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * lengthMult;
     P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * 1.3* lengthMult;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);

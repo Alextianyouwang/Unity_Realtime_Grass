@@ -135,6 +135,8 @@ public class TileGrandCluster : MonoBehaviour
  
     void IndirectDrawPerFrame()
     {
+        if (_tileChunkDispatcher == null)
+            return;
         foreach (TileChunkDispatcher d in _tileChunkDispatcher) 
             d?.DispatchTileChunksDrawCall();
 
@@ -144,8 +146,9 @@ public class TileGrandCluster : MonoBehaviour
         _tileData?.ReleaseBuffer();
         OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
         _tileVisualizer?.ReleaseBuffer();
-        foreach (TileChunkDispatcher d in _tileChunkDispatcher)
-            d?.ReleaseBuffer();
+        if (_tileChunkDispatcher != null)
+            foreach (TileChunkDispatcher d in _tileChunkDispatcher)
+                d?.ReleaseBuffer();
     }
     void SetupTileDebug() 
     {
@@ -161,7 +164,8 @@ public class TileGrandCluster : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-      
+        if (_tileChunkDispatcher == null)
+            return;
         foreach (TileChunkDispatcher d in _tileChunkDispatcher)
         {
             if (d == null)
