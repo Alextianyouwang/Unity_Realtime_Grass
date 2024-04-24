@@ -118,7 +118,7 @@ void Vote (uint3 id : SV_DispatchThreadID)
     ///////////////////////////////////////////////////
     //  Does current spawn pos passes distance drop?
     float remap = saturate(invLerp(_DensityFalloffDist, _MaxRenderDist, dist));
-    remap = pow(remap, 0.5);
+    remap = pow(remap, 0.3);
     bool passedDistDrop = step(hash, remap) == 0;
     if (!passedDistDrop)
     {

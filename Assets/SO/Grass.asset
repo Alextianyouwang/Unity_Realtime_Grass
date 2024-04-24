@@ -23,4 +23,4 @@ MonoBehaviour:
   SquaredTilePerClump: 4
   OccludeeBoundScaleMultiplier: 1
   DensityFilter: 1
-  DensityFalloffThreshold: 10
+  DensityFalloffThreshold: 15

@@ -63,7 +63,7 @@ Material:
     - _GrassRandoemLength: 0.5
     - _GrassRandomFacing: 0.742
     - _GrassRandomLength: 0.646
-    - _GrassScale: 0.236
+    - _GrassScale: 0.23
     - _GrassTilt: 1
     - _GrassWaveAmplitude: 0.067
     - _GrassWaveFrequency: 0.3
@@ -74,7 +74,7 @@ Material:
     - _NormalScale: 0.421
     - _RandomBendOffset: 0.794
     - _Scale: 0.665
-    - _SpecularTightness: 0.371
+    - _SpecularTightness: 0.4
     - _Tilt: 1.2
     - _USE_DETAIL_ON: 1
     - _USE_MAINWAVE_ON: 1
@@ -89,7 +89,7 @@ Material:
     - _WindSpeed: 0.702
     m_Colors:
     - _BotColor: {r: 0.07164994, g: 0.11320752, b: 0.034709856, a: 1}
-    - _SpecularColor: {r: 0.8018868, g: 0.8018868, b: 0.8018868, a: 1}
+    - _SpecularColor: {r: 0.745283, g: 0.745283, b: 0.745283, a: 1}
     - _TopColor: {r: 0.25030124, g: 0.3962264, b: 0.12522249, a: 1}
     - _VariantTopColor: {r: 0.487369, g: 0.5377358, b: 0.18516374, a: 1}
     - _WindDirection: {r: 1, g: 1, b: 0, a: 0}

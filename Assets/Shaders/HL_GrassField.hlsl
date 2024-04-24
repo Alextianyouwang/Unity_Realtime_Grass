@@ -172,9 +172,9 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 posVS = mul(UNITY_MATRIX_V, float4(posWS, 1)).xyz;
     float3 curvePosVS = mul(UNITY_MATRIX_V, float4(curvePosWS, 1)).xyz;
     float3 shiftDistVS = posVS - curvePosVS;
-    float3 projectedShiftDistVS = normalize(ProjectOntoPlane(shiftDistVS, float3(0, 0, 1)));
-    posVS.xy += length(posWS - curvePosWS) > 0.0001 ?
-    projectedShiftDistVS.xy *  _BladeThickenFactor * 0.05 : 0;
+    float3 projectedShiftDistVS = normalize(ProjectOntoPlane(shiftDistVS, float3(0, 0, -1)));
+    posVS.xy += length(shiftDistVS) > 0.0001 ?
+    projectedShiftDistVS.xy * (_BladeThickenFactor * 0.05 - curvePosVS.z * 0.0005) : 0;
     ////////////////////////////////////////////////
 
     ////////////////////////////////////////////////
@@ -225,9 +225,10 @@ float3 CustomLightHandling(CustomInputData d, Light l)
     float3 radiance = l.color * atten;
     float diffuse = saturate(dot(l.direction, d.normalWS));
     float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
-    float specularDot = saturate(dot(d.normalWS, normalize(l.direction + d.viewDir)));
-    float specularDotGround = saturate(dot(d.groundNormalWS, normalize(l.direction + d.viewDir)));
-    float specularBlend = lerp(specularDot, specularDotGround, smoothstep(20, 120, d.viewDist));
+    float3 lv_dir = normalize(l.direction + d.viewDir);
+    float specularDot = saturate(dot(d.normalWS, lv_dir ));
+    float specularDotGround = saturate(dot(d.groundNormalWS, lv_dir));
+    float specularBlend = lerp(specularDot, specularDotGround * 0.99, smoothstep(20, 120, d.viewDist));
     float diffuseBlend = diffuseGround * 0.5 + diffuse * 0.5;
     float specular = pow(specularBlend, d.smoothness) * diffuseBlend;
     float3 phong = saturate (diffuseBlend * d.albedo + specular * d.specularColor);
