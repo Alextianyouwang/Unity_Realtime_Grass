@@ -18,9 +18,9 @@ MonoBehaviour:
   - {fileID: 4300000, guid: 94d77166164be5c4781fb928853d95b6, type: 2}
   SpawnMeshMaterial: {fileID: 2100000, guid: 815a509e078cc4b43af2350162c58ce8, type: 2}
   DensityMap: {fileID: 2800000, guid: 53132e2a3adc9e74b9da408bd5e3fb05, type: 3}
-  SquaredInstancePerTile: 4
+  SquaredInstancePerTile: 5
   SquaredChunksPerCluster: 8
   SquaredTilePerClump: 4
   OccludeeBoundScaleMultiplier: 1
   DensityFilter: 1
-  DensityFalloffThreshold: 50
+  DensityFalloffThreshold: 10
