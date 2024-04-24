@@ -11,14 +11,12 @@ Shader "Procedural/S_GrassField"
     }
     SubShader
     {
-        Tags {"RenderType" = "Cutout" "RenderPipeline" = "UniversalRenderPipeline"}
+        Tags {"RenderType" = "Opaque" "Queue" = "AlphaTest" "RenderPipeline" = "UniversalRenderPipeline"}
         Pass 
         {
             Name "ForwardLit"
             Tags {"LightMode" = "UniversalForward"}
             Cull off
-            Blend SrcAlpha OneMinusSrcAlpha
-            ZWrite on
             HLSLPROGRAM
             #pragma target 5.0
 

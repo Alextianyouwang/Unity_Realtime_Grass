@@ -142,6 +142,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     normalTS.y * normalWS +
     normalTS.z * bitangentWS);
     float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv);
+    clip(albedo.w - 0.5);
     return albedo;
    
 
