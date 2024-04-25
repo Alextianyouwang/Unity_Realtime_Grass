@@ -83,7 +83,7 @@ public class TileChunk
         _groupScanInBuffer = new ComputeBuffer(_groupCount, sizeof(int));
         _groupScanOutBuffer = new ComputeBuffer(_groupCount, sizeof(int));
 
-        _compactBuffer = new ComputeBuffer(_elementCount, sizeof(float) * 8);
+        _compactBuffer = new ComputeBuffer(_elementCount, sizeof(float) * 12);
         _argsBuffer = new ComputeBuffer[_spawnMesh.Length];
         for(int i = 0; i< _spawnMesh.Length; i++)
         {

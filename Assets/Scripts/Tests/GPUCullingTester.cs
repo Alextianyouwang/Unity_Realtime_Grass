@@ -40,11 +40,13 @@ public class GPUCullingTester : MonoBehaviour
         Vector3 positionWS;
         float hash;
         Vector4 clumpInfo;
-        public SpawnData(Vector3 _posWS, float _hash, Vector4 _clumpInfo) 
+        Vector4 postureData;
+        public SpawnData(Vector3 _posWS, float _hash, Vector4 _clumpInfo, Vector4 _postureData) 
         {
             positionWS = _posWS;
             hash = _hash;
             clumpInfo = _clumpInfo;
+            postureData = _postureData;
         }
     };
 
@@ -94,10 +96,10 @@ public class GPUCullingTester : MonoBehaviour
         /* Procedural */
         _groupScanBufferOut = new ComputeBuffer(_groupCount, sizeof(uint));
         /* Procedural */
-        _compactBuffer = new ComputeBuffer(_instances, sizeof(float) * 8);
+        _compactBuffer = new ComputeBuffer(_instances, sizeof(float) * 12);
 
-        _posBuffer = new ComputeBuffer(_instances, sizeof(float) * 8);
-        _posBuffer.SetData(VolumeSpawner.Volumes.Select(x => new SpawnData (x,0,Vector4.zero)).ToArray());
+        _posBuffer = new ComputeBuffer(_instances, sizeof(float) * 12);
+        _posBuffer.SetData(VolumeSpawner.Volumes.Select(x => new SpawnData (x,0,Vector4.zero,Vector4.zero)).ToArray());
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
         _argsBuffer.SetData(_args);
         _argsBuffer_static = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);

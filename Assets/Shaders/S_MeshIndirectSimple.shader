@@ -36,6 +36,7 @@ Shader "Procedural/S_MeshIndirectSimple"
                 float3 positionWS;
                 float hash;
                 float4 clumpInfo;
+                float4 postureData;
             };
             StructuredBuffer<SpawnData> _SpawnBuffer;
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex); float4 _MainTex_ST;

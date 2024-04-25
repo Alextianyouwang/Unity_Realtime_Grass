@@ -5,7 +5,7 @@ Shader "Procedural/S_GrassField"
         [KeywordEnum(Off,ChunkID,LOD,ClumpCell,GlobalWind,Hash,Interaction)] _Debug("DebugMode", Float) = 0
 
    
-        [HideInInspector]_MainTex ("Texture", 2D) = "white" {}
+        _MainTex ("Texture", 2D) = "white" {}
         _Normal("Normal", 2D) = "bump" {}
          [Header(Shading)][Space]
         _TopColor("TopColor", Color) = (1,1,1,1)

@@ -31,11 +31,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 7d7e12401ad44bd4da66f6b045eeaf14, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal:
-        m_Texture: {fileID: 2800000, guid: 462206b23f0e6eb4ca5148ac4ee9c2e0, type: 3}
+        m_Texture: {fileID: 2800000, guid: 41a3660b4c73051408377828e45e90e9, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
@@ -57,7 +57,7 @@ Material:
     - _DetailSpeed: 0.285
     - _DetailWeight: 0.175
     - _GlobalWindMult: 0.547
-    - _GrassBend: 0.1
+    - _GrassBend: 0.3
     - _GrassFacingDirection: 45
     - _GrassHeight: 1
     - _GrassRandoemLength: 0.5
@@ -71,7 +71,7 @@ Material:
     - _Height: 1.2
     - _HeightRandomnessAmplitude: 0.272
     - _NormalBlend: 1
-    - _NormalScale: 0.421
+    - _NormalScale: 1
     - _RandomBendOffset: 0.794
     - _Scale: 0.665
     - _SpecularTightness: 0.4
@@ -88,10 +88,10 @@ Material:
     - _WindNoiseWeight: 1
     - _WindSpeed: 0.702
     m_Colors:
-    - _BotColor: {r: 0, g: 0, b: 0, a: 1}
+    - _BotColor: {r: 0.2735849, g: 0.2735849, b: 0.2735849, a: 1}
     - _SpecularColor: {r: 0.745283, g: 0.745283, b: 0.745283, a: 1}
-    - _TopColor: {r: 0.31812033, g: 0.39607844, b: 0.1254902, a: 1}
-    - _VariantTopColor: {r: 0.5372549, g: 0.47671285, b: 0.18431373, a: 1}
+    - _TopColor: {r: 1, g: 0.85797286, b: 0, a: 1}
+    - _VariantTopColor: {r: 0.7075472, g: 0.7075472, b: 0.7075472, a: 1}
     - _WindDirection: {r: 1, g: 1, b: 0, a: 0}
     - _WindNoiseFrequency: {r: 0.3, g: 0.3, b: 0, a: 0}
   m_BuildTextureStacks: []

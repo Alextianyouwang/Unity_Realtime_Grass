@@ -72,7 +72,7 @@ public class SpawnOnMeshWithChunkingManager : MonoBehaviour
                 Vector2 root = new Vector2 (initialPoint.x,initialPoint.z) + new Vector2 (x * chunkInc,z * chunkInc);
 
                 Chunk c = new Chunk() {
-                    spawnBuffer = new ComputeBuffer(InstancePerChunk * InstancePerChunk, sizeof(float) * 8),
+                    spawnBuffer = new ComputeBuffer(InstancePerChunk * InstancePerChunk, sizeof(float) * 12),
                     argsBuffer = new ComputeBuffer(1, sizeof(float) * 5,ComputeBufferType.IndirectArguments),
                     mpb = new MaterialPropertyBlock()
                 };

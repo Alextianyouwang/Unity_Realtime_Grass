@@ -1,4 +1,4 @@
-Shader "Procedural/S_GrassField"
+Shader "Procedural/S_PampasField"
 {
     Properties
     {

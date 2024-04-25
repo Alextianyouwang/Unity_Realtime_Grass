@@ -87,7 +87,7 @@ public class SpawnOnMeshManager : MonoBehaviour
         _sourceTrianglesBuffer.SetData(_sourceTriangles);
         _sourceVerticesBuffer = new ComputeBuffer(_sourceVertices.Length, sizeof(float) * 8);
         _sourceVerticesBuffer.SetData(_sourceVertices);
-        _spawnBuffer = new ComputeBuffer(_quadCount * Subdivision * Subdivision, sizeof(float) * 8, ComputeBufferType.Append);
+        _spawnBuffer = new ComputeBuffer(_quadCount * Subdivision * Subdivision, sizeof(float) * 12, ComputeBufferType.Append);
         _spawnBuffer.SetCounterValue(0);
 
         if (TestMesh) 

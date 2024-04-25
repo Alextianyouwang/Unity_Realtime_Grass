@@ -34,6 +34,7 @@ struct SpawnData
     float3 positionWS;
     float hash;
     float4 clumpInfo;
+    float4 postureData;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 ////////////////////////////////////////////////

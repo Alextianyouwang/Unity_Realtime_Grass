@@ -7,6 +7,7 @@ struct SpawnData
     float3 positionWS;
     float hash;
     float4 clumpInfo;
+    float4 postureData;
 };
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
 RWStructuredBuffer<float2> _ClumpCenterBuffer;

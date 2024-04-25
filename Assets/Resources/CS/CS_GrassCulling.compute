@@ -16,6 +16,7 @@ struct SpawnData
     float3 positionWS;
     float hash;
     float4 clumpInfo;
+    float4 postureData;
 };
 
 Texture2D<float4> _DensityMap;

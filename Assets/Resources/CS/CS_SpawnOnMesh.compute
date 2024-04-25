@@ -17,6 +17,7 @@ struct SpawnData
     float3 positionWS;
     float hash;
     float4 clumpInfo;
+    float4 postureData;
 };
 AppendStructuredBuffer<SpawnData> _SpawnBuffer;
 
@@ -72,6 +73,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 			output.positionWS.y = y;
             output.hash = 0;
             output.clumpInfo = 0;
+            output.postureData = float4(0, 0, 0, 0);
             _SpawnBuffer.Append(output);
         }
 	}

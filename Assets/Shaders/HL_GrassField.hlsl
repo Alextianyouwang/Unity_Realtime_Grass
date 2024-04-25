@@ -34,6 +34,7 @@ struct SpawnData
     float3 positionWS;
     float hash;
     float4 clumpInfo;
+    float4 postureData;
 };
 StructuredBuffer<SpawnData> _SpawnBuffer;
 ////////////////////////////////////////////////
@@ -248,13 +249,16 @@ float3 CustomCombineLight(CustomInputData d)
 
 float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 {
+	float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv);
 #ifdef SHADOW_CASTER_PASS
+    clip(albedo.a - 0.5);
     return 0;
 #else
     float3 normalWS = normalize(v.normalWS);
     float3 tangentWS = normalize(v.tangentWS);
     float3 bitangentWS = cross(normalWS, tangentWS);
     float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv), -_NormalScale);
+	clip(albedo.a - 0.5);
     normalWS = normalize(
     normalTS.x * tangentWS +
     normalTS.z * normalWS +
@@ -267,7 +271,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     d.viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
     d.viewDist = length(_WorldSpaceCameraPos - v.positionWS);
     d.smoothness = exp2(_SpecularTightness * 10 + 1);
-    d.albedo = lerp(_BotColor, lerp(_TopColor, _VariantTopColor, saturate(v.height + _ClumpTopThreshold * 2 - 1)), v.uv.y).xyz;
+	d.albedo = lerp(_BotColor, lerp(_TopColor, _VariantTopColor, saturate(v.height + _ClumpTopThreshold * 2 - 1)), v.uv.y).xyz * albedo.xyz;
     d.specularColor = _SpecularColor.xyz;
     d.bakedGI = v.bakedGI;
 

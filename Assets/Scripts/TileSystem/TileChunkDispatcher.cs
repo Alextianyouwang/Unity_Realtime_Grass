@@ -57,7 +57,7 @@ public class TileChunkDispatcher
         _tileCount = _tileData.TileGridDimension * _tileData.TileGridDimension;
         int instancePerTile = _squaredInstancePerTile * _squaredInstancePerTile;
 
-        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 8);
+        _rawSpawnBuffer = new ComputeBuffer(_tileCount * instancePerTile, sizeof(float) * 12);
         _groundNormalBuffer = new ComputeBuffer(_tileCount, sizeof(float) * 3);
 
         _spawnOnTileShader.SetInt("_NumTiles", _tileCount);
@@ -102,7 +102,7 @@ public class TileChunkDispatcher
         {
             for (int y = 0; y < chunksPerSide; y++) 
             {
-                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 8);
+                ComputeBuffer chunkBuffer = new ComputeBuffer(totalInstancePerChunk, sizeof(float) * 12);
                 _spawnOnTileShader.SetInt("_ChunkIndexX", x);
                 _spawnOnTileShader.SetInt("_ChunkIndexY", y);
                 _spawnOnTileShader.SetInt("_ChunkPerSide", chunksPerSide);
