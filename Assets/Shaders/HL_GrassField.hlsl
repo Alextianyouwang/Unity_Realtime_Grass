@@ -255,11 +255,10 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     float3 tangentWS = normalize(v.tangentWS);
     float3 bitangentWS = cross(normalWS, tangentWS);
     float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv), -_NormalScale);
-    normalTS.xyz = normalTS.xzy;
     normalWS = normalize(
     normalTS.x * tangentWS +
-    normalTS.y * normalWS +
-    normalTS.z * bitangentWS);
+    normalTS.z * normalWS +
+    normalTS.y * bitangentWS);
     CustomInputData d = (CustomInputData) 0;
     d.normalWS = normalize(normalWS);
     d.groundNormalWS = normalize(v.groundNormalWS);

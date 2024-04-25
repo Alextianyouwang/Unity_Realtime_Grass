@@ -33,6 +33,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _MasterScale: 0.661
+    - _MasterScale: 0.717
+    - _NormalScale: 1.5
+    - _RandomFacing: 0.532
     m_Colors: []
   m_BuildTextureStacks: []

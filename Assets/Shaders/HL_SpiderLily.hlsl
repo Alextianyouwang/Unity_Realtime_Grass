@@ -10,7 +10,7 @@ struct VertexInput
 {
     float3 positionOS : POSITION;
     float3 normalOS : NORMAL;
-    float3 tangentOS : TANGENT;
+    float4 tangentOS : TANGENT;
     float2 uv : TEXCOORD0;
     float2 uv1 : TEXCOORD1;
     
@@ -21,7 +21,7 @@ struct VertexOutput
     float2 uv : TEXCOORD0;
     float3 normalWS : TEXCOORD1;
     float3 groundNormalWS : TEXCOOR2;
-    float3 tangentWS : TEXCOORD3;
+    float4 tangentWS : TEXCOORD3;
     float3 positionWS : TEXCOORD4;
     float4 clumpInfo : TEXCOORD5;
     float4 debug : TEXCOOR6;
@@ -58,12 +58,11 @@ TEXTURE2D( _Normal);SAMPLER (sampler_Normal);float4 _Normal_ST;
 float _GrassScale, _GrassRandomLength,
 _GrassTilt, _GrassHeight, _GrassBend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
 _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeightOffset, _ClumpHeightMultiplier, _ClumpTopThreshold,
-_GrassRandomFacing,
 _SpecularTightness,
 _NormalScale,
 _BladeThickenFactor,
 
- _MasterScale;
+ _MasterScale,_RandomFacing;
 
 
 
@@ -96,7 +95,26 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Transform
     float3 posWS = spawnPosWS + posOS * _MasterScale * 5;
     float3 normalWS = v.normalOS;
-    float3 tangentWS = v.tangentOS;
+    float4 tangentWS = v.tangentOS;
+    
+    float windAngle = -windDir + 90;
+    float randomRotationMaxSpan = 180;
+    float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
+    float rotAngle = windAngle - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _RandomFacing * (reverseWind01 + 0.2);
+
+    float scale = 1 + rand * 0.2;
+    posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
+     //posWS = RotateAroundAxis(float4(posWS, 1), float3(1, 0, 0), rotAngle, spawnPosWS).xyz;
+    posWS = RotateAroundAxis(float4(posWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
+    
+    //normalWS = normalize(RotateAroundXInDegrees(float4(normalWS, 0), rotAngle)).xyz;
+    normalWS = normalize(RotateAroundYInDegrees(float4(normalWS, 0), rotAngle).xyz);
+    
+    //tangentWS = normalize(RotateAroundXInDegrees(float4(tangentWS.xyz, 0), rotAngle));
+    tangentWS = normalize(RotateAroundYInDegrees(float4(tangentWS.xyz, 0), rotAngle));
+    
+    
+    tangentWS.w = v.tangentOS.w;
     
     ////////////////////////////////////////////////
     
@@ -129,22 +147,55 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 
 float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 {
+    float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv);
 #ifdef SHADOW_CASTER_PASS
+    clip(albedo.w - 0.5);
     return 0;
 #else
+    clip(albedo.w - 0.5);
     float3 normalWS = normalize(v.normalWS);
     float3 tangentWS = normalize(v.tangentWS);
     float3 bitangentWS = cross(normalWS, tangentWS);
-    float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv), -_NormalScale);
-    normalTS.xyz = normalTS.xzy;
-    normalWS = normalize(
-    normalTS.x * tangentWS +
-    normalTS.y * normalWS +
-    normalTS.z * bitangentWS);
-    float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv);
-    clip(albedo.w - 0.5);
-    return albedo;
+    float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv), -_NormalScale );
+  
+
+    float sgn =v.tangentWS.w; // should be either +1 or -1
+    float3 bitangent = sgn * cross(v.normalWS.xyz, v.tangentWS.xyz);
+    half3x3 tangentToWorld = half3x3(v.tangentWS.xyz, bitangent.xyz,v.normalWS.xyz);
+    normalWS = mul(normalTS, tangentToWorld);
    
+    float3 posNDS = v.positionCS / v.positionCS.w;
+    float2 uvSS = posNDS.xy / 2 + 0.5;
+    InputData data = (InputData) 0;
+    
+    data.positionWS = v.positionWS;
+    data.positionCS = v.positionCS;
+    data.normalWS = normalWS;
+    data.viewDirectionWS = normalize(_WorldSpaceCameraPos - v.positionWS);
+    data.shadowCoord = CalculateShadowCoord(v.positionWS, v.positionCS);
+    data.fogCoord = 0;
+    data.vertexLighting = 0;
+    data.bakedGI = v.bakedGI;
+    data.normalizedScreenSpaceUV = uvSS;
+    data.shadowMask = 0;
+    data.tangentToWorld = tangentToWorld;
+    
+    SurfaceData surf = (SurfaceData) 0;
+    
+    
+    surf.albedo = albedo.xyz;
+    surf.specular = 1;
+    surf.metallic = 0;
+    surf.smoothness = 0.1;
+    surf.normalTS = normalTS;
+    surf.emission = 0;
+    surf.occlusion = 1;
+    surf.alpha = albedo.w;
+    surf.clearCoatMask = 0;
+    surf.clearCoatSmoothness = 0;
+    
+    float4 finalColor =  UniversalFragmentPBR(data, surf);
+    return finalColor;
 
 #endif
    

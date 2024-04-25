@@ -272,7 +272,7 @@ Material:
     - _Blend: 0
     - _BlendMode: 0
     - _BlendModePreserveSpecular: 1
-    - _BumpScale: 1
+    - _BumpScale: 4
     - _COAT_IOR: 1.4
     - _COAT_ROUGHNESS: 0
     - _COAT_THICKNESS: 5

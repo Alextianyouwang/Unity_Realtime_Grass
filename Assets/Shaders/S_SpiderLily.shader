@@ -5,7 +5,9 @@ Shader "Procedural/S_GrassField"
 
         _MainTex ("Texture", 2D) = "white" {}
         _Normal("Normal", 2D) = "bump" {}
+        _NormalScale("NormalScale",Range(0,3)) = 1
         _MasterScale("MasterScale",Range(0,1)) = 1
+        _RandomFacing("RandomFacing",Range(0,1)) = 1
        
 
     }
@@ -26,7 +28,7 @@ Shader "Procedural/S_GrassField"
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
-      
+
             
             #include "HL_SpiderLily.hlsl"
             
@@ -44,7 +46,7 @@ Shader "Procedural/S_GrassField"
            #pragma fragment frag
            #pragma target 2.0
            #define SHADOW_CASTER_PASS
-           #include "HL_GrassField.hlsl"
+           #include "HL_SpiderLily.hlsl"
            ENDHLSL
        }
     }  
