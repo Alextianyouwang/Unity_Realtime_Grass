@@ -8,6 +8,7 @@ Shader "Procedural/S_GrassField"
         _NormalScale("NormalScale",Range(0,3)) = 1
         _MasterScale("MasterScale",Range(0,1)) = 1
         _RandomFacing("RandomFacing",Range(0,1)) = 1
+         _ClumpTightness("ClumpTightness",Range(0,1)) = 0.5
        
 
     }
@@ -30,7 +31,7 @@ Shader "Procedural/S_GrassField"
             #pragma multi_compile _ _SHADOWS_SOFT
 
             
-            #include "HL_SpiderLily.hlsl"
+            #include "HL_Pampas.hlsl"
             
             ENDHLSL
         }
@@ -46,7 +47,7 @@ Shader "Procedural/S_GrassField"
            #pragma fragment frag
            #pragma target 2.0
            #define SHADOW_CASTER_PASS
-           #include "HL_SpiderLily.hlsl"
+           #include "HL_Pampas.hlsl"
            ENDHLSL
        }
     }  

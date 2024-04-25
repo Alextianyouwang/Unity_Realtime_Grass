@@ -62,7 +62,7 @@ _SpecularTightness,
 _NormalScale,
 _BladeThickenFactor,
 
- _MasterScale,_RandomFacing;
+ _MasterScale,_RandomFacing, _ClumpTightness;
 
 
 
@@ -93,6 +93,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     ////////////////////////////////////////////////
     // Apply Transform
+	spawnPosWS.xz = lerp(spawnPosWS.xz, clumpCenter.xz, _ClumpTightness);
     float3 posWS = spawnPosWS + posOS * _MasterScale * 5;
     float3 normalWS = v.normalOS;
     float4 tangentWS = v.tangentOS;
@@ -101,6 +102,8 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float randomRotationMaxSpan = 180;
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
     float rotAngle = windAngle - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _RandomFacing * (reverseWind01 + 0.2);
+    
+    
 
     float scale = 1 + rand * 0.2;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
@@ -115,6 +118,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     
     tangentWS.w = v.tangentOS.w;
+    
     
     ////////////////////////////////////////////////
     

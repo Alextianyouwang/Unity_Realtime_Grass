@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_SpiderLily
+  m_Name: M_PampasField
   m_Shader: {fileID: 4800000, guid: 29f69aee36f561245a47dab66df1d192, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -33,8 +33,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _MasterScale: 0.717
+    - _ClumpTightness: 0.732
+    - _MasterScale: 0.689
     - _NormalScale: 1.5
-    - _RandomFacing: 0.532
+    - _RandomFacing: 0.613
     m_Colors: []
   m_BuildTextureStacks: []
