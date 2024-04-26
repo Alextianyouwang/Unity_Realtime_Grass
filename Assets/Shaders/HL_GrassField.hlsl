@@ -155,7 +155,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Clump
     float windAngle = -windDir + 90;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
-    float postureAngle = 180 * ( posture.y * 0.5 + posture.w * 0.5) * _GrassPostureFacing;
+    float postureAngle = 360 * (posture.x*0.5 + posture.y * 0.5 + posture.w * 0.5) * _GrassPostureFacing;
     float postureHeight = step(0.97, posture.x ) ;
   
     float randomRotationMaxSpan = 180;
@@ -253,11 +253,10 @@ float3 CustomCombineLight(CustomInputData d)
 
 float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 {
-	float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv);
 #ifdef SHADOW_CASTER_PASS
-    clip(albedo.a - 0.5);
     return 0;
 #else
+	float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv);
     float3 normalWS = normalize(v.normalWS);
     float3 tangentWS = normalize(v.tangentWS);
     float3 bitangentWS = cross(normalWS, tangentWS);

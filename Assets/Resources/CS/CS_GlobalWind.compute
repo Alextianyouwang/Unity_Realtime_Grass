@@ -46,7 +46,7 @@ void GlobalWind(uint3 id : SV_DispatchThreadID)
     }
 
     posXZ *= 0.2;
-    float3 voronoi = voronoiNoise(float3(posXZ.x, _Time * 0.05, posXZ.y), 12.9898);
+    float3 voronoi = voronoiNoise(float3(posXZ.x, -_Time * 0.05, posXZ.y), 12.9898);
     _WindBuffer[id.x] = float3(noise, (_Direction + noise / _Amplitude * 45) / 360.0,voronoi.x);
 
 }
