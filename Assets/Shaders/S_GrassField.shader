@@ -20,6 +20,7 @@ Shader "Procedural/S_GrassField"
         _GrassScale("GrassMasterScale", Range(0,1)) = 1
         _GrassRandomLength("GrassRandomLength", Range(0,1)) = 0.5
         _GrassRandomFacing("GrassRandomFacing",Range(0,1)) = 0.1
+        _GrassPostureFacing("GrassPostureFacing",Range(0,1)) = 0.1
 
 
          [Header(Bezier Curve)][Space]

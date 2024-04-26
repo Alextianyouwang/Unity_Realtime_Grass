@@ -57,14 +57,14 @@ float4 _TopColor, _BotColor, _VariantTopColor, _SpecularColor;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 TEXTURE2D( _Normal);SAMPLER (sampler_Normal);float4 _Normal_ST;
 float _GrassScale, _GrassRandomLength,
-_GrassTilt, _GrassHeight, _GrassBend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
+_GrassTilt, _GrassHeight, _GrassBend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed, _GrassPostureFacing,
 _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeightOffset, _ClumpHeightMultiplier, _ClumpTopThreshold,
 _GrassRandomFacing,
 _SpecularTightness,
 _NormalScale,
 _BladeThickenFactor;
 
-void CalculateGrassCurve(float t, float interaction,float wind, float variance, float hash, out float3 pos, out float3 tan)
+void CalculateGrassCurve(float t, float interaction,float wind, float variance, float hash, float4 posture, out float3 pos, out float3 tan)
 {
     float lengthMult = 1 + _GrassRandomLength * frac(hash * 78.233);
     float waveAmplitudeMult = 1 - interaction;
@@ -96,7 +96,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float variance, 
     }
         
     float2 P3 = tiltHeight ;
-    float2 P2 = tiltHeight * 0.7 + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
+    float2 P2 = tiltHeight * (0.6 + posture.x * 0.3) + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
     P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * lengthMult;
     P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * 1.3* lengthMult;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
@@ -125,6 +125,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float2 dirToClump = normalize((spawnPosWS).xz - _SpawnBuffer[instanceID].clumpInfo.xy);
     float distToClump = _SpawnBuffer[instanceID].clumpInfo.z;
     float clumpHash = _SpawnBuffer[instanceID].clumpInfo.w; // [0,1]
+    float4 posture = _SpawnBuffer[instanceID].postureData * 2 - 1; // [-1,1]
     float3 posOS = v.positionOS;
     float viewDist = length(_WorldSpaceCameraPos - spawnPosWS);
     float nearGrass = 20;
@@ -138,7 +139,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 curvePosOS = 0;
     float3 curveTangentOS = 0;
     float3 windAffectDegree = 45;
-    CalculateGrassCurve(uv.y, interaction, windStrength * 0.55, windVariance, rand, curvePosOS, curveTangentOS);
+    CalculateGrassCurve(uv.y, interaction, windStrength * 0.55, windVariance, rand, posture, curvePosOS, curveTangentOS);
     float3 curveNormalOS = cross(float3(-1, 0, 0), normalize(curveTangentOS));
     posOS.yz = curvePosOS.yz;
     ////////////////////////////////////////////////
@@ -154,10 +155,13 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Clump
     float windAngle = -windDir + 90;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
+    float postureAngle = 180 * ( posture.y * 0.5 + posture.w * 0.5) * _GrassPostureFacing;
+    float postureHeight = step(0.97, posture.x ) ;
+  
     float randomRotationMaxSpan = 180;
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
-    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01) - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01+0.2);
-    float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand;
+    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01) - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01 + 0.2) - postureAngle  * reverseWind01;
+    float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand + postureHeight;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
     curvePosWS = ScaleWithCenter(curvePosWS, scale, spawnPosWS);

@@ -128,12 +128,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             float r2 = lerp(verts[0].y, verts[1].y, float(x) / float(iteration) + noisePercent.x);
             float y = lerp(r2, r1, float(z) / float(iteration) + noisePercent.y);
             float3 pos = float3(verts[0].x + inc.x * x + noise.x, y, verts[0].z + inc.z * z + noise.y);
-         
             SpawnData o;
             o.positionWS = pos;
             o.hash = rand3dTo1d(pos * 78.233);
             o.clumpInfo = float4(0, 0, 0,0);
-            o.postureData = float4(0, 0, 0, 0);
+            o.postureData = float4(voronoiNoise(pos*5, 78.233).y, voronoiNoise(pos *2, 78.233).y, voronoiNoise(pos * 0.5, 78.233).y, voronoiNoise(pos * 0.2, 78.233).y);
             _SpawnBuffer[x * iteration + z + id.x * iteration * iteration] = o;
         }
     }
