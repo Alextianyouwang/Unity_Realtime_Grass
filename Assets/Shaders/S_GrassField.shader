@@ -6,6 +6,7 @@ Shader "Procedural/S_GrassField"
 
    
         _MainTex ("Texture", 2D) = "white" {}
+         _TextureShift("TypeShift",Range(0,1)) = 0
         _Normal("Normal", 2D) = "bump" {}
          [Header(Shading)][Space]
         _TopColor("TopColor", Color) = (1,1,1,1)

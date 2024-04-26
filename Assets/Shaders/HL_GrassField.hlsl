@@ -62,13 +62,13 @@ _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeightOffset, _ClumpHeightMultiplier,
 _GrassRandomFacing,
 _SpecularTightness,
 _NormalScale,
-_BladeThickenFactor;
+_BladeThickenFactor,_TextureShift;
 
 void CalculateGrassCurve(float t, float interaction,float wind, float variance, float hash, float4 posture, out float3 pos, out float3 tan)
 {
-    float lengthMult = 1 + _GrassRandomLength * frac(hash * 78.233);
+    float lengthMult = 1 + _GrassRandomLength * frac(hash * 50);
     float waveAmplitudeMult = 1 - interaction;
-    float offset = hash * 12.9898 * 0.15 + variance * 30;
+    float offset = hash * 2 + variance * 30;
     float bendFactor = wind * 0.5 + 0.5;
     float tiltFactor = wind + interaction;
     // Maximum tilt angle
@@ -96,7 +96,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float variance, 
     }
         
     float2 P3 = tiltHeight ;
-    float2 P2 = tiltHeight * (0.6 + posture.x * 0.3) + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 39.346) + bendFactor);
+    float2 P2 = tiltHeight * (0.6 + posture.x * 0.3) + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 30) + bendFactor);
     P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * lengthMult;
     P3 = float2(P3.x, P3.y) + normalize(float2(-P3.y, P3.x)) * grassWave * 1.3* lengthMult;
     CubicBezierCurve_Tilt_Bend(float3(0, P2.y, P2.x), float3(0, P3.y, P3.x), t, pos, tan);
@@ -160,7 +160,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
   
     float randomRotationMaxSpan = 180;
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
-    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01) - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01 + 0.2) - postureAngle  * reverseWind01;
+    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01) - (frac(rand * 60) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01 + 0.2) - postureAngle  * reverseWind01;
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand + postureHeight;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
@@ -256,12 +256,15 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 #ifdef SHADOW_CASTER_PASS
     return 0;
 #else
-	float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv);
+    float rand01 = frac((v.debug.w + 1)*10);
+    float2 texShift = float2(_TextureShift * step(0.5, rand01), 0);
+    float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv + texShift);
+    clip(albedo.a +step(0.5, rand01) - 0.5);
+    
     float3 normalWS = normalize(v.normalWS);
     float3 tangentWS = normalize(v.tangentWS);
     float3 bitangentWS = cross(normalWS, tangentWS);
-    float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv), -_NormalScale);
-	clip(albedo.a - 0.5);
+    float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv+ texShift), -_NormalScale);
     normalWS = normalize(
     normalTS.x * tangentWS +
     normalTS.z * normalWS +
