@@ -128,4 +128,10 @@ float3 ProjectOntoPlane(float3 v, float3 planeNormal)
 {
     return v - dot(v, normalize(planeNormal)) * planeNormal;
 }
+void FastSSS_float(float3 ViewDir, float3 LightDir, float3 WorldNormal, float3 LightColor, float Flood, float Power, out float3 sss)
+{
+    const float3 LAddN = LightDir + WorldNormal;
+    sss = saturate(pow(saturate(dot(-LAddN, -LAddN * Flood + ViewDir)), Power)) * LightColor;
+    
+}
 #endif

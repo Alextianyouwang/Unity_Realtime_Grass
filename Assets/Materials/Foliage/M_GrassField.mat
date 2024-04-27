@@ -76,7 +76,7 @@ Material:
     - _NormalScale: 1
     - _RandomBendOffset: 0.794
     - _SSSPower: 0.1
-    - _SSSTightness: 0.23
+    - _SSSTightness: 0.15
     - _Scale: 0.665
     - _SpecularTightness: 0.327
     - _TextureShift: 0.132

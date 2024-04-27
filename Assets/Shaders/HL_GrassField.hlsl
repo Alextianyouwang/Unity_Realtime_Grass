@@ -218,12 +218,7 @@ struct CustomInputData
     float3 bakedGI;
     float4 shadowCoord;
 };
-void FastSSS_float(float3 ViewDir, float3 LightDir, float3 WorldNormal, float3 LightColor, float Flood, float Power, out float3 sss)
-{
-    const float3 LAddN = LightDir + WorldNormal;
-    sss = saturate(pow(saturate(dot(-LAddN, -LAddN * Flood + ViewDir)), Power)) * LightColor;
-    
-}
+
 float3 CustomLightHandling(CustomInputData d, Light l)
 {
     // Shadow in Project Setting set to 30 meters
@@ -259,7 +254,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 #ifdef SHADOW_CASTER_PASS
     return 0;
 #else
-    float rand01 = frac((v.debug.w + 1)*10);
+    float rand01 = frac(((v.debug.w + 1) * 5));
     float2 texShift = float2(_TextureShift * step(0.5, rand01), 0);
     float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv + texShift);
     clip(albedo.a +step(0.5, rand01) - 0.5);
