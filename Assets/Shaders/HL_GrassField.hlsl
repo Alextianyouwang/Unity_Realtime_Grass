@@ -53,7 +53,7 @@ float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
 float3 _ChunkColor, _LOD_Color;
 ////////////////////////////////////////////////
 
-float4 _TopColor, _BotColor, _VariantTopColor, _SpecularColor;
+float4 _TopColor, _BotColor, _VariantTopColor, _SpecularColor, _SSSColor;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 TEXTURE2D( _Normal);SAMPLER (sampler_Normal);float4 _Normal_ST;
 float _GrassScale, _GrassRandomLength,
@@ -61,6 +61,7 @@ _GrassTilt, _GrassHeight, _GrassBend, _GrassWaveAmplitude, _GrassWaveFrequency, 
 _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeightOffset, _ClumpHeightMultiplier, _ClumpTopThreshold,
 _GrassRandomFacing,
 _SpecularTightness,
+_SSSTightness,
 _NormalScale,
 _BladeThickenFactor,_TextureShift;
 
@@ -84,17 +85,8 @@ void CalculateGrassCurve(float t, float interaction,float wind, float variance, 
     float freq = 20 * _GrassWaveFrequency;
     float amplitude = _GrassWaveAmplitude * waveAmplitudeMult * bendFactor ; 
     float speed = _Time.y * _GrassWaveSpeed * 10 + bendFactor * 10;
-    [unroll]
-    for (int i = 0; i < 1; i++)
-    {
+    grassWave += sin(t * freq - speed + offset) * amplitude * lengthMult;
 
-        grassWave += sin(t * freq - speed + offset) * amplitude * lengthMult;
-        freq *= 1.2;
-        amplitude *= 0.8;
-        speed *= 1.4;
-        offset *= 78.233;
-    }
-        
     float2 P3 = tiltHeight ;
     float2 P2 = tiltHeight * (0.6 + posture.x * 0.3) + normalize(float2(-tiltHeight.y, tiltHeight.x)) * (_GrassBend * 2 * frac((hash * 0.5 + 0.5) * 30) + bendFactor);
     P2 = float2(P2.x, P2.y) + normalize(float2(-P3.y, P3.x)) * grassWave * lengthMult;
@@ -220,9 +212,18 @@ struct CustomInputData
     float3 specularColor;
     float smoothness;
     
+    float3 sss;
+    float sssTightness;
+
     float3 bakedGI;
     float4 shadowCoord;
 };
+void FastSSS_float(float3 ViewDir, float3 LightDir, float3 WorldNormal, float3 LightColor, float Flood, float Power, out float3 sss)
+{
+    const float3 LAddN = LightDir + WorldNormal;
+    sss = saturate(pow(saturate(dot(-LAddN, -LAddN * Flood + ViewDir)), Power)) * LightColor;
+    
+}
 float3 CustomLightHandling(CustomInputData d, Light l)
 {
     // Shadow in Project Setting set to 30 meters
@@ -230,14 +231,16 @@ float3 CustomLightHandling(CustomInputData d, Light l)
     float3 radiance = l.color * atten;
     float diffuse = saturate(dot(l.direction, d.normalWS));
     float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
+    float3 sss = 0;
+    FastSSS_float(d.viewDir, l.direction, d.groundNormalWS, l.color, 0, d.sssTightness, sss);
     float3 lv_dir = normalize(l.direction + d.viewDir);
     float specularDot = saturate(dot(d.normalWS, lv_dir ));
     float specularDotGround = saturate(dot(d.groundNormalWS, lv_dir));
     float specularBlend = lerp(specularDot, specularDotGround * 0.99, smoothstep(20, 120, d.viewDist));
-    float diffuseBlend = diffuseGround * 0.5 + diffuse * 0.5;
+    float diffuseBlend = diffuseGround * 1 + diffuse * 0.5;
     float specular = pow(specularBlend, d.smoothness) * diffuseBlend;
     float3 phong = saturate (diffuseBlend * d.albedo + specular * d.specularColor);
-    return phong * radiance;
+    return phong * radiance + sss * d.sss * smoothstep(-0.2,1,diffuseGround) * atten;
 }
 float3 CustomCombineLight(CustomInputData d)
 {
@@ -277,6 +280,8 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     d.viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
     d.viewDist = length(_WorldSpaceCameraPos - v.positionWS);
     d.smoothness = exp2(_SpecularTightness * 10 + 1);
+    d.sss = _SSSColor;
+    d.sssTightness = exp2(_SSSTightness * 10 + 1);
 	d.albedo = lerp(_BotColor, lerp(_TopColor, _VariantTopColor, saturate(v.height + _ClumpTopThreshold * 2 - 1)), v.uv.y).xyz * albedo.xyz;
     d.specularColor = _SpecularColor.xyz;
     d.bakedGI = v.bakedGI;

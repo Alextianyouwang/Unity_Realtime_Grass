@@ -16,6 +16,8 @@ Shader "Procedural/S_GrassField"
         [HDR]_SpecularColor("SpecularColor", Color) = (1,1,1,1)
         _SpecularTightness("SpecularTightness",Range(0,1)) = 0.5
         _NormalScale("NormalScale",Range(0,1)) = 0.5
+        _SSSColor("SSSColor", Color) = (0,0,0,1)
+        _SSSTightness("SSSTightness",Range(0,1)) = 0.1
 
         [Header(Transform)][Space]
         _GrassScale("GrassMasterScale", Range(0,1)) = 1
