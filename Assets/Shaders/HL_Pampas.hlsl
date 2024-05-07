@@ -53,7 +53,7 @@ float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
 float3 _ChunkColor, _LOD_Color;
 ////////////////////////////////////////////////
 
-float4 _TopColor, _BotColor, _VariantTopColor, _SpecularColor;
+float4 _TopColor, _BotColor, _VariantTopColor, _SpecularColor, _SSSColor;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 TEXTURE2D( _Normal);SAMPLER (sampler_Normal);float4 _Normal_ST;
 float _GrassScale, _GrassRandomLength,
@@ -62,7 +62,7 @@ _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeightOffset, _ClumpHeightMultiplier,
 _SpecularTightness,
 _NormalScale,
 _BladeThickenFactor,
-
+_SSSTightness,
  _MasterScale,_RandomFacing, _ClumpTightness;
 
 
@@ -149,6 +149,44 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
    
 }
 
+struct CustomInputData
+{
+    float3 normalWS;
+    float3 groundNormalWS;
+    float3 positionWS;
+    float3 viewDir;
+    float viewDist;
+    
+    float3 albedo;
+    float3 specularColor;
+    float smoothness;
+    
+    float3 sss;
+    float sssTightness;
+
+    float3 bakedGI;
+    float4 shadowCoord;
+};
+
+float3 CustomLightHandling(CustomInputData d, Light l)
+{
+    float atten = lerp(l.shadowAttenuation, 1, smoothstep(20, 30, d.viewDist)) * l.distanceAttenuation;
+    float3 sss = 0;
+    FastSSS_float(d.viewDir, l.direction, d.groundNormalWS, l.color, 0, d.sssTightness, sss);
+    return sss * atten;
+}
+float3 CustomCombineLight(CustomInputData d)
+{
+    Light mainLight = GetMainLight(d.shadowCoord);
+    MixRealtimeAndBakedGI(mainLight, d.normalWS, d.bakedGI);
+    float3 color = d.bakedGI * d.albedo;
+    color += CustomLightHandling(d, mainLight);
+    uint numAdditionalLights = GetAdditionalLightsCount();
+    for (uint lightI = 0; lightI < numAdditionalLights; lightI++)
+        color += CustomLightHandling(d, GetAdditionalLight(lightI, d.positionWS, d.shadowCoord));
+    return color;
+}
+
 
 float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 {
@@ -171,6 +209,21 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
    
     float3 posNDS = v.positionCS / v.positionCS.w;
     float2 uvSS = posNDS.xy / 2 + 0.5;
+    
+    CustomInputData d = (CustomInputData) 0;
+    d.normalWS = normalize(normalWS);
+    d.groundNormalWS = normalize(v.groundNormalWS);
+    d.positionWS = v.positionWS;
+    d.shadowCoord = CalculateShadowCoord(v.positionWS, v.positionCS);
+    d.viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
+    d.viewDist = length(_WorldSpaceCameraPos - v.positionWS);
+    d.smoothness = exp2(_SpecularTightness * 10 + 1);
+    d.sss = _SSSColor;
+    d.sssTightness = exp2(_SSSTightness * 10 + 1);
+    d.albedo = 0;
+    d.specularColor = _SpecularColor.xyz;
+    d.bakedGI = v.bakedGI;
+    
     InputData data = (InputData) 0;
     
     data.positionWS = v.positionWS;
@@ -199,7 +252,10 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     surf.clearCoatMask = 0;
     surf.clearCoatSmoothness = 0;
     
+    float3 customSSS = CustomCombineLight(d);
+    
     float4 finalColor =  UniversalFragmentPBR(data, surf);
+    finalColor.xyz += customSSS;
     return finalColor;
 
 #endif

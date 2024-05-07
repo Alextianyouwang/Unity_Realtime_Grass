@@ -8,8 +8,9 @@ Shader "Procedural/S_PampasField"
         _NormalScale("NormalScale",Range(0,3)) = 1
         _MasterScale("MasterScale",Range(0,1)) = 1
         _RandomFacing("RandomFacing",Range(0,1)) = 1
-         _ClumpTightness("ClumpTightness",Range(0,1)) = 0.5
-       
+        _ClumpTightness("ClumpTightness",Range(0,1)) = 0.5
+        _SSSColor("SSSColor", Color) = (0,0,0,1)
+        _SSSTightness("SSSTightness",Range(0,1)) = 0.1
 
     }
     SubShader
