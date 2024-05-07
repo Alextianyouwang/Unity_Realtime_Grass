@@ -76,7 +76,7 @@ Material:
     - _NormalScale: 1
     - _RandomBendOffset: 0.794
     - _SSSPower: 0.1
-    - _SSSTightness: 0.15
+    - _SSSTightness: 0.1
     - _Scale: 0.665
     - _SpecularTightness: 0.327
     - _TextureShift: 0.132
@@ -94,7 +94,7 @@ Material:
     - _WindSpeed: 0.702
     m_Colors:
     - _BotColor: {r: 0.745283, g: 0.3058473, b: 0.3058473, a: 1}
-    - _SSSColor: {r: 0.6132076, g: 0.49310043, b: 0.29792634, a: 1}
+    - _SSSColor: {r: 1, g: 0.78950465, b: 0.43867922, a: 1}
     - _SpecularColor: {r: 0.3490566, g: 0.3490566, b: 0.3490566, a: 1}
     - _TopColor: {r: 0.7075472, g: 0.7075472, b: 0.31706125, a: 1}
     - _VariantTopColor: {r: 1, g: 0.8515253, b: 0, a: 1}

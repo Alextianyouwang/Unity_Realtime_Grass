@@ -171,9 +171,10 @@ struct CustomInputData
 float3 CustomLightHandling(CustomInputData d, Light l)
 {
     float atten = lerp(l.shadowAttenuation, 1, smoothstep(20, 30, d.viewDist)) * l.distanceAttenuation;
+    float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
     float3 sss = 0;
     FastSSS_float(d.viewDir, l.direction, d.groundNormalWS, l.color, 0, d.sssTightness, sss);
-    return sss * atten;
+    return saturate(sss  * d.sss * atten);
 }
 float3 CustomCombineLight(CustomInputData d)
 {

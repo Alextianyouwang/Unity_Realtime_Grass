@@ -118,55 +118,55 @@ MonoBehaviour:
   active: 1
   Enabled:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   EarthRadius:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 5000
   OpticalDepthSamples:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 10
   InscatteringSamples:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 30
   AtmosphereHeight:
-    m_OverrideState: 0
-    m_Value: 100
+    m_OverrideState: 1
+    m_Value: 50
   AtmosphereDensityFalloff:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 4.24
   AtmosphereDensityMultiplier:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0.889
   AtmosphereInscatteringTint:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   AtmosphereUniformAbsorbsion:
-    m_OverrideState: 0
-    m_Value: 0.1
+    m_OverrideState: 1
+    m_Value: 0.12
   AtmosphereAbsorbsionWeightPerChannel:
-    m_OverrideState: 0
-    m_Value: {r: 0.01, g: 0.03, b: 0.08, a: 1}
+    m_OverrideState: 1
+    m_Value: {r: 0.049, g: 0.106, b: 0.291, a: 1}
   AtmosphereChannelSplit:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0.738
   AerosolsHeight:
-    m_OverrideState: 0
-    m_Value: 20
+    m_OverrideState: 1
+    m_Value: 12.8
   AerosolsDensityFalloff:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   AerosolsDensityMultiplier:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 1.87
   AerosolsInscatteringTint:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   AerosolsUniformAbsorbsion:
-    m_OverrideState: 0
-    m_Value: 0.1
+    m_OverrideState: 1
+    m_Value: 0.404
   AerosolsAnistropic:
-    m_OverrideState: 0
-    m_Value: 0.7
+    m_OverrideState: 1
+    m_Value: 0.334
 --- !u!114 &2887490133196386240
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -188,7 +188,7 @@ MonoBehaviour:
     m_Value: 1.1
   intensity:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 4
   scatter:
     m_OverrideState: 1
     m_Value: 0.7

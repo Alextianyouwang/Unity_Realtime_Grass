@@ -34,8 +34,10 @@ Material:
     m_Ints: []
     m_Floats:
     - _ClumpTightness: 0.612
-    - _MasterScale: 0.604
-    - _NormalScale: 1.5
+    - _MasterScale: 0.7
+    - _NormalScale: 1
     - _RandomFacing: 0.613
-    m_Colors: []
+    - _SSSTightness: 0.15
+    m_Colors:
+    - _SSSColor: {r: 1, g: 0.9771194, b: 0.759434, a: 1}
   m_BuildTextureStacks: []
