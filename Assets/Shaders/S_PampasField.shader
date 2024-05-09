@@ -7,10 +7,15 @@ Shader "Procedural/S_PampasField"
         _Normal("Normal", 2D) = "bump" {}
         _NormalScale("NormalScale",Range(0,3)) = 1
         _MasterScale("MasterScale",Range(0,1)) = 1
+        _RandomScale("RandomScale",Range(0,1)) = 1
         _RandomFacing("RandomFacing",Range(0,1)) = 1
         _ClumpTightness("ClumpTightness",Range(0,1)) = 0.5
         _SSSColor("SSSColor", Color) = (0,0,0,1)
         _SSSTightness("SSSTightness",Range(0,1)) = 0.1
+
+        _GrassWaveAmplitude("GrassWaveAmplitude",Float) = 1
+        _GrassWaveFrequency("GrassWaveFrequency",Float) = 1
+        _GrassWaveSpeed("GrassWaveSpeed",Float) = 1
 
     }
     SubShader

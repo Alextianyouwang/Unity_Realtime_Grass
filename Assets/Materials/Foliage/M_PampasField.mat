@@ -34,9 +34,16 @@ Material:
     m_Ints: []
     m_Floats:
     - _ClumpTightness: 0.612
-    - _MasterScale: 0.7
+    - _GrassBend: 0.8
+    - _GrassHeight: 0.38
+    - _GrassTilt: 0.46
+    - _GrassWaveAmplitude: 0.015
+    - _GrassWaveFrequency: 0.1
+    - _GrassWaveSpeed: 0.73
+    - _MasterScale: 0.75
     - _NormalScale: 1
-    - _RandomFacing: 0.613
+    - _RandomFacing: 1
+    - _RandomScale: 0.3
     - _SSSTightness: 0.15
     m_Colors:
     - _SSSColor: {r: 1, g: 0.9771194, b: 0.759434, a: 1}

@@ -13,6 +13,7 @@ struct VertexInput
     float4 tangentOS : TANGENT;
     float2 uv : TEXCOORD0;
     float2 uv1 : TEXCOORD1;
+    float2 uv2 : TEXCOORD2;
     
 };
 struct VertexOutput
@@ -25,6 +26,7 @@ struct VertexOutput
     float3 positionWS : TEXCOORD4;
     float4 clumpInfo : TEXCOORD5;
     float4 debug : TEXCOOR6;
+    float2 uv2 : TEXCOORD7;
     float3 bakedGI : TEXCOORD8;
 };
 ////////////////////////////////////////////////
@@ -56,20 +58,19 @@ float3 _ChunkColor, _LOD_Color;
 float4 _TopColor, _BotColor, _VariantTopColor, _SpecularColor, _SSSColor;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 TEXTURE2D( _Normal);SAMPLER (sampler_Normal);float4 _Normal_ST;
-float _GrassScale, _GrassRandomLength,
-_GrassTilt, _GrassHeight, _GrassBend, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
+float _GrassScale, _GrassRandomLength, _GrassWaveAmplitude, _GrassWaveFrequency, _GrassWaveSpeed,
 _ClumpEmergeFactor, _ClumpThreshold, _ClumpHeightOffset, _ClumpHeightMultiplier, _ClumpTopThreshold,
 _SpecularTightness,
 _NormalScale,
 _BladeThickenFactor,
 _SSSTightness,
- _MasterScale,_RandomFacing, _ClumpTightness;
-
-
+ _MasterScale, _RandomFacing, _ClumpTightness, _RandomScale;
 
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
+    
+
     ////////////////////////////////////////////////
     // Fetch Input
     float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS;
@@ -84,14 +85,24 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float interaction = saturate(_InteractionTexture[int2(x, y)]);
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
+    float2 uv2 = v.uv2;
     float rand = _SpawnBuffer[instanceID].hash * 2 - 1; // [-1,1]
     float3 clumpCenter = float3(_SpawnBuffer[instanceID].clumpInfo.x, 0, _SpawnBuffer[instanceID].clumpInfo.y);
     float2 dirToClump = normalize((spawnPosWS).xz - _SpawnBuffer[instanceID].clumpInfo.xy);
     float distToClump = _SpawnBuffer[instanceID].clumpInfo.z;
     float clumpHash = _SpawnBuffer[instanceID].clumpInfo.w; // [0,1]
+    float4 posture = _SpawnBuffer[instanceID].postureData * 2 - 1; // [-1,1]
     float3 posOS = v.positionOS;
     float viewDist = length(_WorldSpaceCameraPos - spawnPosWS);
-    
+     ////////////////////////////////////////////////
+    // Apply Curve
+    float wind01 = (windStrength * 0.5 + 0.5);
+    float offset = rand * 2 + windVariance * 30;
+    float speed = _Time.y * _GrassWaveSpeed * 10 + wind01 * 10;
+    float freq = 20 * _GrassWaveFrequency;
+    float amplitude = _GrassWaveAmplitude * wind01 * (1 - interaction);
+    float wave = sin(uv.y * freq - speed + offset) * amplitude;
+    posOS.y += wave;
     ////////////////////////////////////////////////
     // Apply Transform
 	spawnPosWS.xz = lerp(spawnPosWS.xz, clumpCenter.xz, _ClumpTightness);
@@ -102,19 +113,21 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float windAngle = -windDir + 90;
     float randomRotationMaxSpan = 180;
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
-    float rotAngle = windAngle - (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _RandomFacing * (reverseWind01 + 0.2);
+    float poseAngle = (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _RandomFacing + 90;
+    float rotAngle = lerp(poseAngle, windAngle, reverseWind01 * 2) + windStrength * 30;
+    float bendAngle = interaction * 45;
     
     
 
-    float scale = 1 + rand * 0.2;
+    float scale = 1 + rand * _RandomScale;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
-     //posWS = RotateAroundAxis(float4(posWS, 1), float3(1, 0, 0), rotAngle, spawnPosWS).xyz;
+     posWS = RotateAroundAxis(float4(posWS, 1), float3(1, 0, 0), bendAngle, spawnPosWS).xyz;
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
     
-    //normalWS = normalize(RotateAroundXInDegrees(float4(normalWS, 0), rotAngle)).xyz;
-    normalWS = normalize(RotateAroundYInDegrees(float4(normalWS, 0), rotAngle).xyz);
+    normalWS = normalize(RotateAroundXInDegrees(float4(normalWS, 0), bendAngle)).xyz;
+    normalWS = normalize(RotateAroundYInDegrees(float4(normalWS, 0), rotAngle)).xyz;
     
-    //tangentWS = normalize(RotateAroundXInDegrees(float4(tangentWS.xyz, 0), rotAngle));
+    tangentWS = normalize(RotateAroundXInDegrees(float4(tangentWS.xyz, 0), bendAngle));
     tangentWS = normalize(RotateAroundYInDegrees(float4(tangentWS.xyz, 0), rotAngle));
     
     
