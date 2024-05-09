@@ -37,9 +37,9 @@ Material:
     - _GrassBend: 0.8
     - _GrassHeight: 0.38
     - _GrassTilt: 0.46
-    - _GrassWaveAmplitude: 0.015
-    - _GrassWaveFrequency: 0.1
-    - _GrassWaveSpeed: 0.73
+    - _GrassWaveAmplitude: 0.06
+    - _GrassWaveFrequency: 4
+    - _GrassWaveSpeed: 4
     - _MasterScale: 0.75
     - _NormalScale: 1
     - _RandomFacing: 1

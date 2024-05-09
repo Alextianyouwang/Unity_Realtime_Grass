@@ -98,11 +98,13 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Curve
     float wind01 = (windStrength * 0.5 + 0.5);
     float offset = rand * 2 + windVariance * 30;
-    float speed = _Time.y * _GrassWaveSpeed * 10 + wind01 * 10;
-    float freq = 20 * _GrassWaveFrequency;
-    float amplitude = _GrassWaveAmplitude * wind01 * (1 - interaction);
-    float wave = sin(uv.y * freq - speed + offset) * amplitude;
-    posOS.y += wave;
+    float speed = _Time.y * _GrassWaveSpeed + wind01 * 5;
+    float freq = _GrassWaveFrequency;
+    float amplitude = _GrassWaveAmplitude * (wind01-0.2) * (1 - interaction);
+    float waveX = cos(uv2.y * freq - speed + offset) * amplitude;
+    float waveY = sin((uv2.y * freq - speed + offset)*2 ) * amplitude / 2;
+    posOS.y += waveY * uv2.y;
+    posOS.x += waveX * uv2.y;
     ////////////////////////////////////////////////
     // Apply Transform
 	spawnPosWS.xz = lerp(spawnPosWS.xz, clumpCenter.xz, _ClumpTightness);
