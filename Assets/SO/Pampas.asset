@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Pampas
   m_EditorClassIdentifier: 
   SpawnMesh:
-  - {fileID: 4300000, guid: 7909edd120f503146a1c4ba695f2fab0, type: 2}
-  - {fileID: 4300000, guid: 7909edd120f503146a1c4ba695f2fab0, type: 2}
-  - {fileID: 4300000, guid: 7909edd120f503146a1c4ba695f2fab0, type: 2}
+  - {fileID: 4300000, guid: d1893a9a25b28fa4a9935f61cf085d20, type: 2}
+  - {fileID: 4300000, guid: d1893a9a25b28fa4a9935f61cf085d20, type: 2}
+  - {fileID: 4300000, guid: d1893a9a25b28fa4a9935f61cf085d20, type: 2}
   SpawnMeshMaterial: {fileID: 2100000, guid: 4a63e246b37500f42b2669305a776b47, type: 2}
   DensityMap: {fileID: 2800000, guid: ab99ff7fc2c79264eac2b84e068cb824, type: 3}
   SquaredInstancePerTile: 1
