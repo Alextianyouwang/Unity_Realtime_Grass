@@ -244,7 +244,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     
     data.positionWS = v.positionWS;
     data.positionCS = v.positionCS;
-    data.normalWS = normalWS;
+    data.normalWS = lerp(normalWS,d.groundNormalWS,0.5);
     data.viewDirectionWS = normalize(_WorldSpaceCameraPos - v.positionWS);
     data.shadowCoord = CalculateShadowCoord(v.positionWS, v.positionCS);
     data.fogCoord = 0;
