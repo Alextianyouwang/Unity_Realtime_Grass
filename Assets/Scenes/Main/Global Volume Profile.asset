@@ -40,6 +40,79 @@ MonoBehaviour:
   maxNits:
     m_OverrideState: 0
     m_Value: 1000
+--- !u!114 &-3259519755131404258
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 859ab6eb70963d147b95c5aac902cd1e, type: 3}
+  m_Name: VolumetricAtmosphereComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  Enabled:
+    m_OverrideState: 1
+    m_Value: 1
+  EarthRadius:
+    m_OverrideState: 1
+    m_Value: 1000
+  OpticalDepthSamples:
+    m_OverrideState: 1
+    m_Value: 50
+  InscatteringSamples:
+    m_OverrideState: 1
+    m_Value: 30
+  EnableRayleighScattering:
+    m_OverrideState: 1
+    m_Value: 1
+  AtmosphereHeight:
+    m_OverrideState: 1
+    m_Value: 50
+  AtmosphereDensityFalloff:
+    m_OverrideState: 1
+    m_Value: 10
+  AtmosphereDensityMultiplier:
+    m_OverrideState: 1
+    m_Value: 3
+  AtmosphereInscatteringTint:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  AtmosphereUniformAbsorbsion:
+    m_OverrideState: 1
+    m_Value: 0.15
+  AtmosphereAbsorbsionWeightPerChannel:
+    m_OverrideState: 1
+    m_Value: {r: 0.12941177, g: 0.2901961, b: 0.6666667, a: 1}
+  AtmosphereChannelSplit:
+    m_OverrideState: 1
+    m_Value: 1
+  EnableMieScattering:
+    m_OverrideState: 1
+    m_Value: 1
+  AerosolsHeight:
+    m_OverrideState: 1
+    m_Value: 30
+  AerosolsDensityFalloff:
+    m_OverrideState: 1
+    m_Value: 6
+  AerosolsDensityMultiplier:
+    m_OverrideState: 1
+    m_Value: 0.8
+  AerosolsInscatteringTint:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  AerosolsUniformAbsorbsion:
+    m_OverrideState: 1
+    m_Value: 0.284
+  AerosolsAnistropic:
+    m_OverrideState: 1
+    m_Value: 0.685
+  VolumePassOnly:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -56,7 +129,7 @@ MonoBehaviour:
   - {fileID: 2887490133196386240}
   - {fileID: 1122861171276779627}
   - {fileID: -4537567817416249132}
-  - {fileID: 1570348654172144620}
+  - {fileID: -3259519755131404258}
 --- !u!114 &1122861171276779627
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -128,6 +201,9 @@ MonoBehaviour:
   InscatteringSamples:
     m_OverrideState: 1
     m_Value: 30
+  EnableRayleighScattering:
+    m_OverrideState: 1
+    m_Value: 1
   AtmosphereHeight:
     m_OverrideState: 1
     m_Value: 50
@@ -142,11 +218,14 @@ MonoBehaviour:
     m_Value: {r: 1.1486983, g: 1.1486983, b: 1.1486983, a: 1}
   AtmosphereUniformAbsorbsion:
     m_OverrideState: 1
-    m_Value: 0.212
+    m_Value: 0.153
   AtmosphereAbsorbsionWeightPerChannel:
     m_OverrideState: 1
     m_Value: {r: 0.044, g: 0.134, b: 0.489, a: 1}
   AtmosphereChannelSplit:
+    m_OverrideState: 1
+    m_Value: 1
+  EnableMieScattering:
     m_OverrideState: 1
     m_Value: 1
   AerosolsHeight:
@@ -167,6 +246,9 @@ MonoBehaviour:
   AerosolsAnistropic:
     m_OverrideState: 1
     m_Value: 0.553
+  VolumePassOnly:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!114 &2887490133196386240
 MonoBehaviour:
   m_ObjectHideFlags: 3

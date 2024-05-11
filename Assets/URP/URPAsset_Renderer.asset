@@ -34,8 +34,8 @@ MonoBehaviour:
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
   - {fileID: -782477358771243859}
-  - {fileID: 8734684506729234439}
-  m_RendererFeatureMap: ad74a7e9fc1424f50740b4d047d53779
+  - {fileID: 7497092884243170557}
+  m_RendererFeatureMap: ad74a7e9fc1424f5fd446cc541060b68
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -74,7 +74,7 @@ MonoBehaviour:
   m_CopyDepthMode: 1
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
---- !u!114 &8734684506729234439
+--- !u!114 &7497092884243170557
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -89,3 +89,4 @@ MonoBehaviour:
   m_Active: 1
   showInSceneView: 1
   _event: 500
+  PrebakedTextureQualitySetting: 2
