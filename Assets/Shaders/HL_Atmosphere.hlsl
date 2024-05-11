@@ -107,7 +107,7 @@ void AtmosphereicScattering(float3 rayOrigin, float3 rayDir, float3 sunDir, floa
         float rs_sunRayOpticalDepth = OpticalDepth(samplePos, sunDir, sunRayLength,earthCenter , _Rs_Thickness,_Rs_DensityFalloff) * _Rs_DensityMultiplier;
     #else
         float rs_localDensity = opticalDepthData.y * stepSize* _Rs_DensityMultiplier;
-        float rs_sunRayOpticalDepth = opticalDepthData.x;
+        float rs_sunRayOpticalDepth = opticalDepthData.x* _Rs_DensityMultiplier;;
     #endif
         rs_viewRayOpticalDepth += rs_localDensity;
         float3 rs_tau = (rs_viewRayOpticalDepth + rs_sunRayOpticalDepth) * rs_scatteringWeight;
@@ -121,7 +121,7 @@ void AtmosphereicScattering(float3 rayOrigin, float3 rayDir, float3 sunDir, floa
         float ms_sunRayOpticalDepth = OpticalDepth(samplePos, sunDir, sunRayLength,earthCenter, _Ms_Thickness, _Ms_DensityFalloff) *_Ms_DensityMultiplier;
     #else
         float ms_localDensity = opticalDepthData.w * stepSize * _Ms_DensityMultiplier;
-        float ms_sunRayOpticalDepth =  opticalDepthData.z;
+        float ms_sunRayOpticalDepth =  opticalDepthData.z*_Ms_DensityMultiplier;
     #endif
         ms_viewRayOpticalDepth += ms_localDensity;
         float3 ms_tau = (ms_sunRayOpticalDepth + ms_viewRayOpticalDepth) * ms_scatteringWeight;

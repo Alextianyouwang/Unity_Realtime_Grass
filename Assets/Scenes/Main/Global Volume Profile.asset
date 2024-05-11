@@ -64,7 +64,7 @@ MonoBehaviour:
     m_Value: 50
   InscatteringSamples:
     m_OverrideState: 1
-    m_Value: 30
+    m_Value: 50
   EnableRayleighScattering:
     m_OverrideState: 1
     m_Value: 1
@@ -76,16 +76,16 @@ MonoBehaviour:
     m_Value: 10
   AtmosphereDensityMultiplier:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 0.99
   AtmosphereInscatteringTint:
     m_OverrideState: 1
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   AtmosphereUniformAbsorbsion:
     m_OverrideState: 1
-    m_Value: 0.15
+    m_Value: 0.56
   AtmosphereAbsorbsionWeightPerChannel:
     m_OverrideState: 1
-    m_Value: {r: 0.12941177, g: 0.2901961, b: 0.6666667, a: 1}
+    m_Value: {r: 0.02745098, g: 0.2, b: 0.43137255, a: 1}
   AtmosphereChannelSplit:
     m_OverrideState: 1
     m_Value: 1
@@ -94,19 +94,19 @@ MonoBehaviour:
     m_Value: 1
   AerosolsHeight:
     m_OverrideState: 1
-    m_Value: 30
+    m_Value: 50
   AerosolsDensityFalloff:
     m_OverrideState: 1
     m_Value: 6
   AerosolsDensityMultiplier:
     m_OverrideState: 1
-    m_Value: 0.8
+    m_Value: 0.59
   AerosolsInscatteringTint:
     m_OverrideState: 1
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   AerosolsUniformAbsorbsion:
     m_OverrideState: 1
-    m_Value: 0.284
+    m_Value: 0.167
   AerosolsAnistropic:
     m_OverrideState: 1
     m_Value: 0.685
