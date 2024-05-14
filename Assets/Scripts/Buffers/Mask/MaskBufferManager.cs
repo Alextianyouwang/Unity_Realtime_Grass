@@ -18,8 +18,8 @@ public class MaskBufferManager : BufferPool
     private void OnDisable()
     {
 
-        TileGrandCluster.OnRequestWindBuffer -= CreateBuffer;
-        TileGrandCluster.OnRequestDisposeWindBuffer -= DisposeBuffer;
+        TileGrandCluster.OnRequestMaskBuffer -= CreateBuffer;
+        TileGrandCluster.OnRequestDisposeMaskBuffer -= DisposeBuffer;
         TileVisualizer.OnRequestMaskBuffer -= CreateBuffer;
         TileVisualizer.OnRequestDisposeMaskBuffer -= DisposeBuffer;
         foreach (DataPerTileCluster d in _dataTracker.Values)
