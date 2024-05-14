@@ -12,7 +12,7 @@ float _DirX;
 float _DirY;
 
 #include "../../INCLUDE/HL_Noise.hlsl"
-[numthreads(8,8,1)]
+[numthreads(1024,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _MaxCount)

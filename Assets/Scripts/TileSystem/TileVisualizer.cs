@@ -11,6 +11,7 @@ public class TileVisualizer
     private ComputeBuffer _vertBuffer;
     private ComputeBuffer _triangleBuffer;
     private ComputeBuffer _windBuffer_external;
+    private ComputeBuffer _maskBuffer_external;
     private ComputeBuffer _argsBuffer;
 
     private int[] _triangles;
@@ -19,7 +20,9 @@ public class TileVisualizer
     private uint[] _args;
 
     public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestWindBuffer;
+    public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestMaskBuffer;
     public static Action<int> OnRequestDisposeWindBuffer;
+    public static Action<int> OnRequestDisposeMaskBuffer;
     struct InstanceData 
     {
         public Vector3 position;
@@ -103,8 +106,11 @@ public class TileVisualizer
         _mpb.SetBuffer("_VertBuffer", _vertBuffer);
         _mpb.SetBuffer("_TriangleBuffer", _triangleBuffer);
         GetWindBuffer();
+        GetMaskBuffer();
         if (_windBuffer_external != null)
             _mpb.SetBuffer("_NoiseBuffer", _windBuffer_external);
+        if (_maskBuffer_external != null) 
+            _mpb.SetBuffer("_MaskBuffer", _maskBuffer_external);
     }
 
     public void GetWindBuffer()
@@ -112,6 +118,13 @@ public class TileVisualizer
         float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
         _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+    }
+
+    public void GetMaskBuffer()
+    {
+        float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
+        Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
+        _maskBuffer_external = OnRequestMaskBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
     public void DrawIndirect() 
     {
@@ -129,5 +142,6 @@ public class TileVisualizer
         _instanceDataBuffer?.Dispose();
         _argsBuffer?.Dispose();
         OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
+        OnRequestDisposeMaskBuffer?.Invoke(GetHashCode());
     }
 }

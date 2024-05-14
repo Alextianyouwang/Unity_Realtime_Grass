@@ -26,11 +26,14 @@ public class TileGrandCluster : MonoBehaviour
     private  TileChunkDispatcher[] _tileChunkDispatcher;
 
     private ComputeBuffer _windBuffer_external;
+    private ComputeBuffer _maskBuffer_external;
     private RenderTexture _interactionTexture_external;
 
     public static Func<RenderTexture> OnRequestInteractionTexture;
     public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestWindBuffer;
+    public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestMaskBuffer;
     public static Action<int> OnRequestDisposeWindBuffer;
+    public static Action<int> OnRequestDisposeMaskBuffer;
     public static Func<RenderTexture> OnRequestOcclusionTexture;
 
     public static float _LOD_Threshold_01 { get; private set; }
@@ -44,6 +47,7 @@ public class TileGrandCluster : MonoBehaviour
         SetupTileDebug();
         InitializeInteractionTexture();
         InitializeWindBuffer();
+        InitializeMaskBuffer();
         InitializeDispatcher();
 
     }
@@ -87,6 +91,13 @@ public class TileGrandCluster : MonoBehaviour
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
         _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
+
+    void InitializeMaskBuffer() 
+    {
+        float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
+        Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
+        _maskBuffer_external = OnRequestMaskBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+    }
     void InitializeDispatcher() 
     {
 
@@ -116,6 +127,7 @@ public class TileGrandCluster : MonoBehaviour
            _tileData,
            RenderCam,
            _windBuffer_external,
+           _maskBuffer_external,
            OnRequestOcclusionTexture.Invoke(),
            _interactionTexture_external,
            data.DensityMap,
@@ -145,6 +157,7 @@ public class TileGrandCluster : MonoBehaviour
     {
         _tileData?.ReleaseBuffer();
         OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
+        OnRequestDisposeMaskBuffer?.Invoke(GetHashCode());
         _tileVisualizer?.ReleaseBuffer();
         if (_tileChunkDispatcher != null)
             foreach (TileChunkDispatcher d in _tileChunkDispatcher)

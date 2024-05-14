@@ -23,7 +23,7 @@ public class WindBufferManager : BufferPool
     public float WindFrequencyBuildup = 1.5f;
     private void OnEnable()
     {
-        Initialize("CS/CS_GlobalWind", "_WindBuffer");
+        Initialize("CS/CS_GlobalWind", "_WindBuffer", sizeof(float) * 3);
         OnBufferCreated += SetInitialParameters;
         TileGrandCluster.OnRequestWindBuffer += CreateBuffer;
         TileGrandCluster.OnRequestDisposeWindBuffer += DisposeBuffer;
@@ -38,7 +38,7 @@ public class WindBufferManager : BufferPool
         TileVisualizer.OnRequestDisposeWindBuffer -= DisposeBuffer;
 
         foreach (DataPerTileCluster d in _dataTracker.Values)
-            d.WindBuffer.Dispose();
+            d.Buffer.Dispose();
         _dataTracker.Clear();
     }
 

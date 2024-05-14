@@ -9,6 +9,7 @@ public class TileChunkDispatcher
     private ComputeBuffer _rawSpawnBuffer;
     private ComputeBuffer _groundNormalBuffer;
     private ComputeBuffer _windBuffer_external;
+    private ComputeBuffer _maskBuffer_external;
 
     private RenderTexture _interactionTexture_external;
     private RenderTexture _zTex_external;
@@ -31,7 +32,7 @@ public class TileChunkDispatcher
     private float _densityFalloffThreshold;
 
 
-    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, ComputeBuffer windBuffer_external,RenderTexture zTex_external, RenderTexture interactionTexture_external, Texture2D densityMap,
+    public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, ComputeBuffer windBuffer_external, ComputeBuffer maskBuffer_external, RenderTexture zTex_external, RenderTexture interactionTexture_external, Texture2D densityMap,
         int squaredInstancePerTile, int squaredChunksPerCluster, int squaredTilePerClump, float occludeeBoundScaleMultiplier, float densityFilter, float densityFalloffThreshold)
     {
         _spawnMesh = spawnMesh;
@@ -39,6 +40,7 @@ public class TileChunkDispatcher
         _tileData = tileData;
         _renderCam = renderCam;
         _windBuffer_external = windBuffer_external;
+        _maskBuffer_external = maskBuffer_external;
         _zTex_external = zTex_external;
         _interactionTexture_external = interactionTexture_external;
         _densityMap = densityMap;
@@ -123,6 +125,7 @@ public class TileChunkDispatcher
                     _densityFalloffThreshold
                     );
                 t.SetWindBuffer(_windBuffer_external);
+                t.SetMaskBuffer(_maskBuffer_external);
                 t.SetGroundNormalBuffer(_groundNormalBuffer);
                 t.SetInteractionTexture(_interactionTexture_external);
                 t.SetupCuller();

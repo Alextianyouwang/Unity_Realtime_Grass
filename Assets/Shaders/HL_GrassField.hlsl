@@ -43,6 +43,7 @@ StructuredBuffer<SpawnData> _SpawnBuffer;
 // Field Data
 StructuredBuffer<float3> _GroundNormalBuffer;
 StructuredBuffer<float3> _WindBuffer;
+StructuredBuffer<float4> _MaskBuffer;
 Texture2D<float> _InteractionTexture;
 int _NumTilePerClusterSide;
 float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
@@ -69,7 +70,7 @@ void CalculateGrassCurve(float t, float interaction,float wind, float variance, 
 {
     float lengthMult = 1 + _GrassRandomLength * frac(hash * 50);
     float waveAmplitudeMult = 1 - interaction;
-    float offset = hash * 2 + variance * 30;
+    float offset = hash * 4 + variance * 30;
     float bendFactor = wind * 0.5 + 0.5;
     float tiltFactor = wind + interaction;
     // Maximum tilt angle
@@ -109,6 +110,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float windStrength = _WindBuffer[x * _NumTilePerClusterSide + y].x; // [-1,1]
     float windDir = _WindBuffer[x * _NumTilePerClusterSide + y].y * 360; // [0,360]
     float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].z; // [0,1]
+    float4 maskBuffer = _MaskBuffer[x * _NumTilePerClusterSide + y]; // [0,1]
     float interaction = saturate(_InteractionTexture[int2(x, y)]);
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);

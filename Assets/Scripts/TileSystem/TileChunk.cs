@@ -23,6 +23,7 @@ public class TileChunk
     private ComputeBuffer[] _argsBuffer;
 
     private ComputeBuffer _windBuffer_external;
+    private ComputeBuffer _maskBuffer_external;
     private ComputeBuffer _groundNormalBuffer_external;
 
     private RenderTexture _interactionTexture_external;
@@ -57,6 +58,10 @@ public class TileChunk
     public void SetWindBuffer(ComputeBuffer windBuffer) 
     {
         _windBuffer_external = windBuffer;
+    }
+    public void SetMaskBuffer(ComputeBuffer maskBuffer)
+    { 
+        _maskBuffer_external = maskBuffer;
     }
     public void SetGroundNormalBuffer(ComputeBuffer normalBuffer) 
     { 
@@ -135,6 +140,7 @@ public class TileChunk
         _mpb.SetBuffer("_SpawnBuffer", _compactBuffer);
         _mpb.SetBuffer("_GroundNormalBuffer", _groundNormalBuffer_external);
         _mpb.SetBuffer("_WindBuffer", _windBuffer_external);
+        _mpb.SetBuffer("_MaskBuffer", _maskBuffer_external);
         _mpb.SetFloat("_ClusterBotLeftX",bl.x);
         _mpb.SetFloat("_ClusterBotLeftY",bl.y);
         _mpb.SetFloat("_TileSize", _tileData.TileSize);
