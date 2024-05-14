@@ -462,7 +462,6 @@ MonoBehaviour:
   EnableOcclusionCulling: 1
   ObjectData:
   - {fileID: 11400000, guid: 661402c7626720f41bb0ef6123e1e9a3, type: 2}
-  - {fileID: 11400000, guid: 9c7d6377e522cc74da904d3b97406b85, type: 2}
 --- !u!4 &1131575701
 Transform:
   m_ObjectHideFlags: 0

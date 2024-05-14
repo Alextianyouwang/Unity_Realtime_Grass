@@ -22,7 +22,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     int coordY = id.x % _TileDimension;
     float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize + _CornerY);
     
-    float rand = rand2dTo1d(posXZ + _Time * 10);
+    float rand = rand2dTo1d(posXZ);
     
     _MaskBuffer[id.x] = float4(rand, 0, 0, 0);
 
