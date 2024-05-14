@@ -52,7 +52,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 859ab6eb70963d147b95c5aac902cd1e, type: 3}
   m_Name: VolumetricAtmosphereComponent
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   Enabled:
     m_OverrideState: 1
     m_Value: 1

@@ -1,0 +1,29 @@
+
+#pragma kernel CSMain
+
+RWStructuredBuffer<float4> _MaskBuffer;
+uint _MaxCount;
+float _TileSize;
+float _TileDimension;
+float _CornerX;
+float _CornerY;
+float _Time;
+float _DirX;
+float _DirY;
+
+#include "../../INCLUDE/HL_Noise.hlsl"
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _MaxCount)
+        return;
+    
+    int coordX = id.x / _TileDimension;
+    int coordY = id.x % _TileDimension;
+    float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize + _CornerY);
+    
+    float rand = rand2dTo1d(posXZ + _Time * 10);
+    
+    _MaskBuffer[id.x] = float4(rand, 0, 0, 0);
+
+}
