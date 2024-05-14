@@ -202,6 +202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04a837349c9c02344a1ec17c3034e9f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Threshold: 0.216
 --- !u!1 &692124091
 GameObject:
   m_ObjectHideFlags: 0
@@ -461,6 +462,7 @@ MonoBehaviour:
   MaxRenderDistance: 150
   EnableOcclusionCulling: 1
   ObjectData:
+  - {fileID: 11400000, guid: ac45d31acd3015f41b03ef77f673a5b8, type: 2}
   - {fileID: 11400000, guid: 661402c7626720f41bb0ef6123e1e9a3, type: 2}
 --- !u!4 &1131575701
 Transform:

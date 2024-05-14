@@ -11,6 +11,8 @@ float _Time;
 float _DirX;
 float _DirY;
 
+float _Step;
+
 #include "../../INCLUDE/HL_Noise.hlsl"
 [numthreads(1024,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -24,6 +26,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     float rand = rand2dTo1d(posXZ);
     
-    _MaskBuffer[id.x] = float4(rand, 0, 0, 0);
+    _MaskBuffer[id.x] = float4(step(_Step,rand), 0, 0, 0);
 
 }

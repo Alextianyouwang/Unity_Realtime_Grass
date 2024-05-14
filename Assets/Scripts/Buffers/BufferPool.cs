@@ -35,6 +35,7 @@ public abstract class BufferPool : MonoBehaviour
         };
     }
 
+
     public ComputeBuffer CreateBuffer(int hash, int tileGridDimension, float tileSize, Vector2 gridBotLeftCorner)
     {
         int count = tileGridDimension * tileGridDimension;

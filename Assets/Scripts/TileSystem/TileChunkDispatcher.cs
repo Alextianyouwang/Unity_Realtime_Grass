@@ -31,9 +31,12 @@ public class TileChunkDispatcher
     private float _densityFilter;
     private float _densityFalloffThreshold;
 
+    private bool _useMask;
+    private bool _reverseMask;
+
 
     public TileChunkDispatcher(Mesh[] spawnMesh, Material spawmMeshMat, TileData tileData, Camera renderCam, ComputeBuffer windBuffer_external, ComputeBuffer maskBuffer_external, RenderTexture zTex_external, RenderTexture interactionTexture_external, Texture2D densityMap,
-        int squaredInstancePerTile, int squaredChunksPerCluster, int squaredTilePerClump, float occludeeBoundScaleMultiplier, float densityFilter, float densityFalloffThreshold)
+        int squaredInstancePerTile, int squaredChunksPerCluster, int squaredTilePerClump, float occludeeBoundScaleMultiplier, float densityFilter, float densityFalloffThreshold, bool useMask, bool reverseMask)
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -50,6 +53,8 @@ public class TileChunkDispatcher
         _occludeeBoundScaleMultiplier = occludeeBoundScaleMultiplier;
         _densityFilter = densityFilter;
         _densityFalloffThreshold = densityFalloffThreshold;
+        _useMask = useMask;
+        _reverseMask = reverseMask;
     }
 
 
@@ -122,7 +127,9 @@ public class TileChunkDispatcher
                     _densityMap,
                     _occludeeBoundScaleMultiplier,
                     _densityFilter,
-                    _densityFalloffThreshold
+                    _densityFalloffThreshold,
+                    _useMask,
+                    _reverseMask
                     );
                 t.SetWindBuffer(_windBuffer_external);
                 t.SetMaskBuffer(_maskBuffer_external);

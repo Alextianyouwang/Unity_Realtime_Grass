@@ -23,6 +23,8 @@ public class TileVisualizer
     public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestMaskBuffer;
     public static Action<int> OnRequestDisposeWindBuffer;
     public static Action<int> OnRequestDisposeMaskBuffer;
+
+    private int _hashCode;
     struct InstanceData 
     {
         public Vector3 position;
@@ -117,14 +119,14 @@ public class TileVisualizer
     {
         float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+        _windBuffer_external = OnRequestWindBuffer?.Invoke(_hashCode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
 
     public void GetMaskBuffer()
     {
         float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _maskBuffer_external = OnRequestMaskBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+        _maskBuffer_external = OnRequestMaskBuffer?.Invoke(_hashCode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
     public void DrawIndirect() 
     {
@@ -141,7 +143,7 @@ public class TileVisualizer
         _vertBuffer?.Dispose(); 
         _instanceDataBuffer?.Dispose();
         _argsBuffer?.Dispose();
-        OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
-        OnRequestDisposeMaskBuffer?.Invoke(GetHashCode());
+        OnRequestDisposeWindBuffer?.Invoke(_hashCode);
+        OnRequestDisposeMaskBuffer?.Invoke(_hashCode);
     }
 }

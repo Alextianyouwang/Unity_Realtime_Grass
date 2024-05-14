@@ -24,3 +24,5 @@ MonoBehaviour:
   OccludeeBoundScaleMultiplier: 1
   DensityFilter: 1
   DensityFalloffThreshold: 15
+  UseMask: 1
+  ReverseMask: 0

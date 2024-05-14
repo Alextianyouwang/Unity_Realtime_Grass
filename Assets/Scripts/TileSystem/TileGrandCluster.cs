@@ -36,6 +36,8 @@ public class TileGrandCluster : MonoBehaviour
     public static Action<int> OnRequestDisposeMaskBuffer;
     public static Func<RenderTexture> OnRequestOcclusionTexture;
 
+    private int _hashcode;
+
     public static float _LOD_Threshold_01 { get; private set; }
     public static float _LOD_Threshold_12 { get; private set; }
     public static float _MaxRenderDistance { get; private set; }
@@ -43,6 +45,7 @@ public class TileGrandCluster : MonoBehaviour
 
     private void OnEnable()
     {
+        _hashcode = GetHashCode();
         SetupTileData();
         SetupTileDebug();
         InitializeInteractionTexture();
@@ -89,14 +92,14 @@ public class TileGrandCluster : MonoBehaviour
     {
         float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+        _windBuffer_external = OnRequestWindBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
 
     void InitializeMaskBuffer() 
     {
         float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _maskBuffer_external = OnRequestMaskBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+        _maskBuffer_external = OnRequestMaskBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
     void InitializeDispatcher() 
     {
@@ -136,7 +139,9 @@ public class TileGrandCluster : MonoBehaviour
            data.SquaredTilePerClump,
            data.OccludeeBoundScaleMultiplier,
            data.DensityFilter,
-           data.DensityFalloffThreshold) ;
+           data.DensityFalloffThreshold,
+           data.UseMask,
+           data.ReverseMask) ;
 
             dispatcher.InitialSpawn();
             dispatcher.InitializeChunks();
@@ -156,8 +161,8 @@ public class TileGrandCluster : MonoBehaviour
     void CleanupBuffers()
     {
         _tileData?.ReleaseBuffer();
-        OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
-        OnRequestDisposeMaskBuffer?.Invoke(GetHashCode());
+        OnRequestDisposeWindBuffer?.Invoke(_hashcode);
+        OnRequestDisposeMaskBuffer?.Invoke(_hashcode);
         _tileVisualizer?.ReleaseBuffer();
         if (_tileChunkDispatcher != null)
             foreach (TileChunkDispatcher d in _tileChunkDispatcher)

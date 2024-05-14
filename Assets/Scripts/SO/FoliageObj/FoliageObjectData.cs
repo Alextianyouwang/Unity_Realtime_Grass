@@ -15,4 +15,7 @@ public class FoliageObjectData : ScriptableObject
     public float DensityFilter = 1;
     public float DensityFalloffThreshold = 30;
 
+    public bool UseMask = false;
+    public bool ReverseMask = false;
+
 }

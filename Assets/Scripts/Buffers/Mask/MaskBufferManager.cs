@@ -3,7 +3,8 @@ using UnityEngine;
 [DefaultExecutionOrder(-100)]
 public class MaskBufferManager : BufferPool
 {
-
+    [Range(0, 1)]
+    public float Threshold = 0.5f;
     private void OnEnable()
     {
         Initialize("CS/CS_FoliageMask", "_MaskBuffer",sizeof(float)*4);
@@ -18,8 +19,8 @@ public class MaskBufferManager : BufferPool
     private void OnDisable()
     {
 
-        TileGrandCluster.OnRequestWindBuffer -= CreateBuffer;
-        TileGrandCluster.OnRequestDisposeWindBuffer -= DisposeBuffer;
+        TileGrandCluster.OnRequestMaskBuffer -= CreateBuffer;
+        TileGrandCluster.OnRequestDisposeMaskBuffer -= DisposeBuffer;
         TileVisualizer.OnRequestMaskBuffer -= CreateBuffer;
         TileVisualizer.OnRequestDisposeMaskBuffer -= DisposeBuffer;
         foreach (DataPerTileCluster d in _dataTracker.Values)
@@ -34,6 +35,7 @@ public class MaskBufferManager : BufferPool
     private void LateUpdate()
     {
         ComputeSetFloat("_Time", Time.time);
+        ComputeSetFloat("_Step", Threshold);
         UpdateBuffer();
     }
 }
