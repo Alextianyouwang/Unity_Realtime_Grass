@@ -520,7 +520,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04a837349c9c02344a1ec17c3034e9f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Threshold: 0.957
+  Threshold: 0.869
+  DownSamplingScale: 3
+  Seed: 56
 --- !u!1 &692124091
 GameObject:
   m_ObjectHideFlags: 0

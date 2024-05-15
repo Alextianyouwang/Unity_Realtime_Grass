@@ -5,6 +5,12 @@ public class MaskBufferManager : BufferPool
 {
     [Range(0, 1)]
     public float Threshold = 0.5f;
+
+    [Range(1, 5)]
+    public int DownSamplingScale = 1;
+
+    [Range(0, 100)]
+    public int Seed = 1;
     private void OnEnable()
     {
         Initialize("CS/CS_FoliageMask", "_MaskBuffer",sizeof(float)*4);
@@ -38,8 +44,9 @@ public class MaskBufferManager : BufferPool
 
     private void LateUpdate()
     {
-        ComputeSetFloat("_Time", Time.time);
+        ComputeSetFloat("_Time", Seed);
         ComputeSetFloat("_Step", Threshold);
+        ComputeSetInt("_DownSamplingScale", DownSamplingScale);
         UpdateBuffer();
     }
 }

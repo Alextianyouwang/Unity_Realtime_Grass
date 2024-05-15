@@ -12,6 +12,7 @@ float _DirX;
 float _DirY;
 
 float _Step;
+uint _DownSamplingScale;
 
 #include "../../INCLUDE/HL_Noise.hlsl"
 [numthreads(1024,1,1)]
@@ -22,9 +23,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     int coordX = id.x / _TileDimension;
     int coordY = id.x % _TileDimension;
+    coordX /= _DownSamplingScale;
+    coordX -= coordX % _DownSamplingScale;
+    coordY = floor(coordY / _DownSamplingScale / _DownSamplingScale);
     float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize + _CornerY);
-    
-    float rand = rand2dTo1d(posXZ);
+    float rand = rand2dTo1d(posXZ + _Time);
     
     _MaskBuffer[id.x] = float4(step(_Step,rand), 0, 0, 0);
 

@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4156c757fca9ddf4faee97abff6e1522, type: 3}
   m_Name: VolumetricAtmosphereBlendingComponent
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   Enabled:
     m_OverrideState: 1
     m_Value: 1

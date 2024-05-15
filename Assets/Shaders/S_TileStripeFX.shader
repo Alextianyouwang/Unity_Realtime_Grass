@@ -13,6 +13,7 @@ Shader "Procedural/S_TileStripeFX"
             Name "Unlit"
             Cull off
             zWrite off
+            
 
             Blend SrcAlpha OneMinusSrcAlpha
             HLSLPROGRAM
@@ -31,11 +32,13 @@ Shader "Procedural/S_TileStripeFX"
                 float3 positionWS : TEXCOORD2;
                 float4 color : TEXCOORD3;
                 float4 gradient : TEXCOORD4;
+                float3 normalWS :TEXCOORD5;
             };
             
               struct Input {
                   float3 positionWS : POSITION;
                   float2 uv : TEXCOORD0;
+                  float3 normalOS : NORMAL;
               };
 
               struct InstanceData {
@@ -55,7 +58,10 @@ Shader "Procedural/S_TileStripeFX"
 
                 float3 posWS = i.positionWS + data.position + float3 (0,0,0.2);
                 posWS = ScaleWithCenter(posWS, float3(0.4, 10, 1), data.position);
-                posWS = RotateAroundAxis(float4(posWS, 1), float3 (0, 1, 0), 90 * data.side, data.position);
+                posWS = RotateAroundAxis(float4(posWS, 1), float3 (0, 1, 0), 90 * data.side, data.position).xyz;
+
+                float3 normalWS = mul(UNITY_MATRIX_VP, float4(i.normalOS, 0));
+                normalWS = RotateAroundAxis(float4(normalWS, 0), float3 (0, 1, 0), 90 * data.side).xyz;
                 o.positionWS = posWS;
 
                 o.gradient = float4 (posWS.y - data.position.y, 0, 0, 0);
@@ -63,6 +69,7 @@ Shader "Procedural/S_TileStripeFX"
                 o.positionCS = mul(UNITY_MATRIX_VP, float4(o.positionWS, 1));
 
                 float4 color = _MaskBuffer[instanceID / 4].xxxx;
+                o.normalWS = normalWS;
                 o.color = color;
                 return o;
             }
@@ -72,7 +79,10 @@ Shader "Procedural/S_TileStripeFX"
                 float alpha = v.color.x < 0.5 ? 0 : _Alpha;
             float gradient = v.gradient.x;
             float3 color = gradient * _Tint;
-                return  float4 (color,alpha * gradient * 0.5);
+            float3 normalWS = v.normalWS;
+            float4 finalColor = float4 (color, alpha * gradient * 0.5);
+            //finalColor = float4 (normalWS, alpha);
+                return  finalColor;
             }
             ENDHLSL
         }
