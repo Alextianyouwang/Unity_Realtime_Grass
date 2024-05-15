@@ -5,11 +5,11 @@ using UnityEngine.Rendering;
 public class VolumetricAtmospherePass : ScriptableRenderPass
 {
     private ProfilingSampler _profilingSampler;
-    private RTHandle _rtColor, _rtTempColor;
+    private RTHandle _rtColor, _rtTempColor ,_rtTempColor2;
     private Material _blitMat;
     private RenderTexture _opticDepthTex_external;
     private ComputeShader _baker;
-    private VolumetricAtmosphereComponent _volumeSettings;
+    private VolumetricAtmosphereBlendingComponent _volumeSettings;
     private bool _realtime;
     public VolumetricAtmospherePass(string name)
     {
@@ -21,7 +21,7 @@ public class VolumetricAtmospherePass : ScriptableRenderPass
         _baker = baker;
         _opticDepthTex_external = opticalDepthTex;
         _blitMat = blitMat;
-        _volumeSettings = VolumeManager.instance.stack.GetComponent<VolumetricAtmosphereComponent>();
+        _volumeSettings = VolumeManager.instance.stack.GetComponent<VolumetricAtmosphereBlendingComponent>();
         _realtime = realtime;
     }
     public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -29,6 +29,7 @@ public class VolumetricAtmospherePass : ScriptableRenderPass
         RenderTextureDescriptor camTargetDesc = renderingData.cameraData.cameraTargetDescriptor;
         camTargetDesc.depthBufferBits = 0;
         RenderingUtils.ReAllocateIfNeeded(ref _rtTempColor, camTargetDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_TempColor");
+        RenderingUtils.ReAllocateIfNeeded(ref _rtTempColor2, camTargetDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_TempColor2");
         ConfigureTarget(_rtColor);
         CheckValidation();
     }
@@ -45,6 +46,10 @@ public class VolumetricAtmospherePass : ScriptableRenderPass
         {
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
+
+            _blitMat.SetVector("_SphereMaskCenter", _volumeSettings.BlendCenter.value);
+            _blitMat.SetFloat("_SphereMaskRadius", _volumeSettings.BlendRaidus.value);
+            _blitMat.SetFloat("_SphereMaskBlend", _volumeSettings.BlendFalloff.value);
 
             LocalKeyword enableRealtime = new LocalKeyword(_blitMat.shader, "_USE_REALTIME");
             if (_realtime)
@@ -68,11 +73,18 @@ public class VolumetricAtmospherePass : ScriptableRenderPass
                 _blitMat.DisableKeyword(enableRayleigh);
             _blitMat.SetFloat("_Rs_Thickness", _volumeSettings.AtmosphereHeight.value);
             _blitMat.SetFloat("_Rs_DensityFalloff", _volumeSettings.AtmosphereDensityFalloff.value);
-            _blitMat.SetFloat("_Rs_Absorbsion", _volumeSettings.AtmosphereUniformAbsorbsion.value);
-            _blitMat.SetFloat("_Rs_DensityMultiplier", _volumeSettings.AtmosphereDensityMultiplier.value);
-            _blitMat.SetFloat("_Rs_ChannelSplit", _volumeSettings.AtmosphereChannelSplit.value);
-            _blitMat.SetColor("_Rs_ScatterWeight", _volumeSettings.AtmosphereAbsorbsionWeightPerChannel.value);
-            _blitMat.SetColor("_Rs_InsColor", _volumeSettings.AtmosphereInscatteringTint.value);
+
+            _blitMat.SetFloat("_Rs_Absorbsion_1", _volumeSettings.AtmosphereUniformAbsorbsion_1.value);
+            _blitMat.SetFloat("_Rs_DensityMultiplier_1", _volumeSettings.AtmosphereDensityMultiplier_1.value);
+            _blitMat.SetFloat("_Rs_ChannelSplit_1", _volumeSettings.AtmosphereChannelSplit_1.value);
+            _blitMat.SetColor("_Rs_ScatterWeight_1", _volumeSettings.AtmosphereAbsorbsionWeightPerChannel_1.value);
+            _blitMat.SetColor("_Rs_InsColor_1", _volumeSettings.AtmosphereInscatteringTint_1.value);
+
+            _blitMat.SetFloat("_Rs_Absorbsion_2", _volumeSettings.AtmosphereUniformAbsorbsion_2.value);
+            _blitMat.SetFloat("_Rs_DensityMultiplier_2", _volumeSettings.AtmosphereDensityMultiplier_2.value);
+            _blitMat.SetFloat("_Rs_ChannelSplit_2", _volumeSettings.AtmosphereChannelSplit_2.value);
+            _blitMat.SetColor("_Rs_ScatterWeight_2", _volumeSettings.AtmosphereAbsorbsionWeightPerChannel_2.value);
+            _blitMat.SetColor("_Rs_InsColor_2", _volumeSettings.AtmosphereInscatteringTint_2.value);
 
 
             LocalKeyword enableMie = new LocalKeyword(_blitMat.shader, "_USE_MIE");
@@ -82,14 +94,23 @@ public class VolumetricAtmospherePass : ScriptableRenderPass
                 _blitMat.DisableKeyword(enableMie);
             _blitMat.SetFloat("_Ms_Thickness", _volumeSettings.AerosolsHeight.value);
             _blitMat.SetFloat("_Ms_DensityFalloff", _volumeSettings.AerosolsDensityFalloff.value);
-            _blitMat.SetFloat("_Ms_Absorbsion", _volumeSettings.AerosolsUniformAbsorbsion.value);
-            _blitMat.SetFloat("_Ms_DensityMultiplier", _volumeSettings.AerosolsDensityMultiplier.value);
-            _blitMat.SetFloat("_Ms_Anisotropic", _volumeSettings.AerosolsAnistropic.value);
-            _blitMat.SetColor("_Ms_InsColor", _volumeSettings.AerosolsInscatteringTint.value);
+
+            _blitMat.SetFloat("_Ms_Absorbsion_1", _volumeSettings.AerosolsUniformAbsorbsion_1.value);
+            _blitMat.SetFloat("_Ms_DensityMultiplier_1", _volumeSettings.AerosolsDensityMultiplier_1.value);
+            _blitMat.SetFloat("_Ms_Anisotropic_1", _volumeSettings.AerosolsAnistropic_1.value);
+            _blitMat.SetColor("_Ms_InsColor_1", _volumeSettings.AerosolsInscatteringTint_1.value);
+
+
+            _blitMat.SetFloat("_Ms_Absorbsion_2", _volumeSettings.AerosolsUniformAbsorbsion_2.value);
+            _blitMat.SetFloat("_Ms_DensityMultiplier_2", _volumeSettings.AerosolsDensityMultiplier_2.value);
+            _blitMat.SetFloat("_Ms_Anisotropic_2", _volumeSettings.AerosolsAnistropic_2.value);
+            _blitMat.SetColor("_Ms_InsColor_2", _volumeSettings.AerosolsInscatteringTint_2.value);
 
             _blitMat.SetInt("_VolumeOnly", _volumeSettings.VolumePassOnly.value ? 1 : 0);
             Blitter.BlitCameraTexture(cmd, _rtColor, _rtTempColor, _blitMat, 0);
             Blitter.BlitCameraTexture(cmd, _rtTempColor, _rtColor);
+            Blitter.BlitCameraTexture(cmd, _rtColor, _rtTempColor2, _blitMat, 1);
+            Blitter.BlitCameraTexture(cmd, _rtTempColor2, _rtColor);
         }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();
@@ -145,5 +166,6 @@ public class VolumetricAtmospherePass : ScriptableRenderPass
     {
         _rtColor?.Release();
         _rtTempColor?.Release();
+        _rtTempColor2?.Release();
     }
 }

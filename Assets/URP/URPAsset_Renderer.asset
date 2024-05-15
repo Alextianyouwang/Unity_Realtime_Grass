@@ -88,5 +88,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   showInSceneView: 1
-  _event: 500
+  _event: 450
   PrebakedTextureQualitySetting: 3

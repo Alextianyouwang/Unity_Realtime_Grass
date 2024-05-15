@@ -30,5 +30,20 @@ Shader "Hidden/S_Atmosphere"
 
             ENDHLSL
         }
+
+        Pass 
+        {
+            Name "BlitDistortedVolume"
+
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+       
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "HL_VolumeDistorsion.hlsl"
+            ENDHLSL
+        }
     }
 }

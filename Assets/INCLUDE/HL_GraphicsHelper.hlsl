@@ -124,6 +124,15 @@ float3 ScaleWithCenter(float3 pos,float scale, float3 center)
     pos += center;
     return pos;
 }
+float3 ScaleWithCenter(float3 pos, float3 scale, float3 center)
+{
+    pos -= center;
+    pos.x *= scale.x;
+    pos.y *= scale.y;
+    pos.z *= scale.z;
+    pos += center;
+    return pos;
+}
 float3 ProjectOntoPlane(float3 v, float3 planeNormal)
 {
     return v - dot(v, normalize(planeNormal)) * planeNormal;

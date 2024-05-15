@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 [ExecuteInEditMode]
 [DefaultExecutionOrder(-99)]
@@ -20,10 +21,11 @@ public class TileGrandCluster : MonoBehaviour
     public bool EnableOcclusionCulling = true;
 
     public FoliageObjectData[] ObjectData;
+    public TileComponent[] TileComponents;
 
     private TileData _tileData;
     private TileVisualizer _tileVisualizer;
-    private  TileChunkDispatcher[] _tileChunkDispatcher;
+    private TileChunkDispatcher[] _tileChunkDispatcher;
 
     private ComputeBuffer _windBuffer_external;
     private ComputeBuffer _maskBuffer_external;
@@ -48,6 +50,7 @@ public class TileGrandCluster : MonoBehaviour
         _hashcode = GetHashCode();
         SetupTileData();
         SetupTileDebug();
+        SetupTileComponent();
         InitializeInteractionTexture();
         InitializeWindBuffer();
         InitializeMaskBuffer();
@@ -58,7 +61,7 @@ public class TileGrandCluster : MonoBehaviour
     {
         CleanupBuffers();
     }
-    private void UpdateParam() 
+    private void UpdateParam()
     {
         _LOD_Threshold_01 = LOD_Threshold_01;
         _LOD_Threshold_12 = LOD_Threshold_12;
@@ -71,19 +74,20 @@ public class TileGrandCluster : MonoBehaviour
         if (ShowDebugTile)
             DrawDebugView();
         IndirectDrawPerFrame();
+        UpdateTileComponent();
     }
 
 
-    void SetupTileData() 
+    void SetupTileData()
     {
         if (TileHeightmap)
-            _tileData = new TileData(TileGridCenterXZ, TileHeightmap.width, TileSize, TileHeightmap,TileHeightMultiplier);
+            _tileData = new TileData(TileGridCenterXZ, TileHeightmap.width, TileSize, TileHeightmap, TileHeightMultiplier);
         else
             _tileData = new TileData(TileGridCenterXZ, TileGridDimension, TileSize, null, TileHeightMultiplier);
         _tileData.ConstructTileGrid();
     }
 
- 
+
     public void InitializeInteractionTexture()
     {
         _interactionTexture_external = OnRequestInteractionTexture?.Invoke();
@@ -95,13 +99,13 @@ public class TileGrandCluster : MonoBehaviour
         _windBuffer_external = OnRequestWindBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
 
-    void InitializeMaskBuffer() 
+    void InitializeMaskBuffer()
     {
         float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
         _maskBuffer_external = OnRequestMaskBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
-    void InitializeDispatcher() 
+    void InitializeDispatcher()
     {
 
         if (_tileData == null)
@@ -113,7 +117,7 @@ public class TileGrandCluster : MonoBehaviour
         if (ObjectData.Length == 0)
             return;
         _tileChunkDispatcher = new TileChunkDispatcher[ObjectData.Length];
-        for (int i = 0; i < _tileChunkDispatcher.Length; i++) 
+        for (int i = 0; i < _tileChunkDispatcher.Length; i++)
         {
             FoliageObjectData data = ObjectData[i];
             if (data.SpawnMesh == null)
@@ -141,7 +145,7 @@ public class TileGrandCluster : MonoBehaviour
            data.DensityFilter,
            data.DensityFalloffThreshold,
            data.UseMask,
-           data.ReverseMask) ;
+           data.ReverseMask);
 
             dispatcher.InitialSpawn();
             dispatcher.InitializeChunks();
@@ -149,12 +153,12 @@ public class TileGrandCluster : MonoBehaviour
         }
 
     }
- 
+
     void IndirectDrawPerFrame()
     {
         if (_tileChunkDispatcher == null)
             return;
-        foreach (TileChunkDispatcher d in _tileChunkDispatcher) 
+        foreach (TileChunkDispatcher d in _tileChunkDispatcher)
             d?.DispatchTileChunksDrawCall();
 
     }
@@ -167,12 +171,13 @@ public class TileGrandCluster : MonoBehaviour
         if (_tileChunkDispatcher != null)
             foreach (TileChunkDispatcher d in _tileChunkDispatcher)
                 d?.ReleaseBuffer();
+        DisposeTileComponent();
     }
-    void SetupTileDebug() 
+    void SetupTileDebug()
     {
         if (_tileData == null)
             return;
-        _tileVisualizer = new TileVisualizer(_tileData,DebugMaterial);
+        _tileVisualizer = new TileVisualizer(_tileData, DebugMaterial);
         _tileVisualizer.InitializeTileDebug();
     }
     void DrawDebugView()
@@ -180,6 +185,9 @@ public class TileGrandCluster : MonoBehaviour
         _tileVisualizer?.DrawIndirect();
     }
 
+    private void SetupTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.Initialization(_tileData));
+    private void UpdateTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.UpdateEffect());
+    private void DisposeTileComponent() => TileComponents?.ToList().ForEach(t => t?.DisposeEffect());
     private void OnDrawGizmos()
     {
         if (_tileChunkDispatcher == null)

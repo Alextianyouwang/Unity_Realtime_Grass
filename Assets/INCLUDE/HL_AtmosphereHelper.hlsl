@@ -7,7 +7,7 @@ float PhaseFunction(float costheta, float g)
 {
     float g2 = g * g;
     float symmetry = (3 * (1 - g2)) / (2 * (2 + g2));
-    return (1 + costheta * costheta) / pow(1 + g2 - 2 * g * costheta, 1.5);
+    return (1 + costheta * costheta) / pow(abs(1 + g2 - 2 * g * costheta), 1.5);
 
 }
 
@@ -57,6 +57,17 @@ float OpticalDepth(float3 rayOrigin, float3 rayDir, float rayLength, float3 offs
         densitySamplePoint += rayDir * stepSize;
     }
     return opticalDepth;
+}
+
+
+
+float SphereMask(float3 center, float radius, float falloff, float3 position, out float ring )
+{
+    float mask0 = smoothstep(radius - falloff, radius, distance(position, center));
+    float mask1 = smoothstep(radius, radius + falloff, distance(position, center));
+    ring = mask0 - mask1;
+    return mask0;
+
 }
 
 #endif
