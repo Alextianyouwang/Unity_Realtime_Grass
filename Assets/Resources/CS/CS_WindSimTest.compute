@@ -10,30 +10,38 @@ uint _ResY;
 float3 _Center;
 
 float _Atten;
+
+float3 SphericalNormal(float3 pos, float3 center, float radius, float falloff)
+{
+    float3 dir = pos - center;
+    float mult = smoothstep(radius, radius + falloff, length(dir));
+    return normalize(dir) * (1-mult);
+
+}
+
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _ResX || id.y >= _ResY)
         return;
-    float ns = _NState[id.xy].x;
-    float nm1s = _Nm1State[id.xy].x;
+    float3 ns = _NState[id.xy].xyz;
+    float3 nm1s = _Nm1State[id.xy].xyz;
 
-    float ns_t = _NState[id.xy + uint2(0, 1)].x;
-    float ns_tr = _NState[id.xy + uint2(1, 1)].x;
-    float ns_r = _NState[id.xy + uint2(1, 0)].x;
-    float ns_br = _NState[id.xy + uint2(1, -1)].x;
-    float ns_b = _NState[id.xy + uint2(0, -1)].x;
-    float ns_bl = _NState[id.xy + uint2(-1, -1)].x;
-    float ns_l = _NState[id.xy + uint2(-1, 0)].x;
-    float ns_tl = _NState[id.xy + uint2(-1, 1)].x;
-
-    
-    float waveHeight = ns * 2 - nm1s + 0.25 * (ns_t + ns_b + ns_l + ns_r  - 4 * ns);
+    float3 ns_t = _NState[id.xy + uint2(0, 1)].xyz;
+    float3 ns_tr = _NState[id.xy + uint2(1, 1)].xyz;
+    float3 ns_r = _NState[id.xy + uint2(1, 0)].xyz;
+    float3 ns_br = _NState[id.xy + uint2(1, -1)].xyz;
+    float3 ns_b = _NState[id.xy + uint2(0, -1)].xyz;
+    float3 ns_bl = _NState[id.xy + uint2(-1, -1)].xyz;
+    float3 ns_l = _NState[id.xy + uint2(-1, 0)].xyz;
+    float3 ns_tl = _NState[id.xy + uint2(-1, 1)].xyz;
+    float3 ns_dir = _NState[id.xy + (normalize(ns.xy) - 0.5) * 2].xyz;
+    float3 waveHeight = ns * 2 - nm1s + 0.2 * (ns_t + ns_b + ns_l + ns_r + ns_dir - 5 * ns);
+    //waveHeight = ns * 2 - nm1s + 0.2 * (ns_dir * 4 - 4 * ns);
     waveHeight *= _Atten;
-    if ((uint) _Center.x == id.x && (uint) _Center.y == id.y)
-        waveHeight = _Center.z;
+    if (distance(_Center.xy ,id.xy) < 20)
+        waveHeight = SphericalNormal(float3(id.xy, 0), float3(_Center.xy, 0), 20, 10);
     
-    
-    _Np1State[id.xy] = float4(waveHeight, waveHeight, waveHeight, 1);
+    _Np1State[id.xy] = float4(waveHeight.xyz, 1);
 
 }
