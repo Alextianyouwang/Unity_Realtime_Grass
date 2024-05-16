@@ -1,0 +1,39 @@
+
+#pragma kernel CSMain
+
+RWTexture2D<float4> _NState;
+RWTexture2D<float4> _Nm1State;
+RWTexture2D<float4> _Np1State;
+
+uint _ResX;
+uint _ResY;
+float3 _Center;
+
+float _Atten;
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _ResX || id.y >= _ResY)
+        return;
+    float ns = _NState[id.xy].x;
+    float nm1s = _Nm1State[id.xy].x;
+
+    float ns_t = _NState[id.xy + uint2(0, 1)].x;
+    float ns_tr = _NState[id.xy + uint2(1, 1)].x;
+    float ns_r = _NState[id.xy + uint2(1, 0)].x;
+    float ns_br = _NState[id.xy + uint2(1, -1)].x;
+    float ns_b = _NState[id.xy + uint2(0, -1)].x;
+    float ns_bl = _NState[id.xy + uint2(-1, -1)].x;
+    float ns_l = _NState[id.xy + uint2(-1, 0)].x;
+    float ns_tl = _NState[id.xy + uint2(-1, 1)].x;
+
+    
+    float waveHeight = ns * 2 - nm1s + 0.25 * (ns_t + ns_b + ns_l + ns_r  - 4 * ns);
+    waveHeight *= _Atten;
+    if ((uint) _Center.x == id.x && (uint) _Center.y == id.y)
+        waveHeight = _Center.z;
+    
+    
+    _Np1State[id.xy] = float4(waveHeight, waveHeight, waveHeight, 1);
+
+}
