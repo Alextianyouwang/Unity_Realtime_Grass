@@ -23,9 +23,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     int coordX = id.x / _TileDimension;
     int coordY = id.x % _TileDimension;
-    coordX /= _DownSamplingScale;
-    coordX -= coordX % _DownSamplingScale;
-    coordY = floor(coordY / _DownSamplingScale / _DownSamplingScale);
+
+    coordX = floor(coordX / _DownSamplingScale);
+    coordY = floor(coordY / _DownSamplingScale );
     float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize + _CornerY);
     float rand = rand2dTo1d(posXZ + _Time);
     

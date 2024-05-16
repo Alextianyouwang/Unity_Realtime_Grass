@@ -520,9 +520,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04a837349c9c02344a1ec17c3034e9f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Threshold: 0.869
-  DownSamplingScale: 3
-  Seed: 56
+  Threshold: 0.798
+  DownSamplingScale: 8
+  Seed: 36
 --- !u!1 &692124091
 GameObject:
   m_ObjectHideFlags: 0
@@ -1242,8 +1242,6 @@ MonoBehaviour:
   TileGridDimension: 512
   TileGridCenterXZ: {x: 0, y: 0}
   RenderCam: {fileID: 1864672689}
-  ShowDebugTile: 0
-  DebugMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}
   LOD_Threshold_01: 20
   LOD_Threshold_12: 60
   MaxRenderDistance: 150

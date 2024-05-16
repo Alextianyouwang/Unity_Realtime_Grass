@@ -3,14 +3,13 @@ using System;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Tile Compoments/StripeFX")]
-public class TileStripeFX : TileComponent
+public class TileStripeFXComponent : TileComponent
 {
     public Material EffectMaterial;
     public Mesh Quad;
     private MaterialPropertyBlock _mpb;
 
     private ComputeBuffer _instanceDataBuffer;
-    private ComputeBuffer _maskBuffer_external;
 
     private GraphicsBuffer.IndirectDrawIndexedArgs[] _argsBuffer;
     private GraphicsBuffer _commandBuffer;
@@ -18,10 +17,6 @@ public class TileStripeFX : TileComponent
 
     private InstanceData[] _instancesData;
 
-    public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestMaskBuffer;
-    public static Action<int> OnRequestDisposeMaskBuffer;
-
-    private int _hashCode;
     struct InstanceData
     {
         public Vector3 position;
@@ -36,19 +31,10 @@ public class TileStripeFX : TileComponent
         OnDispose += Dispose;
     }
 
-    public void GetMaskBuffer()
-    {
-        float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
-        Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _maskBuffer_external = OnRequestMaskBuffer?.Invoke(_hashCode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
-    }
     public void Initialize() 
     {
         if (Quad == null)
             return;
-
-        _hashCode = GetHashCode();
-        GetMaskBuffer();
         SetInstanceData();
 
         _mpb = new MaterialPropertyBlock();
@@ -124,6 +110,5 @@ public class TileStripeFX : TileComponent
         _instanceDataBuffer?.Dispose();
         _commandBuffer?.Dispose();
 
-        OnRequestDisposeMaskBuffer?.Invoke(_hashCode);
     }
 }

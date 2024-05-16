@@ -6,7 +6,7 @@ public class MaskBufferManager : BufferPool
     [Range(0, 1)]
     public float Threshold = 0.5f;
 
-    [Range(1, 5)]
+    [Range(1, 20)]
     public int DownSamplingScale = 1;
 
     [Range(0, 100)]
@@ -18,10 +18,7 @@ public class MaskBufferManager : BufferPool
 
         TileGrandCluster.OnRequestMaskBuffer += CreateBuffer;
         TileGrandCluster.OnRequestDisposeMaskBuffer += DisposeBuffer;
-        TileVisualizer.OnRequestMaskBuffer += CreateBuffer;
-        TileVisualizer.OnRequestDisposeMaskBuffer += DisposeBuffer;
-        TileStripeFX.OnRequestMaskBuffer += CreateBuffer;
-        TileStripeFX.OnRequestDisposeMaskBuffer += DisposeBuffer;
+
     }
 
     private void OnDisable()
@@ -29,10 +26,7 @@ public class MaskBufferManager : BufferPool
 
         TileGrandCluster.OnRequestMaskBuffer -= CreateBuffer;
         TileGrandCluster.OnRequestDisposeMaskBuffer -= DisposeBuffer;
-        TileVisualizer.OnRequestMaskBuffer -= CreateBuffer;
-        TileVisualizer.OnRequestDisposeMaskBuffer -= DisposeBuffer;
-        TileStripeFX.OnRequestMaskBuffer -= CreateBuffer;
-        TileStripeFX.OnRequestDisposeMaskBuffer -= DisposeBuffer;
+
         foreach (DataPerTileCluster d in _dataTracker.Values)
             d.Buffer.Dispose();
         _dataTracker.Clear();

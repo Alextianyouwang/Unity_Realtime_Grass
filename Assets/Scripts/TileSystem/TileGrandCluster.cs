@@ -12,8 +12,6 @@ public class TileGrandCluster : MonoBehaviour
     public int TileGridDimension = 512;
     public Vector2 TileGridCenterXZ;
     public Camera RenderCam;
-    public bool ShowDebugTile = true;
-    public Material DebugMaterial;
     public float LOD_Threshold_01 = 45;
     public float LOD_Threshold_12 = 125;
     public float MaxRenderDistance = 200;
@@ -24,11 +22,10 @@ public class TileGrandCluster : MonoBehaviour
     public TileComponent[] TileComponents;
 
     private TileData _tileData;
-    private TileVisualizer _tileVisualizer;
     private TileChunkDispatcher[] _tileChunkDispatcher;
 
-    private ComputeBuffer _windBuffer_external;
-    private ComputeBuffer _maskBuffer_external;
+    private ComputeBuffer _windBuffer;
+    private ComputeBuffer _maskBuffer;
     private RenderTexture _interactionTexture_external;
 
     public static Func<RenderTexture> OnRequestInteractionTexture;
@@ -49,12 +46,11 @@ public class TileGrandCluster : MonoBehaviour
     {
         _hashcode = GetHashCode();
         SetupTileData();
-        SetupTileDebug();
-        SetupTileComponent();
         InitializeInteractionTexture();
         InitializeWindBuffer();
         InitializeMaskBuffer();
         InitializeDispatcher();
+        InitializeTileComponent();
 
     }
     private void OnDisable()
@@ -71,8 +67,6 @@ public class TileGrandCluster : MonoBehaviour
     private void LateUpdate()
     {
         UpdateParam();
-        if (ShowDebugTile)
-            DrawDebugView();
         IndirectDrawPerFrame();
         UpdateTileComponent();
     }
@@ -96,14 +90,14 @@ public class TileGrandCluster : MonoBehaviour
     {
         float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _windBuffer_external = OnRequestWindBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+        _windBuffer = OnRequestWindBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
 
     void InitializeMaskBuffer()
     {
         float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _maskBuffer_external = OnRequestMaskBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+        _maskBuffer = OnRequestMaskBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
     void InitializeDispatcher()
     {
@@ -133,8 +127,8 @@ public class TileGrandCluster : MonoBehaviour
            data.SpawnMeshMaterial,
            _tileData,
            RenderCam,
-           _windBuffer_external,
-           _maskBuffer_external,
+           _windBuffer,
+           _maskBuffer,
            OnRequestOcclusionTexture.Invoke(),
            _interactionTexture_external,
            data.DensityMap,
@@ -167,25 +161,14 @@ public class TileGrandCluster : MonoBehaviour
         _tileData?.ReleaseBuffer();
         OnRequestDisposeWindBuffer?.Invoke(_hashcode);
         OnRequestDisposeMaskBuffer?.Invoke(_hashcode);
-        _tileVisualizer?.ReleaseBuffer();
         if (_tileChunkDispatcher != null)
             foreach (TileChunkDispatcher d in _tileChunkDispatcher)
                 d?.ReleaseBuffer();
         DisposeTileComponent();
     }
-    void SetupTileDebug()
-    {
-        if (_tileData == null)
-            return;
-        _tileVisualizer = new TileVisualizer(_tileData, DebugMaterial);
-        _tileVisualizer.InitializeTileDebug();
-    }
-    void DrawDebugView()
-    {
-        _tileVisualizer?.DrawIndirect();
-    }
 
-    private void SetupTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.Initialization(_tileData));
+
+    private void InitializeTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.Initialization(_tileData,_windBuffer,_maskBuffer));
     private void UpdateTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.UpdateEffect());
     private void DisposeTileComponent() => TileComponents?.ToList().ForEach(t => t?.DisposeEffect());
     private void OnDrawGizmos()

@@ -1,17 +1,15 @@
 using System;
 using UnityEngine;
 
-public class TileVisualizer 
+[CreateAssetMenu(menuName = "Tile Compoments/Debug")]
+public class TileDebugComponent : TileComponent
 {
-    private TileData _tileData;
-    private Material _material;
+    public Material EffectMaterial;
     private MaterialPropertyBlock _mpb;
 
     private ComputeBuffer _instanceDataBuffer;
     private ComputeBuffer _vertBuffer;
     private ComputeBuffer _triangleBuffer;
-    private ComputeBuffer _windBuffer_external;
-    private ComputeBuffer _maskBuffer_external;
     private ComputeBuffer _argsBuffer;
 
     private int[] _triangles;
@@ -19,28 +17,23 @@ public class TileVisualizer
     private InstanceData[] _instancesData;
     private uint[] _args;
 
-    public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestWindBuffer;
-    public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestMaskBuffer;
-    public static Action<int> OnRequestDisposeWindBuffer;
-    public static Action<int> OnRequestDisposeMaskBuffer;
-
-    private int _hashCode;
     struct InstanceData 
     {
         public Vector3 position;
         public Vector3 color;
         public float size;
     }
-
-    public TileVisualizer(TileData tileData,Material material) 
+    private void OnEnable()
     {
-        _tileData = tileData;
-        _material = material;
+        OnInitialize += Initialize;
+        OnUpdate += Update;
+        OnDispose += Dispose;
     }
 
-    public void InitializeTileDebug()
-    {
 
+
+    public void Initialize()
+    {
         SetInstanceData();
         GenerateQuadInfo();
         InitializeShader();
@@ -101,49 +94,34 @@ public class TileVisualizer
         _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 4,ComputeBufferType.IndirectArguments);
         _argsBuffer.SetData(_args);
 
-        if (_material)
-            _material.SetInt("_TileDimension", _tileData.TileGridDimension);
+        if (EffectMaterial)
+            EffectMaterial.SetInt("_TileDimension", _tileData.TileGridDimension);
 
         _mpb.SetBuffer("_InstanceDataBuffer", _instanceDataBuffer);
         _mpb.SetBuffer("_VertBuffer", _vertBuffer);
         _mpb.SetBuffer("_TriangleBuffer", _triangleBuffer);
-        GetWindBuffer();
-        GetMaskBuffer();
         if (_windBuffer_external != null)
             _mpb.SetBuffer("_NoiseBuffer", _windBuffer_external);
         if (_maskBuffer_external != null) 
             _mpb.SetBuffer("_MaskBuffer", _maskBuffer_external);
     }
 
-    public void GetWindBuffer()
-    {
-        float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
-        Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _windBuffer_external = OnRequestWindBuffer?.Invoke(_hashCode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
-    }
 
-    public void GetMaskBuffer()
+
+    public void Update() 
     {
-        float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
-        Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _maskBuffer_external = OnRequestMaskBuffer?.Invoke(_hashCode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
-    }
-    public void DrawIndirect() 
-    {
-        if (_material == null)
+        if (EffectMaterial == null)
             return;
 
   
         Bounds cullBound = new Bounds(Vector3.zero, Vector3.one * _tileData.TileGridDimension * _instancesData[0].size);
-        Graphics.DrawProceduralIndirect(_material, cullBound, MeshTopology.Triangles, _argsBuffer,0,null,_mpb);
+        Graphics.DrawProceduralIndirect(EffectMaterial, cullBound, MeshTopology.Triangles, _argsBuffer,0,null,_mpb);
     }
-    public void ReleaseBuffer() 
+    public void Dispose() 
     {
         _triangleBuffer?.Dispose();
         _vertBuffer?.Dispose(); 
         _instanceDataBuffer?.Dispose();
         _argsBuffer?.Dispose();
-        OnRequestDisposeWindBuffer?.Invoke(_hashCode);
-        OnRequestDisposeMaskBuffer?.Invoke(_hashCode);
     }
 }

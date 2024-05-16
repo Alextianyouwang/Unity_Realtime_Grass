@@ -27,15 +27,11 @@ public class WindBufferManager : BufferPool
         OnBufferCreated += SetInitialParameters;
         TileGrandCluster.OnRequestWindBuffer += CreateBuffer;
         TileGrandCluster.OnRequestDisposeWindBuffer += DisposeBuffer;
-        TileVisualizer.OnRequestWindBuffer += CreateBuffer;
-        TileVisualizer.OnRequestDisposeWindBuffer += DisposeBuffer;
     }
     private void OnDisable()
     {
         TileGrandCluster.OnRequestWindBuffer -= CreateBuffer;
         TileGrandCluster.OnRequestDisposeWindBuffer -= DisposeBuffer;
-        TileVisualizer.OnRequestWindBuffer -= CreateBuffer;
-        TileVisualizer.OnRequestDisposeWindBuffer -= DisposeBuffer;
 
         foreach (DataPerTileCluster d in _dataTracker.Values)
             d.Buffer.Dispose();
