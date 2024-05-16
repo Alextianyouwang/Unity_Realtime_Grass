@@ -150,8 +150,10 @@ public class TileChunk
         _chunkColor = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
         _mpb.SetBuffer("_SpawnBuffer", _compactBuffer);
         _mpb.SetBuffer("_GroundNormalBuffer", _groundNormalBuffer_external);
-        _mpb.SetBuffer("_WindBuffer", _windBuffer_external);
-        _mpb.SetBuffer("_MaskBuffer", _maskBuffer_external);
+        if (_windBuffer_external != null)
+         _mpb.SetBuffer("_WindBuffer", _windBuffer_external);
+        if (_maskBuffer_external != null)
+            _mpb.SetBuffer("_MaskBuffer", _maskBuffer_external);
 
         _mpb.SetFloat("_ClusterBotLeftX",bl.x);
         _mpb.SetFloat("_ClusterBotLeftY",bl.y);
