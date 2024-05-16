@@ -123,7 +123,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!84 &98236067
+--- !u!84 &631222813
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -161,7 +161,7 @@ RenderTexture:
   m_Dimension: 2
   m_VolumeDepth: 1
   m_ShadowSamplingMode: 2
---- !u!84 &229463988
+--- !u!84 &801885437
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -436,14 +436,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e0ffd35220df5c4697df493ad99200b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NState: {fileID: 98236067}
-  Nm1State: {fileID: 229463988}
-  Np1State: {fileID: 1859723868}
+  NState: {fileID: 801885437}
+  Nm1State: {fileID: 631222813}
+  Np1State: {fileID: 2105421992}
   DisplayMaterial: {fileID: 2100000, guid: ec7b0a73a70a2154d921d5ef1cef52d2, type: 2}
   Resolusion: 512
   Attenuation: 0.99
-  Center: {x: 349, y: 164.9, z: 0.37}
---- !u!84 &1859723868
+  Center: {x: 191.3, y: 141.3, z: 2}
+--- !u!84 &2105421992
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

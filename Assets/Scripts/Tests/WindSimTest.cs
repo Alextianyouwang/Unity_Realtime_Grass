@@ -40,7 +40,7 @@ public class WindSimTest : MonoBehaviour
 
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (DisplayMaterial == null)
             return;

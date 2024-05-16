@@ -35,14 +35,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 ns_bl = _NState[id.xy + uint2(-1, -1)].xyz;
     float3 ns_l = _NState[id.xy + uint2(-1, 0)].xyz;
     float3 ns_tl = _NState[id.xy + uint2(-1, 1)].xyz;
-    float3 ns_dir = _NState[id.xy + (normalize(ns.xy - nm1s.xy) - 0.5)].xyz;
+    float3 ns_dir = _NState[id.xy + (normalize(ns.xy - nm1s.xy) - 0.5) * 2].xyz;
     float3 waveHeight = ns  + 0.25 * (ns_t + ns_b + ns_l + ns_r - 4 * ns) ;
-    waveHeight = ns  + 0.2 * (ns_t + ns_b + ns_l + ns_r + ns_dir + ns_tr + ns_br + ns_tl + ns_bl - 9 * ns);
+
     //waveHeight = ns * 2 +  ( ns_dir -  ns);
     waveHeight *= _Atten;
     if (distance(_Center.xy ,id.xy) < 20)
         waveHeight = SphericalNormal(float3(id.xy, 0), float3(_Center.xy, 0), 20, 10);
-    
+    waveHeight += ns + 0.11 * (ns_t + ns_b + ns_l + ns_r + ns_dir + ns_tr + ns_br + ns_tl + ns_bl - 9 * ns);
     _Np1State[id.xy] = float4(waveHeight.xyz, 1);
 
 }
