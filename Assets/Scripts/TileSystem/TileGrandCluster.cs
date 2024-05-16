@@ -168,9 +168,9 @@ public class TileGrandCluster : MonoBehaviour
     }
 
 
-    private void InitializeTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.Initialization(_tileData,_windBuffer,_maskBuffer));
-    private void UpdateTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.UpdateEffect());
-    private void DisposeTileComponent() => TileComponents?.ToList().ForEach(t => t?.DisposeEffect());
+    private void InitializeTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.Initialization(_tileData,_windBuffer,_maskBuffer,_hashcode));
+    private void UpdateTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.UpdateEffect(_hashcode));
+    private void DisposeTileComponent() => TileComponents?.ToList().ForEach(t => t?.DisposeEffect(_hashcode));
     private void OnDrawGizmos()
     {
         if (_tileChunkDispatcher == null)

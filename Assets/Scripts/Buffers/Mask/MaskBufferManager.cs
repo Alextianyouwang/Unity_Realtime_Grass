@@ -31,16 +31,21 @@ public class MaskBufferManager : BufferPool
             d.Buffer.Dispose();
         _dataTracker.Clear();
     }
-    private void SetInitialParameters() 
-    {
-    
-    }
 
-    private void LateUpdate()
+    private void OnValidate()
+    {
+        SetInitialParameters();
+    }
+    private void SetInitialParameters() 
     {
         ComputeSetFloat("_Time", Seed);
         ComputeSetFloat("_Step", Threshold);
         ComputeSetInt("_DownSamplingScale", DownSamplingScale);
+    }
+
+    private void LateUpdate()
+    {
+
         UpdateBuffer();
     }
 }

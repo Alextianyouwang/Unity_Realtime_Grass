@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57fd00b3724e48d4daab645b54f063ae, type: 3}
   m_Name: Debug
   m_EditorClassIdentifier: 
-  Enabled: 1
+  Enabled: 0
   EffectMaterial: {fileID: 2100000, guid: 0760a45cb5a5b70488c8d01f3db8e6e4, type: 2}

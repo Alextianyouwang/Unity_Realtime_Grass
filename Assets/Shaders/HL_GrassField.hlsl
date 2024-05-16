@@ -257,11 +257,11 @@ float3 CustomCombineLight(CustomInputData d)
     return color;
 }
 
-float4 StaticElectricity(float2 uvSS)
+float4 StaticElectricity(float2 uvSS, float depth)
 {
     float noise = step(0.5,rand2dTo1d(uvSS + _Time.y));
     float4 color = float4(0.1, 0.5, 1, 1) * 2;
-    color  *= noise;
+    color *= noise ;
     return color;
 }
 
@@ -299,7 +299,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 
     
     float3 finalColor = CustomCombineLight(d) ;
-    //finalColor = v.mask.x <= 0.5 ? StaticElectricity(v.uv.zw) : finalColor;
+    //finalColor = v.mask.x >= 0.5 ? StaticElectricity(v.uv.zw, v.positionCS.w) : finalColor;
 #if _DEBUG_OFF
         return finalColor.xyzz;
 #elif _DEBUG_CHUNKID

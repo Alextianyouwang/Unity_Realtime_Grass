@@ -520,9 +520,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04a837349c9c02344a1ec17c3034e9f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Threshold: 0.798
+  Threshold: 0.906
   DownSamplingScale: 8
-  Seed: 36
+  Seed: 31
 --- !u!1 &692124091
 GameObject:
   m_ObjectHideFlags: 0
@@ -1252,6 +1252,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9c7d6377e522cc74da904d3b97406b85, type: 2}
   TileComponents:
   - {fileID: 11400000, guid: d5bfe3fba8fbc7441b4b227fff260e90, type: 2}
+  - {fileID: 11400000, guid: 3cba7ced0b03ecb47a8d14d0a087502b, type: 2}
 --- !u!4 &1131575701
 Transform:
   m_ObjectHideFlags: 0

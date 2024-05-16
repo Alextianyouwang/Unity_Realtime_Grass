@@ -1,10 +1,44 @@
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Tile Compoments/Debug")]
 public class TileDebugComponent : TileComponent
 {
     public Material EffectMaterial;
+    private Dictionary<int, TileDebug> _tileDebugFXes = new Dictionary<int, TileDebug>();
+    private void OnEnable()
+    {
+        OnInitialize += InitializeComponent;
+         OnUpdate += UpdateComponent;
+         OnDispose += DisposeComponent;
+    }
+    void InitializeComponent(int hash)
+    {
+        TileDebug newFX = new TileDebug(_tileData, _maskBuffer_external,_windBuffer_external, EffectMaterial);
+        if (!_tileDebugFXes.ContainsKey(hash))
+            _tileDebugFXes.Add(hash, newFX);
+        _tileDebugFXes[hash].Initialize();
+    }
+
+    void UpdateComponent(int hash)
+    {
+        if (!Enabled)
+            return;
+        if (!_tileDebugFXes.ContainsKey(hash))
+            return;
+        _tileDebugFXes[hash].Update();
+    }
+    void DisposeComponent(int hash)
+    {
+        if (!_tileDebugFXes.ContainsKey(hash))
+            return;
+        _tileDebugFXes[hash].Dispose();
+        _tileDebugFXes.Remove(hash);
+    }
+}
+
+public class TileDebug
+{
     private MaterialPropertyBlock _mpb;
 
     private ComputeBuffer _instanceDataBuffer;
@@ -17,28 +51,30 @@ public class TileDebugComponent : TileComponent
     private InstanceData[] _instancesData;
     private uint[] _args;
 
-    struct InstanceData 
+    private TileData _tileData;
+    private ComputeBuffer _maskBuffer_external;
+    private ComputeBuffer _windBuffer_external;
+    private Material _effectMaterial;
+    public TileDebug(TileData tileData, ComputeBuffer maskBuffer, ComputeBuffer windBuffer, Material effectMaterial)
+    {
+        _tileData = tileData;
+        _maskBuffer_external = maskBuffer;
+        _windBuffer_external = windBuffer;
+        _effectMaterial = effectMaterial;
+    }
+    struct InstanceData
     {
         public Vector3 position;
         public Vector3 color;
         public float size;
     }
-    private void OnEnable()
-    {
-        OnInitialize += Initialize;
-        OnUpdate += Update;
-        OnDispose += Dispose;
-    }
-
-
-
     public void Initialize()
     {
         SetInstanceData();
         GenerateQuadInfo();
         InitializeShader();
     }
-    private void GenerateQuadInfo() 
+    private void GenerateQuadInfo()
     {
         _triangles = new int[6];
         _triangles[0] = 0;
@@ -55,7 +91,7 @@ public class TileDebugComponent : TileComponent
     }
 
 
-    private void SetInstanceData() 
+    private void SetInstanceData()
     {
         _instancesData = new InstanceData[_tileData.TileGridDimension * _tileData.TileGridDimension];
         for (int x = 0; x < _tileData.TileGridDimension; x++)
@@ -76,7 +112,7 @@ public class TileDebugComponent : TileComponent
         }
     }
 
-    private void InitializeShader() 
+    private void InitializeShader()
     {
         _mpb = new MaterialPropertyBlock();
         _instanceDataBuffer = new ComputeBuffer(_tileData.TileGridDimension * _tileData.TileGridDimension, sizeof(float) * 7);
@@ -91,36 +127,36 @@ public class TileDebugComponent : TileComponent
             0,
             0
         };
-        _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 4,ComputeBufferType.IndirectArguments);
+        _argsBuffer = new ComputeBuffer(1, sizeof(uint) * 4, ComputeBufferType.IndirectArguments);
         _argsBuffer.SetData(_args);
 
-        if (EffectMaterial)
-            EffectMaterial.SetInt("_TileDimension", _tileData.TileGridDimension);
+        if (_effectMaterial)
+            _effectMaterial.SetInt("_TileDimension", _tileData.TileGridDimension);
 
         _mpb.SetBuffer("_InstanceDataBuffer", _instanceDataBuffer);
         _mpb.SetBuffer("_VertBuffer", _vertBuffer);
         _mpb.SetBuffer("_TriangleBuffer", _triangleBuffer);
         if (_windBuffer_external != null)
             _mpb.SetBuffer("_NoiseBuffer", _windBuffer_external);
-        if (_maskBuffer_external != null) 
+        if (_maskBuffer_external != null)
             _mpb.SetBuffer("_MaskBuffer", _maskBuffer_external);
     }
 
 
 
-    public void Update() 
+    public void Update()
     {
-        if (EffectMaterial == null)
+        if (_effectMaterial == null)
             return;
 
-  
+
         Bounds cullBound = new Bounds(Vector3.zero, Vector3.one * _tileData.TileGridDimension * _instancesData[0].size);
-        Graphics.DrawProceduralIndirect(EffectMaterial, cullBound, MeshTopology.Triangles, _argsBuffer,0,null,_mpb);
+        Graphics.DrawProceduralIndirect(_effectMaterial, cullBound, MeshTopology.Triangles, _argsBuffer, 0, null, _mpb);
     }
-    public void Dispose() 
+    public void Dispose()
     {
         _triangleBuffer?.Dispose();
-        _vertBuffer?.Dispose(); 
+        _vertBuffer?.Dispose();
         _instanceDataBuffer?.Dispose();
         _argsBuffer?.Dispose();
     }

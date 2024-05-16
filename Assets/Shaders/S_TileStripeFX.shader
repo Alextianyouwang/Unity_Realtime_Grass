@@ -77,7 +77,7 @@ Shader "Procedural/S_TileStripeFX"
             float4 frag(VertexOutput v) : SV_Target
             {
                 float alpha = v.color.x < 0.5 ? 0 : _Alpha;
-            float gradient = v.gradient.x;
+            float gradient = 5- v.gradient.x;
             float3 color = gradient * _Tint;
             float3 normalWS = v.normalWS;
             float4 finalColor = float4 (color, alpha * gradient * 0.5);

@@ -38,6 +38,10 @@ public class WindBufferManager : BufferPool
         _dataTracker.Clear();
     }
 
+    private void OnValidate()
+    {
+        SetInitialParameters();
+    }
     private void SetInitialParameters() 
     {
         ComputeSetFloat("_Frequency", WindFrequencyMultiplier);
