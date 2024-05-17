@@ -8,6 +8,7 @@ public class WindSimTest : MonoBehaviour
     public RenderTexture Nm1State;
     public RenderTexture Np1State;
     public Material DisplayMaterial;
+    public Texture2D FlowMap;
     
     public int Resolusion = 256;
     public float Attenuation = 1;
@@ -35,12 +36,13 @@ public class WindSimTest : MonoBehaviour
         _windSimCompute.SetTexture(0, "_NState", NState);
         _windSimCompute.SetTexture(0, "_Nm1State", Nm1State);
         _windSimCompute.SetTexture(0, "_Np1State", Np1State);
+        _windSimCompute.SetTexture(0, "_FlowMap", FlowMap);
         _windSimCompute.SetInt("_ResX", Resolusion);
         _windSimCompute.SetInt("_ResY", Resolusion);
 
     }
 
-    void FixedUpdate()
+    void Update()
     {
         if (DisplayMaterial == null)
             return;
