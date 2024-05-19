@@ -106,32 +106,39 @@ void AtmosphereicScattering(float3 rayOrigin, float3 rayDir, float3 sunDir, floa
     float fraction = (float) 1 / _NumInScatteringSample;
     for (uint i = 0; i < _NumInScatteringSample; i++)
     {
-   
-        float ring;
-        float3 maskCenter;
-        float mask =  SphereMask(_SphereMaskCenter, _SphereMaskRadius, _SphereMaskBlend, samplePos, ring);
-        float3 rs_scatteringWeight = 
-            mask * lerp(length(_Rs_ScatterWeight_1.xyz) / 3, _Rs_ScatterWeight_1.xyz, _Rs_ChannelSplit_1) * _Rs_Absorbsion_1 +
-            (1 - mask) * lerp(length(_Rs_ScatterWeight_2.xyz) / 3, _Rs_ScatterWeight_2.xyz, _Rs_ChannelSplit_2) * _Rs_Absorbsion_2;
-        float ms_scatteringWeight = 
-            mask * _Ms_Absorbsion_1 / 100 +
-            (1 - mask) * _Ms_Absorbsion_2 / 100;
-        rs_finalScatteringWeight += rs_scatteringWeight *fraction ;
-        ms_finalScatteringWeight += ms_scatteringWeight *fraction ;
-        float rs_densityMultiplier = mask * _Rs_DensityMultiplier_1 + (1 - mask) * _Rs_DensityMultiplier_2;
-        float ms_densityMultiplier = mask * _Ms_DensityMultiplier_1 + (1 - mask) * _Ms_DensityMultiplier_2;
-#if _USE_MIE
-        float ms_phase = PhaseFunction(dot(sunDir, rayDir), mask * _Ms_Anisotropic_1 + (1-mask) *  _Ms_Anisotropic_2);
-#else
-        float ms_phase = 0;
-#endif
-        ms_finalPhase += ms_phase * fraction;
+
 #if _USE_REALTIME
          float3 earthCenter = float3(0, -_EarthRadius, 0);
         float sunRayLength = RaySphere(float3(0, -_EarthRadius, 0), _EarthRadius + _Rs_Thickness, samplePos, sunDir).y;
 #else
         float4 opticalDepthData = OpticalDepthBaked(samplePos, sunDir);
 #endif
+        float ring;
+        float3 maskCenter;
+#if _USE_MASK
+        float mask =  SphereMask(_SphereMaskCenter, _SphereMaskRadius, _SphereMaskBlend, samplePos, ring);
+#else
+        float mask = 0;
+#endif
+   
+        float3 rs_scatteringWeight = 
+            mask * lerp(length(_Rs_ScatterWeight_1.xyz) / 3, _Rs_ScatterWeight_1.xyz, _Rs_ChannelSplit_1) * _Rs_Absorbsion_1 +
+            (1 - mask) * lerp(length(_Rs_ScatterWeight_2.xyz) / 3, _Rs_ScatterWeight_2.xyz, _Rs_ChannelSplit_2) * _Rs_Absorbsion_2;
+        float ms_scatteringWeight = 
+            mask * _Ms_Absorbsion_1 / 100 +
+            (1 - mask) * _Ms_Absorbsion_2 / 100;
+        
+        float rs_densityMultiplier = mask * _Rs_DensityMultiplier_1 + (1 - mask) * _Rs_DensityMultiplier_2;
+        float ms_densityMultiplier = mask * _Ms_DensityMultiplier_1 + (1 - mask) * _Ms_DensityMultiplier_2;
+        rs_finalScatteringWeight += rs_scatteringWeight * fraction * opticalDepthData.y  * rs_densityMultiplier;
+        ms_finalScatteringWeight += ms_scatteringWeight * fraction * opticalDepthData.w  * ms_densityMultiplier;
+
+#if _USE_MIE
+        float ms_phase = PhaseFunction(dot(sunDir, rayDir), mask * _Ms_Anisotropic_1 + (1-mask) *  _Ms_Anisotropic_2);
+#else
+        float ms_phase = 0;
+#endif
+        ms_finalPhase += ms_phase * fraction;
         
 #if _USE_RAYLEIGH
     #if _USE_REALTIME

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a2a1407e68d244b87204484861b01d, type: 3}
   m_Name: StripeFX
   m_EditorClassIdentifier: 
-  Enabled: 1
+  Enabled: 0
   EffectMaterial: {fileID: 2100000, guid: 5f88c76fcf075974e9b9f53ac11cc248, type: 2}
   Quad: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}

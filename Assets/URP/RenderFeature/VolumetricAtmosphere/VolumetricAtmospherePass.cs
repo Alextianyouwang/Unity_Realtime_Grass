@@ -109,8 +109,27 @@ public class VolumetricAtmospherePass : ScriptableRenderPass
             _blitMat.SetInt("_VolumeOnly", _volumeSettings.VolumePassOnly.value ? 1 : 0);
             Blitter.BlitCameraTexture(cmd, _rtColor, _rtTempColor, _blitMat, 0);
             Blitter.BlitCameraTexture(cmd, _rtTempColor, _rtColor);
-            Blitter.BlitCameraTexture(cmd, _rtColor, _rtTempColor2, _blitMat, 1);
-            Blitter.BlitCameraTexture(cmd, _rtTempColor2, _rtColor);
+
+
+            LocalKeyword enableMask = new LocalKeyword(_blitMat.shader, "_USE_MASK");
+            if (_volumeSettings.EnableMask.value)
+                _blitMat.EnableKeyword(enableMask);
+            else
+                _blitMat.DisableKeyword(enableMask);
+
+            LocalKeyword enableDistorsion = new LocalKeyword(_blitMat.shader, "_USE_DISTORSION");
+            if (_volumeSettings.EnableDistorsion.value && _volumeSettings.EnableMask.value)
+                _blitMat.EnableKeyword(enableDistorsion);
+            else
+                _blitMat.DisableKeyword(enableDistorsion);
+          
+
+            if (_volumeSettings.EnableDistorsion.value) 
+            {
+                Blitter.BlitCameraTexture(cmd, _rtColor, _rtTempColor2, _blitMat, 1);
+                Blitter.BlitCameraTexture(cmd, _rtTempColor2, _rtColor);
+            }
+  
         }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();

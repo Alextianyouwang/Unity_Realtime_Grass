@@ -80,11 +80,14 @@ void CalculateDistortion(float3 rayOrigin, float3 rayDir, float distance,inout f
 
 float4 frag(v2f i) : SV_Target
 {
+ #ifndef _USE_DISTORSION
+    return tex2D(_CameraOpaqueTexture, i.uv);
+#endif
     float3 rayOrigin = _WorldSpaceCameraPos;
-    float3 rayDir = normalize(i.viewDir); 
+    float3 rayDir = normalize(i.viewDir);
 
     
-    float2 hitInfo = RaySphere(_SphereMaskCenter, _SphereMaskRadius , rayOrigin, rayDir);
+    float2 hitInfo = RaySphere(_SphereMaskCenter, _SphereMaskRadius, rayOrigin, rayDir);
     float3 marchStart = rayOrigin + rayDir * (hitInfo.x + 0.01);
 
     float3 forward = mul((float3x3) unity_CameraToWorld, float3(0, 0, 1));
@@ -96,12 +99,13 @@ float4 frag(v2f i) : SV_Target
     float2 uv = i.uv;
     float2 uv2 = i.uv;
     float2 uv3 = i.uv;
-    CalculateDistortion(marchStart, rayDir, distThroughVolume <= 0? 0: hitInfo.y, uv, uv2, uv3);
+    CalculateDistortion(marchStart, rayDir, distThroughVolume <= 0 ? 0 : hitInfo.y, uv, uv2, uv3);
    
     float4 col = 0;
     col.x = tex2D(_CameraOpaqueTexture, uv).x;
     col.y = tex2D(_CameraOpaqueTexture, uv2).y;
-   col.z = tex2D(_CameraOpaqueTexture, uv3).z;
+    col.z = tex2D(_CameraOpaqueTexture, uv3).z;
     return col.xyzz;
+    
 }
 #endif

@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4156c757fca9ddf4faee97abff6e1522, type: 3}
   m_Name: VolumetricAtmosphereBlendingComponent
   m_EditorClassIdentifier: 
-  active: 0
+  active: 1
   Enabled:
     m_OverrideState: 1
     m_Value: 1
@@ -143,10 +143,16 @@ MonoBehaviour:
     m_Value: {x: 30.8, y: 21.6, z: -61.32}
   BlendRaidus:
     m_OverrideState: 1
-    m_Value: 36.9
+    m_Value: 33
   BlendFalloff:
     m_OverrideState: 1
     m_Value: 12.4
+  EnableDistorsion:
+    m_OverrideState: 1
+    m_Value: 1
+  EnableMask:
+    m_OverrideState: 1
+    m_Value: 1
   EnableRayleighScattering:
     m_OverrideState: 1
     m_Value: 1
@@ -164,10 +170,10 @@ MonoBehaviour:
     m_Value: {r: 0.53333336, g: 0.9466022, b: 1, a: 1}
   AtmosphereUniformAbsorbsion_1:
     m_OverrideState: 1
-    m_Value: 0.62
+    m_Value: 0.565
   AtmosphereAbsorbsionWeightPerChannel_1:
     m_OverrideState: 1
-    m_Value: {r: 0, g: 0.06, b: 0.179, a: 1}
+    m_Value: {r: 0, g: 0.06, b: 0.17, a: 1}
   AtmosphereChannelSplit_1:
     m_OverrideState: 1
     m_Value: 0.107
@@ -206,7 +212,7 @@ MonoBehaviour:
     m_Value: 1
   AerosolsAnistropic_1:
     m_OverrideState: 1
-    m_Value: 0.586
+    m_Value: 0.601
   AerosolsDensityMultiplier_2:
     m_OverrideState: 1
     m_Value: 0
