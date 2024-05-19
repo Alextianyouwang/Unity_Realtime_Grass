@@ -1,12 +1,10 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.SceneManagement;
 public class VolumetricAtmosphereFeature : ScriptableRendererFeature
 {
     public bool showInSceneView = true;
     public RenderPassEvent _event = RenderPassEvent.AfterRenderingTransparents;
-
     private VolumetricAtmospherePass _volumePass;
     private Material _blitMat;
 
@@ -23,7 +21,6 @@ public class VolumetricAtmosphereFeature : ScriptableRendererFeature
         CreateRenderRT();
         _volumePass = new VolumetricAtmospherePass(name);
         _volumePass.renderPassEvent = _event;
-
     }
     private void CreateRenderRT() 
     {
@@ -64,7 +61,7 @@ public class VolumetricAtmosphereFeature : ScriptableRendererFeature
         if (_opticalDepthTex == null)
             Create();
         if (!ReadyToEnqueue(renderingData)) return;
-        _volumePass.SetData(renderer.cameraColorTargetHandle,_baker, _opticalDepthTex,_blitMat,PrebakedTextureQualitySetting == PrebakedTextureQuality.Realtime);
+        _volumePass.SetData(renderer.cameraColorTargetHandle,_baker, _opticalDepthTex,_blitMat, PrebakedTextureQualitySetting == PrebakedTextureQuality.Realtime);
     }
     bool ReadyToEnqueue(RenderingData renderingData) 
     {
