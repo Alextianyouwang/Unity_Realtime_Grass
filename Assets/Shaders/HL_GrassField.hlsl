@@ -5,7 +5,6 @@
 #include "../INCLUDE/HL_GraphicsHelper.hlsl"
 #include "../INCLUDE/HL_Noise.hlsl"
 #include "../INCLUDE/HL_ShadowHelper.hlsl"
-
 struct VertexInput
 {
     float3 positionOS : POSITION;
@@ -70,6 +69,7 @@ _SSSTightness,
 _NormalScale,
 _BladeThickenFactor,_TextureShift;
 
+
 void CalculateGrassCurve(float t, float interaction,float wind, float variance, float hash, float4 posture, out float3 pos, out float3 tan)
 {
     float lengthMult = 1 + _GrassRandomLength * frac(hash * 50);
@@ -116,7 +116,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].z; // [0,1]
     float4 maskBuffer = _MaskBuffer[x * _NumTilePerClusterSide + y]; // [0,1]
     float interaction = saturate(_InteractionTexture[int2(x, y)]);
-    float4 flow = _FlowTexture[int2(x, y)];
+    float4 flow = normalize(_FlowTexture[int2(x, y)]);
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
     float rand = _SpawnBuffer[instanceID].hash * 2 - 1; // [-1,1]
@@ -154,12 +154,17 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Clump
     float windAngle = -windDir + 90;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
+    float flowAngle = degrees(clamp(atan2(flow.x, flow.z), -UNITY_PI, UNITY_PI));
     float postureAngle = 360 * (posture.x*0.5 + posture.y * 0.5 + posture.w * 0.5) * _GrassPostureFacing;
     float postureHeight = step(0.97, posture.x ) ;
   
     float randomRotationMaxSpan = 180;
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
-    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01) - (frac(rand * 60) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01 + 0.2) - postureAngle  * reverseWind01;
+
+    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01);
+    rotAngle -= (frac(rand * 60) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01 + 0.2);
+    rotAngle -= postureAngle * reverseWind01;
+    rotAngle = lerp(rotAngle, flowAngle, flow.y);
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand + postureHeight;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
@@ -202,7 +207,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.debug = float4(lerp(float2(0, 1), float2(1, 0), windStrength + 0.5), interaction,rand);
     o.height = max(scale, _GrassRandomLength * rand) * clumpHash;
     o.mask = maskBuffer;
-    o.flow = flow;
+    o.flow = atan2(flow.x, flow.z);
 
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
@@ -306,7 +311,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     float3 finalColor = CustomCombineLight(d) ;
     //finalColor = v.mask.x >= 0.5 ? StaticElectricity(v.uv.zw, v.positionCS.w) : finalColor;
 #if _DEBUG_OFF
-        return v.flow;
+
         return finalColor.xyzz;
 #elif _DEBUG_CHUNKID
         return _ChunkColor.xyzz;

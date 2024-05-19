@@ -57,7 +57,6 @@ Shader "Procedural/S_TileDebug"
                 o.color = _NoiseBuffer[instanceID].xyzz;
 #endif
                 o.color = _MaskBuffer[instanceID].xyzz;
-                o.color = _FlowBuffer[instanceID].xyzz;
 
                 return o;
             }

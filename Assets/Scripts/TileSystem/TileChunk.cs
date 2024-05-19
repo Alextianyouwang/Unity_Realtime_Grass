@@ -216,7 +216,7 @@ public class TileChunk
             _mpb.SetColor("_LOD_Color", Color.yellow);
 
         }
-        /*for (int i = 0; i < _spawnMesh.Length; i++) 
+        /*for (int i = 0; i < _spawnMesh.Length; i++)
         {
             uint[] data = new uint[5];
             _argsBuffer[i].GetData(data);

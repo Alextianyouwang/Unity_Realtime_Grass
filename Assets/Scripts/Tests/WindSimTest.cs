@@ -62,7 +62,7 @@ public class WindSimTest : MonoBehaviour
 
     void DisposeTexture(ref RenderTexture rt) => rt.Release();
 
-    void Update()
+    void  LateUpdate()
     {
         if (DisplayMaterial == null)
             return;

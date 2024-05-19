@@ -16,8 +16,6 @@ public abstract class BufferPool : MonoBehaviour
     protected Dictionary<int, DataPerTileCluster> _dataTracker = new Dictionary<int, DataPerTileCluster>();
     protected string _shaderName;
     protected string _bufferName;
-    protected string _buffer1Name;
-    protected string _buffer2Name;
     protected int _bufferStride;
 
     protected Action OnBufferCreated;
