@@ -7,14 +7,23 @@ float _TileSize;
 float _TileDimension;
 float _CornerX;
 float _CornerY;
-float _Time;
-float _DirX;
-float _DirY;
 
+float _Time;
 float _Step;
 uint _DownSamplingScale;
 
+float3 _Center;
+float _Radius;
+float _Falloff;
+
 #include "../../INCLUDE/HL_Noise.hlsl"
+
+float SphericalMask(float3 pos, float3 center, float radius, float falloff)
+{
+    float3 dir = pos - center;
+    return 1- smoothstep(radius - falloff/2, radius + falloff/2, length(dir));
+}
+
 [numthreads(1024,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
@@ -23,12 +32,20 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     int coordX = id.x / _TileDimension;
     int coordY = id.x % _TileDimension;
+    
+    int coordOriginalX = coordX;
+    int coordOriginalY = coordY;
 
     coordX = floor(coordX / _DownSamplingScale);
     coordY = floor(coordY / _DownSamplingScale );
-    float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize + _CornerY);
-    float rand = rand2dTo1d(posXZ + _Time);
     
-    _MaskBuffer[id.x] = float4(step(_Step,rand), 0, 0, 0);
+    float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize  + _CornerY);
+    float2 posXZOriginal = float2(coordOriginalX * _TileSize + _CornerX, coordOriginalY * _TileSize + _CornerY);
+    float rand = rand2dTo1d(posXZ + _Time);
+    float randOriginal = rand2dTo1d(posXZOriginal + _Time);
+    
+    float sphereMask = SphericalMask(float3(posXZOriginal.x, 0, posXZOriginal.y), _Center, _Radius, _Falloff);
+    sphereMask = step(randOriginal,sphereMask - 0.01);
+    _MaskBuffer[id.x] = float4(step(_Step,rand), sphereMask, 0, 0);
 
 }

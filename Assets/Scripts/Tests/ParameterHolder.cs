@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
+[DefaultExecutionOrder (-101)]
 public class ParameterHolder : MonoBehaviour
 {
 
@@ -14,19 +15,24 @@ public class ParameterHolder : MonoBehaviour
     public VolumeProfile VolumeObject;
     private VolumetricAtmosphereBlendingComponent _setting;
 
-    public WindSimTest WindSimTest;
+    public WindSimTest FlowBufferHolder;
+    public MaskBufferManager MaskBufferHolder;
     private void OnEnable()
     {
         VolumeObject.TryGet(out _setting);
 
     }
-    void Update()
+    void LateUpdate()
     {
         _setting.BlendCenter.value = SphereMaskCenter;
         _setting.BlendRaidus.value = SphereMaskRadius;
         _setting.BlendFalloff.value = SphereMaskFalloff;
 
-        WindSimTest.Center = SphereMaskCenter;
-        WindSimTest.Size = SphereMaskRadius;
+        FlowBufferHolder.Center = SphereMaskCenter;
+        FlowBufferHolder.Size = SphereMaskRadius;
+
+       MaskBufferHolder.Falloff = SphereMaskFalloff;
+       MaskBufferHolder.Center = SphereMaskCenter;
+       MaskBufferHolder.Radius = SphereMaskRadius;
     }
 }

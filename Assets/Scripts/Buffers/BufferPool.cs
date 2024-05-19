@@ -89,11 +89,10 @@ public abstract class BufferPool : MonoBehaviour
             d.Compute.SetInt(name, value);
     }
 
-    protected void ComputeSetBuffer(int k, string name, ComputeBuffer value)
+    protected void ComputeSetVector(string name, Vector4 value) 
     {
         foreach (DataPerTileCluster d in _dataTracker.Values)
-            d.Compute.SetBuffer(k, name, value);
+            d.Compute.SetVector(name, value);
     }
-
 
 }
