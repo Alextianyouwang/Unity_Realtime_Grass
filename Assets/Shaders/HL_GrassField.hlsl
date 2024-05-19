@@ -27,6 +27,7 @@ struct VertexOutput
     float height : TEXCOOR7;
     float3 bakedGI : TEXCOORD8;
     float4 mask : TEXCOORD9;
+    float4 flow : TEXCOORD10;
 };
 ////////////////////////////////////////////////
 // Spawn Data
@@ -46,6 +47,8 @@ StructuredBuffer<float3> _GroundNormalBuffer;
 StructuredBuffer<float3> _WindBuffer;
 StructuredBuffer<float4> _MaskBuffer;
 Texture2D<float> _InteractionTexture;
+Texture2D<float4> _FlowTexture;
+
 int _NumTilePerClusterSide;
 float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
 ////////////////////////////////////////////////
@@ -113,6 +116,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].z; // [0,1]
     float4 maskBuffer = _MaskBuffer[x * _NumTilePerClusterSide + y]; // [0,1]
     float interaction = saturate(_InteractionTexture[int2(x, y)]);
+    float4 flow = _FlowTexture[int2(x, y)];
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
     float rand = _SpawnBuffer[instanceID].hash * 2 - 1; // [-1,1]
@@ -198,6 +202,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.debug = float4(lerp(float2(0, 1), float2(1, 0), windStrength + 0.5), interaction,rand);
     o.height = max(scale, _GrassRandomLength * rand) * clumpHash;
     o.mask = maskBuffer;
+    o.flow = flow;
 
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
@@ -301,6 +306,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     float3 finalColor = CustomCombineLight(d) ;
     //finalColor = v.mask.x >= 0.5 ? StaticElectricity(v.uv.zw, v.positionCS.w) : finalColor;
 #if _DEBUG_OFF
+        return v.flow;
         return finalColor.xyzz;
 #elif _DEBUG_CHUNKID
         return _ChunkColor.xyzz;

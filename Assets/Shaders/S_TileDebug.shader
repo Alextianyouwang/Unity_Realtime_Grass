@@ -40,6 +40,7 @@ Shader "Procedural/S_TileDebug"
             StructuredBuffer<float3> _VertBuffer;
             StructuredBuffer<float3> _NoiseBuffer;
             StructuredBuffer<float4> _MaskBuffer;
+            StructuredBuffer<float4> _FlowBuffer;
             float _Alpha;
             int _TileDimension;
 
@@ -56,6 +57,8 @@ Shader "Procedural/S_TileDebug"
                 o.color = _NoiseBuffer[instanceID].xyzz;
 #endif
                 o.color = _MaskBuffer[instanceID].xyzz;
+                o.color = _FlowBuffer[instanceID].xyzz;
+
                 return o;
             }
             

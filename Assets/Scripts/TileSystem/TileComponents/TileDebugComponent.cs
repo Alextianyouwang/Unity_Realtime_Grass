@@ -14,7 +14,7 @@ public class TileDebugComponent : TileComponent
     }
     void InitializeComponent(int hash)
     {
-        TileDebug newFX = new TileDebug(_tileData, _maskBuffer_external,_windBuffer_external, EffectMaterial);
+        TileDebug newFX = new TileDebug(_tileData, _maskBuffer_external,_windBuffer_external, _flowBuffer_external, EffectMaterial);
         if (!_tileDebugFXes.ContainsKey(hash))
             _tileDebugFXes.Add(hash, newFX);
         _tileDebugFXes[hash].Initialize();
@@ -54,12 +54,14 @@ public class TileDebug
     private TileData _tileData;
     private ComputeBuffer _maskBuffer_external;
     private ComputeBuffer _windBuffer_external;
+    private ComputeBuffer _flowBuffer_external;
     private Material _effectMaterial;
-    public TileDebug(TileData tileData, ComputeBuffer maskBuffer, ComputeBuffer windBuffer, Material effectMaterial)
+    public TileDebug(TileData tileData, ComputeBuffer maskBuffer, ComputeBuffer windBuffer, ComputeBuffer flowBuffer, Material effectMaterial)
     {
         _tileData = tileData;
         _maskBuffer_external = maskBuffer;
         _windBuffer_external = windBuffer;
+        _flowBuffer_external = flowBuffer;
         _effectMaterial = effectMaterial;
     }
     struct InstanceData
@@ -140,6 +142,8 @@ public class TileDebug
             _mpb.SetBuffer("_NoiseBuffer", _windBuffer_external);
         if (_maskBuffer_external != null)
             _mpb.SetBuffer("_MaskBuffer", _maskBuffer_external);
+        if (_flowBuffer_external != null)
+            _mpb.SetBuffer("_FlowBuffer", _flowBuffer_external);
     }
 
 

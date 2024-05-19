@@ -13,14 +13,16 @@ public abstract class TileComponent : ScriptableObject
 
     protected ComputeBuffer _windBuffer_external;
     protected ComputeBuffer _maskBuffer_external;
+    protected ComputeBuffer _flowBuffer_external;
 
 
-    public void Initialization(TileData tileData , ComputeBuffer windBuffer, ComputeBuffer maskBuffer, int hash) 
+    public void Initialization(TileData tileData , ComputeBuffer windBuffer, ComputeBuffer maskBuffer, ComputeBuffer flowBuffer, int hash) 
     {
 
         _tileData = tileData;
         _windBuffer_external = windBuffer;
         _maskBuffer_external = maskBuffer;
+        _flowBuffer_external = flowBuffer;
         OnInitialize?.Invoke(hash);
     }
 

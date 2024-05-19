@@ -155,6 +155,9 @@ public class TileChunk
         if (_maskBuffer_external != null)
             _mpb.SetBuffer("_MaskBuffer", _maskBuffer_external);
 
+        if (WindSimTest.NState)
+            _mpb.SetTexture("_FlowTexture",WindSimTest.NState);
+
         _mpb.SetFloat("_ClusterBotLeftX",bl.x);
         _mpb.SetFloat("_ClusterBotLeftY",bl.y);
         _mpb.SetFloat("_TileSize", _tileData.TileSize);
