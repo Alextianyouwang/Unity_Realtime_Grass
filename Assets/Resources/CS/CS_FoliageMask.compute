@@ -21,7 +21,7 @@ float _Falloff;
 float SphericalMask(float3 pos, float3 center, float radius, float falloff)
 {
     float3 dir = pos - center;
-    return 1- smoothstep(radius - falloff/2, radius + falloff/2, length(dir));
+    return 1 - smoothstep(radius - falloff, radius, length(dir));
 }
 
 [numthreads(1024,1,1)]

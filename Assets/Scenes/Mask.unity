@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44455144, g: 0.4940527, b: 0.5733351, a: 1}
+  m_IndirectSpecularColor: {r: 0.44855744, g: 0.4986078, b: 0.57565874, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -265,44 +265,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 421731393}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!84 &457303356
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 5
-  m_Width: 512
-  m_Height: 512
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 0
-  m_ColorFormat: 28
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 0
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &461184757
 GameObject:
   m_ObjectHideFlags: 0
@@ -562,8 +524,8 @@ MonoBehaviour:
   Threshold: 0.808
   DownSamplingScale: 7
   Seed: 89
-  Center: {x: 30.2, y: 17.4, z: -85.1}
-  Radius: 28.6
+  Center: {x: 30.2, y: 20.962166, z: -85.1}
+  Radius: 36.1
   Falloff: 5
 --- !u!1 &692124091
 GameObject:
@@ -1249,7 +1211,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1053921982}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!84 &1063165114
+--- !u!84 &1120091298
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1383,7 +1345,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SphereMaskCenter: {x: 30.2, y: 17.4, z: -85.1}
-  SphereMaskRadius: 28.6
+  SphereMaskRadius: 21.2
   SphereMaskFalloff: 5
   VolumeObject: {fileID: 11400000, guid: ed54ee8af8abe17408e9f5abd134b9a8, type: 2}
   FlowBufferHolder: {fileID: 1893227999}
@@ -1567,6 +1529,44 @@ MonoBehaviour:
   WindSpeedBuildup: 2.5
   WindAmplitudeFalloff: 0.55
   WindFrequencyBuildup: 1.5
+--- !u!84 &1271790611
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 5
+  m_Width: 512
+  m_Height: 512
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 0
+  m_ColorFormat: 28
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 0
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &1311649382
 GameObject:
   m_ObjectHideFlags: 0
@@ -1626,13 +1626,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1390071247}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.63481283, y: -0.34293768, z: 0.6148604, w: 0.31835997}
+  m_LocalRotation: {x: 0.8530616, y: -0.05846161, z: 0.34925812, w: 0.38325834}
   m_LocalPosition: {x: 6.1, y: -16.902277, z: -6.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 692124092}
-  m_LocalEulerAnglesHint: {x: 124.319, y: 634.18896, z: 724.467}
+  m_LocalEulerAnglesHint: {x: 135.995, y: 669.992, z: 706.495}
 --- !u!114 &1390071249
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2484,13 +2484,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e0ffd35220df5c4697df493ad99200b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Nm1State: {fileID: 1063165114}
-  Np1State: {fileID: 457303356}
+  Nm1State: {fileID: 1271790611}
+  Np1State: {fileID: 1120091298}
   DisplayMaterial: {fileID: 2100000, guid: ec7b0a73a70a2154d921d5ef1cef52d2, type: 2}
   Resolusion: 512
-  Attenuation: 0.87
-  Center: {x: 30.2, y: 17.4, z: -85.1}
-  Size: 28.6
+  Attenuation: 0.93
+  Center: {x: 30.2, y: 20.962166, z: -85.1}
+  Size: 36.1
   Thickness: 2
 --- !u!1 &2059612525
 GameObject:
