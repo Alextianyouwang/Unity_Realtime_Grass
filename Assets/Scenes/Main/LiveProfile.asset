@@ -179,16 +179,16 @@ MonoBehaviour:
     m_Value: 1
   AtmosphereDensityMultiplier_2:
     m_OverrideState: 1
-    m_Value: 0.82
+    m_Value: 1.73
   AtmosphereInscatteringTint_2:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_Value: {r: 0.7490196, g: 0.7490196, b: 0.7490196, a: 1}
   AtmosphereUniformAbsorbsion_2:
     m_OverrideState: 1
-    m_Value: 0.273
+    m_Value: 0.094
   AtmosphereAbsorbsionWeightPerChannel_2:
     m_OverrideState: 1
-    m_Value: {r: 0.014, g: 0.071, b: 0.114, a: 1}
+    m_Value: {r: 0.028, g: 0.085, b: 0.163, a: 1}
   AtmosphereChannelSplit_2:
     m_OverrideState: 1
     m_Value: 1

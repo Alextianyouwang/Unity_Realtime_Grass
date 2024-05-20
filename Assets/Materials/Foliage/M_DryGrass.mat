@@ -49,7 +49,7 @@ Material:
     - _ClumpHeightOffset: 1
     - _ClumpHeightSmoothness: 0.109
     - _ClumpThreshold: 0
-    - _ClumpTopThreshold: 0.512
+    - _ClumpTopThreshold: 0.47
     - _DEBUG: 0
     - _Debug: 0
     - _DetailAmplitude: 0.072
@@ -93,10 +93,10 @@ Material:
     - _WindNoiseWeight: 1
     - _WindSpeed: 0.702
     m_Colors:
-    - _BotColor: {r: 0.21698111, g: 0.09862778, b: 0, a: 1}
+    - _BotColor: {r: 0.20754719, g: 0.09433963, b: 0, a: 1}
     - _SSSColor: {r: 0.3018868, g: 0.23897214, b: 0.13527946, a: 1}
-    - _SpecularColor: {r: 0.05660379, g: 0.05660379, b: 0.05660379, a: 1}
-    - _TopColor: {r: 0.1792453, g: 0.16670643, b: 0.06848523, a: 1}
+    - _SpecularColor: {r: 0.009433985, g: 0.009433985, b: 0.009433985, a: 1}
+    - _TopColor: {r: 0.20754719, g: 0.17724024, b: 0.102794595, a: 1}
     - _VariantTopColor: {r: 0.18867922, g: 0.16583598, b: 0.1201495, a: 1}
     - _WindDirection: {r: 1, g: 1, b: 0, a: 0}
     - _WindNoiseFrequency: {r: 0.3, g: 0.3, b: 0, a: 0}

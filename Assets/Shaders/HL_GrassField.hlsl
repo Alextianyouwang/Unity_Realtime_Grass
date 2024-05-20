@@ -160,7 +160,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
   
     float randomRotationMaxSpan = 180;
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
-
+    
     float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01);
     rotAngle -= (frac(rand * 60) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01 + 0.2);
     rotAngle -= postureAngle * reverseWind01;

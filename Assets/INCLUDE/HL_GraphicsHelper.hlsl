@@ -137,6 +137,41 @@ float3 ProjectOntoPlane(float3 v, float3 planeNormal)
 {
     return v - dot(v, normalize(planeNormal)) * planeNormal;
 }
+//gist.github.com/outsidecontext/6083f490d4bd56b3e34b7893e6a34480
+float4 slerp(float4 v0, float4 v1, float t)
+{
+    
+    // Compute the cosine of the angle between the two vectors.
+    float d = dot(v0, v1);
+
+    const float DOT_THRESHOLD = 0.9995;
+    if (abs(d) > DOT_THRESHOLD)
+    {
+        // If the inputs are too close for comfort, linearly interpolate
+        // and normalize the result.
+        float4 result = v0 + t * (v1 - v0);
+        normalize(result);
+        return result;
+    }
+
+    // If the dot product is negative, the quaternions
+    // have opposite handed-ness and slerp won't take
+    // the shorter path. Fix by reversing one quaternion.
+    if (d < 0.0f)
+    {
+        v1 = -v1;
+        d = -d;
+    }
+
+    clamp(d, -1, 1); // Robustness: Stay within domain of acos()
+    float theta_0 = acos(d); // theta_0 = angle between input vectors
+    float theta = theta_0 * t; // theta = angle between v0 and result 
+
+    float4 v2 = v1 - v0 * d;
+    normalize(v2); // { v0, v2 } is now an orthonormal basis
+
+    return v0 * cos(theta) + v2 * sin(theta);
+}
 void FastSSS_float(float3 ViewDir, float3 LightDir, float3 WorldNormal, float3 LightColor, float Flood, float Power, out float3 sss)
 {
     const float3 LAddN = LightDir + WorldNormal;
