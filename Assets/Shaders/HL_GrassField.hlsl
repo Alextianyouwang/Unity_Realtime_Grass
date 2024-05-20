@@ -309,7 +309,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 
     
     float3 finalColor = CustomCombineLight(d) ;
-    //finalColor = v.mask.x >= 0.5 ? StaticElectricity(v.uv.zw, v.positionCS.w) : finalColor;
+    finalColor = v.mask.x >= 0.5 ? StaticElectricity(v.uv.zw, v.positionCS.w) : finalColor;
 #if _DEBUG_OFF
 
         return finalColor.xyzz;

@@ -131,7 +131,7 @@ MonoBehaviour:
     m_Value: 1
   EarthRadius:
     m_OverrideState: 1
-    m_Value: 5000
+    m_Value: 2000
   OpticalDepthSamples:
     m_OverrideState: 1
     m_Value: 100
@@ -140,13 +140,13 @@ MonoBehaviour:
     m_Value: 100
   BlendCenter:
     m_OverrideState: 1
-    m_Value: {x: 35, y: 20.962166, z: -77.1}
+    m_Value: {x: -0.2, y: 33.2, z: 13.5}
   BlendRaidus:
     m_OverrideState: 1
-    m_Value: 37.96765
+    m_Value: 12.901336
   BlendFalloff:
     m_OverrideState: 1
-    m_Value: 7
+    m_Value: 5.39
   EnableDistorsion:
     m_OverrideState: 1
     m_Value: 1
@@ -164,19 +164,19 @@ MonoBehaviour:
     m_Value: 1
   AtmosphereDensityMultiplier_1:
     m_OverrideState: 1
-    m_Value: 1.949
+    m_Value: 3
   AtmosphereInscatteringTint_1:
     m_OverrideState: 1
-    m_Value: {r: 0.53333336, g: 0.9466022, b: 1, a: 1}
+    m_Value: {r: 0.258989, g: 0.5276567, b: 0.5660378, a: 1}
   AtmosphereUniformAbsorbsion_1:
     m_OverrideState: 1
-    m_Value: 0.565
+    m_Value: 0.106
   AtmosphereAbsorbsionWeightPerChannel_1:
     m_OverrideState: 1
-    m_Value: {r: 0, g: 0.06, b: 0.17, a: 1}
+    m_Value: {r: 0.078, g: 0.163, b: 0.255, a: 1}
   AtmosphereChannelSplit_1:
     m_OverrideState: 1
-    m_Value: 0.107
+    m_Value: 1
   AtmosphereDensityMultiplier_2:
     m_OverrideState: 1
     m_Value: 0.82
@@ -206,13 +206,13 @@ MonoBehaviour:
     m_Value: 3
   AerosolsInscatteringTint_1:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 0.62095505, b: 0.4198113, a: 1}
+    m_Value: {r: 0.1981132, g: 0.13905588, b: 0.10746707, a: 1}
   AerosolsUniformAbsorbsion_1:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.445
   AerosolsAnistropic_1:
     m_OverrideState: 1
-    m_Value: 0.601
+    m_Value: 0.839
   AerosolsDensityMultiplier_2:
     m_OverrideState: 1
     m_Value: 0
@@ -221,7 +221,7 @@ MonoBehaviour:
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   AerosolsUniformAbsorbsion_2:
     m_OverrideState: 1
-    m_Value: 0.07
+    m_Value: 0.128
   AerosolsAnistropic_2:
     m_OverrideState: 1
     m_Value: 0.7
