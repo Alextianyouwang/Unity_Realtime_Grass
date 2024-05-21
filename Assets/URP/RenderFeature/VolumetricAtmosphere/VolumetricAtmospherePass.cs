@@ -66,6 +66,8 @@ public class VolumetricAtmospherePass : ScriptableRenderPass
             _blitMat.SetInt("_NumOpticalDepthSample", _volumeSettings.OpticalDepthSamples.value);
             _blitMat.SetInt("_NumInScatteringSample", _volumeSettings.InscatteringSamples.value);
 
+            _blitMat.SetFloat("_SphereMaskDistortBlend", _volumeSettings.BlendDistortFalloff.value);
+
             LocalKeyword enableRayleigh = new LocalKeyword(_blitMat.shader, "_USE_RAYLEIGH");
             if (_volumeSettings.EnableRayleighScattering.value)
                 _blitMat.EnableKeyword(enableRayleigh);

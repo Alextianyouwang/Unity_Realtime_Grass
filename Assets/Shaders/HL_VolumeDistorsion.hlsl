@@ -9,6 +9,7 @@ float _Rs_Thickness;
 float3 _SphereMaskCenter;
 float _SphereMaskRadius;
 float _SphereMaskBlend;
+float _SphereMaskDistortBlend;
 #include "../INCLUDE/HL_AtmosphereHelper.hlsl"
 
 
@@ -66,16 +67,16 @@ void CalculateDistortion(float3 rayOrigin, float3 rayDir, float distance,inout f
     {
         float ring;
     
-        float mask = SphereMask(_SphereMaskCenter, _SphereMaskRadius - 5, 5, samplePos, ring);
+        float mask = SphereMask(_SphereMaskCenter, _SphereMaskRadius - 5, _SphereMaskDistortBlend, samplePos, ring);
         float3 dirToCenter =  normalize(_SphereMaskCenter - samplePos);
         totalDir += dirToCenter * stepSize * ring * fraction;
         samplePos += rayDir * stepSize;
     }
 
     float3 dirVS = mul(UNITY_MATRIX_V, float4(totalDir, 0)).xyz;
-    uv += dirVS.xy * 0.2;
-    uv2 += dirVS.xy * 0.2;
-    uv3 += dirVS.xy * 0.2;
+    uv += dirVS.xy * 0.20;
+    uv2 += dirVS.xy * 0.20;
+    uv3 += dirVS.xy * 0.20;
 }
 
 float4 frag(v2f i) : SV_Target
@@ -87,7 +88,7 @@ float4 frag(v2f i) : SV_Target
     float3 rayDir = normalize(i.viewDir);
 
     
-    float2 hitInfo = RaySphere(_SphereMaskCenter, _SphereMaskRadius, rayOrigin, rayDir);
+    float2 hitInfo = RaySphere(_SphereMaskCenter, _SphereMaskRadius + _SphereMaskDistortBlend - 5, rayOrigin, rayDir);
     float3 marchStart = rayOrigin + rayDir * (hitInfo.x + 0.01);
 
     float3 forward = mul((float3x3) unity_CameraToWorld, float3(0, 0, 1));
