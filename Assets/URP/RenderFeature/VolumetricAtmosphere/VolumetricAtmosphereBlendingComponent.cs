@@ -10,7 +10,7 @@ public class VolumetricAtmosphereBlendingComponent : VolumeComponent, IPostProce
     [Header("Configuration")]
     public FloatParameter EarthRadius = new FloatParameter(5000f, false);
     public ClampedIntParameter OpticalDepthSamples = new ClampedIntParameter(50, 1, 100, false);
-    public ClampedIntParameter InscatteringSamples = new ClampedIntParameter(30, 1, 100, false);
+    public ClampedIntParameter InscatteringSamples = new ClampedIntParameter(30, 1, 200, false);
     public Vector3Parameter BlendCenter = new Vector3Parameter(Vector3.zero, false);
     public FloatParameter BlendRaidus = new FloatParameter(100f, false);
     public FloatParameter BlendFalloff = new FloatParameter(10f, false);

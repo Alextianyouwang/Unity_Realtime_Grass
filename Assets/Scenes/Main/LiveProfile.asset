@@ -137,7 +137,7 @@ MonoBehaviour:
     m_Value: 100
   InscatteringSamples:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 200
   BlendCenter:
     m_OverrideState: 1
     m_Value: {x: 26.3, y: 32.8, z: 85.7}
@@ -155,7 +155,7 @@ MonoBehaviour:
     m_Value: 1
   BlendDistortFalloff:
     m_OverrideState: 1
-    m_Value: 3.48
+    m_Value: 4.75
   EnableRayleighScattering:
     m_OverrideState: 1
     m_Value: 1
@@ -170,31 +170,31 @@ MonoBehaviour:
     m_Value: 3
   AtmosphereInscatteringTint_1:
     m_OverrideState: 1
-    m_Value: {r: 0.258989, g: 0.5276567, b: 0.5660378, a: 1}
+    m_Value: {r: 0.31283376, g: 0.6410348, b: 0.6981132, a: 1}
   AtmosphereUniformAbsorbsion_1:
     m_OverrideState: 1
-    m_Value: 0.106
+    m_Value: 0.075
   AtmosphereAbsorbsionWeightPerChannel_1:
     m_OverrideState: 1
-    m_Value: {r: 0.078, g: 0.163, b: 0.255, a: 1}
+    m_Value: {r: 0.078, g: 0.184, b: 0.333, a: 1}
   AtmosphereChannelSplit_1:
     m_OverrideState: 1
     m_Value: 1
   AtmosphereDensityMultiplier_2:
     m_OverrideState: 1
-    m_Value: 1.73
+    m_Value: 1.558
   AtmosphereInscatteringTint_2:
     m_OverrideState: 1
-    m_Value: {r: 0.7490196, g: 0.7490196, b: 0.7490196, a: 1}
+    m_Value: {r: 1.319508, g: 1.319508, b: 1.319508, a: 1}
   AtmosphereUniformAbsorbsion_2:
     m_OverrideState: 1
-    m_Value: 0.094
+    m_Value: 0.23
   AtmosphereAbsorbsionWeightPerChannel_2:
     m_OverrideState: 1
-    m_Value: {r: 0.028, g: 0.085, b: 0.163, a: 1}
+    m_Value: {r: 0.0019579967, g: 0.06719, b: 0.138, a: 1}
   AtmosphereChannelSplit_2:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.93
   EnableMieScattering:
     m_OverrideState: 1
     m_Value: 1
@@ -209,19 +209,19 @@ MonoBehaviour:
     m_Value: 3
   AerosolsInscatteringTint_1:
     m_OverrideState: 1
-    m_Value: {r: 0.1981132, g: 0.13905588, b: 0.10746707, a: 1}
+    m_Value: {r: 0.2, g: 0.13725491, b: 0.105882354, a: 1}
   AerosolsUniformAbsorbsion_1:
     m_OverrideState: 1
-    m_Value: 0.445
+    m_Value: 0.497
   AerosolsAnistropic_1:
     m_OverrideState: 1
-    m_Value: 0.839
+    m_Value: 0.66
   AerosolsDensityMultiplier_2:
     m_OverrideState: 1
     m_Value: 0
   AerosolsInscatteringTint_2:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_Value: {r: 2, g: 2, b: 2, a: 1}
   AerosolsUniformAbsorbsion_2:
     m_OverrideState: 1
     m_Value: 0.128

@@ -103,7 +103,7 @@ void AtmosphereicScattering(float3 rayOrigin, float3 rayDir, float3 sunDir, floa
     float3 ms_inscatterLight = 0;
     float3 rs_finalScatteringWeight = 0;
     float ms_finalScatteringWeight = 0;
-    float fraction = (float) 1 / _NumInScatteringSample;
+    float fraction = (float) 1 / (_NumInScatteringSample-1);
     for (uint i = 0; i < _NumInScatteringSample; i++)
     {
 
@@ -130,8 +130,8 @@ void AtmosphereicScattering(float3 rayOrigin, float3 rayDir, float3 sunDir, floa
         
         float rs_densityMultiplier = mask * _Rs_DensityMultiplier_1 + (1 - mask) * _Rs_DensityMultiplier_2;
         float ms_densityMultiplier = mask * _Ms_DensityMultiplier_1 + (1 - mask) * _Ms_DensityMultiplier_2;
-        rs_finalScatteringWeight += rs_scatteringWeight * fraction * opticalDepthData.y  * rs_densityMultiplier;
-        ms_finalScatteringWeight += ms_scatteringWeight * fraction * opticalDepthData.w  * ms_densityMultiplier;
+        rs_finalScatteringWeight += rs_scatteringWeight * fraction * opticalDepthData.y * rs_densityMultiplier ;
+        ms_finalScatteringWeight += ms_scatteringWeight * fraction * opticalDepthData.w * ms_densityMultiplier ;
 
 #if _USE_MIE
         float ms_phase = PhaseFunction(dot(sunDir, rayDir), mask * _Ms_Anisotropic_1 + (1-mask) *  _Ms_Anisotropic_2);
@@ -177,7 +177,8 @@ void AtmosphereicScattering(float3 rayOrigin, float3 rayDir, float3 sunDir, floa
     }
     rs_inscatterLight *= rs_phase  ;
     ms_inscatterLight *= ms_finalPhase;
-    transmittance = exp(-rs_viewRayOpticalDepth * rs_finalScatteringWeight - ms_viewRayOpticalDepth * ms_finalScatteringWeight);
+    float3 finalScatteringWeight = max(rs_finalScatteringWeight, ms_finalScatteringWeight);
+    transmittance = exp(-rs_viewRayOpticalDepth * finalScatteringWeight - ms_viewRayOpticalDepth * finalScatteringWeight);
     inscatteredLight = ms_inscatterLight + rs_inscatterLight;
 }
 
