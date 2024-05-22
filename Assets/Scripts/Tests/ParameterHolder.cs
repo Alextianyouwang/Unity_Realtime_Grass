@@ -28,6 +28,10 @@ public class ParameterHolder : MonoBehaviour
     [Range (0f,1f)]
     public float StripeFXStep;
 
+    public Material StripeFXMat;
+    [Range(0f, 1f)]
+    public float StripeAlpha;
+
     [Header("Atmosphere")]
     [Range(0f,3f)]
     public float AtmosphereDensityMultiplier_1 = 3;
@@ -99,6 +103,7 @@ public class ParameterHolder : MonoBehaviour
         _setting.AerosolsUniformAbsorbsion_2.value = AerosolsUniformAbsorbsion_2;
         _setting.AerosolsAnistropic_2.value = AerosolsAnistropic_2;
 
+        StripeFXMat.SetFloat("_Alpha", StripeAlpha);
 
 
         FlowBufferHolder.Center = SphereMaskCenter;
