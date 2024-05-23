@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.4393927, g: 0.48772758, b: 0.5679657, a: 1}
+  m_IndirectSpecularColor: {r: 0.42465022, g: 0.45638996, b: 0.48096317, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -208,7 +208,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &368027677
 Transform:
   m_ObjectHideFlags: 0
@@ -218,7 +218,7 @@ Transform:
   m_GameObject: {fileID: 368027676}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.037, y: -0.022, z: 0.534}
+  m_LocalPosition: {x: -0.039, y: -0.016, z: 0.55}
   m_LocalScale: {x: 0.13941687, y: 0.13941687, z: 0.13941687}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -500,14 +500,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 449596133}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.5623639, y: 0.52525663, z: 0.49542278, w: 0.40299952}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 26.3, y: 30.2, z: 85.7}
   m_LocalScale: {x: 14.001121, y: 14.001121, z: 14.001121}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 368027677}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 359.9819, y: 0.02818776, z: 0.0006990983}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &449596138
 Animator:
   serializedVersion: 5
@@ -635,7 +635,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 461184757}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!84 &578238320
+--- !u!84 &556171081
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -928,11 +928,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04a837349c9c02344a1ec17c3034e9f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Threshold: 0.9831961
-  DownSamplingScale: 1
-  Seed: 121
+  Threshold: 1
+  DownSamplingScale: 8
+  Seed: 593
   Center: {x: 26.3, y: 32.8, z: 85.7}
-  Radius: 12.901336
+  Radius: 437.00156
   Falloff: 5.39
 --- !u!1 &692124091
 GameObject:
@@ -1740,6 +1740,8 @@ PlayableDirector:
     value: {fileID: 1390071251}
   - key: {fileID: -4968441821346457562, guid: 88165d27f0e4ec542b390ad42c6931ed, type: 2}
     value: {fileID: 1616596538}
+  - key: {fileID: -3172650324291616500, guid: 88165d27f0e4ec542b390ad42c6931ed, type: 2}
+    value: {fileID: 449596138}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &1131575703
@@ -1760,6 +1762,7 @@ MonoBehaviour:
   SphereMaskCenter: {x: 26.3, y: 32.8, z: 85.7}
   SphereMaskRadius: 68.8
   SphereMaskFalloff: 5.39
+  DistorsionStrength: 0.2
   TileStripeFXComponent: {fileID: 11400000, guid: d5bfe3fba8fbc7441b4b227fff260e90, type: 2}
   ToggleTileStripeFX: 0
   StripeFXSampleSize: 6
@@ -1774,7 +1777,7 @@ MonoBehaviour:
   AtmosphereChannelSplit_1: 1
   AtmosphereDensityMultiplier_2: 1.558
   AtmosphereInscatteringTint_2: {r: 1.319508, g: 1.319508, b: 1.319508, a: 1}
-  AtmosphereUniformAbsorbsion_2: 0.23
+  AtmosphereUniformAbsorbsion_2: 0.201
   AtmosphereAbsorbsionWeightPerChannel_2: {r: 0.0019579967, g: 0.06719, b: 0.138, a: 1}
   AtmosphereChannelSplit_2: 0.93
   AerosolsDensityMultiplier_1: 3
@@ -1806,44 +1809,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!84 &1154587281
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 5
-  m_Width: 512
-  m_Height: 512
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 0
-  m_ColorFormat: 28
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 0
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &1206898248
 GameObject:
   m_ObjectHideFlags: 0
@@ -2002,6 +1967,44 @@ MonoBehaviour:
   WindSpeedBuildup: 2.5
   WindAmplitudeFalloff: 0.55
   WindFrequencyBuildup: 1.5
+--- !u!84 &1294130936
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 5
+  m_Width: 512
+  m_Height: 512
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 0
+  m_ColorFormat: 28
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 0
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &1311649382
 GameObject:
   m_ObjectHideFlags: 0
@@ -2827,14 +2830,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1663914242}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.94776845, z: 0, w: -0.31895936}
-  m_LocalPosition: {x: 67.15, y: 9.56, z: -11.67}
+  m_LocalRotation: {x: -0.027799152, y: -0.94416183, z: 0.0826035, w: -0.3177456}
+  m_LocalPosition: {x: 63, y: 9.79, z: -15.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1616596537}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 502.8, z: 0}
+  m_LocalEulerAnglesHint: {x: 10, y: 502.8, z: 0}
 --- !u!1 &1864672688
 GameObject:
   m_ObjectHideFlags: 0
@@ -3072,13 +3075,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e0ffd35220df5c4697df493ad99200b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Nm1State: {fileID: 1154587281}
-  Np1State: {fileID: 578238320}
+  Nm1State: {fileID: 556171081}
+  Np1State: {fileID: 1294130936}
   DisplayMaterial: {fileID: 2100000, guid: ec7b0a73a70a2154d921d5ef1cef52d2, type: 2}
   Resolusion: 512
   Attenuation: 0.9
   Center: {x: 26.3, y: 32.8, z: 85.7}
-  Size: 12.901336
+  Size: 437.00156
   Thickness: 2
 --- !u!1001 &2038841989
 PrefabInstance:

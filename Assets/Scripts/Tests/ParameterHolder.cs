@@ -18,6 +18,8 @@ public class ParameterHolder : MonoBehaviour
     public float SphereMaskRadius;
     public float SphereMaskFalloff;
 
+    public float DistorsionStrength = 0.2f;
+
 
     [Header("Stripe FX")]
     public TileStripeFXComponent TileStripeFXComponent;
@@ -79,6 +81,8 @@ public class ParameterHolder : MonoBehaviour
         _setting.BlendCenter.value = SphereMaskCenter;
         _setting.BlendRaidus.value = SphereMaskRadius;
         _setting.BlendFalloff.value = SphereMaskFalloff;
+
+        _setting.BlendDistortStrength.value = DistorsionStrength;
 
         _setting.AtmosphereDensityMultiplier_1.value = AtmosphereDensityMultiplier_1;
         _setting.AtmosphereInscatteringTint_1.value = AtmosphereInscatteringTint_1;

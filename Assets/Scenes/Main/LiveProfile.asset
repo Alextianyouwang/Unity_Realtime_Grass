@@ -159,7 +159,7 @@ MonoBehaviour:
     m_Value: {x: 26.3, y: 32.8, z: 85.7}
   BlendRaidus:
     m_OverrideState: 1
-    m_Value: 12.901336
+    m_Value: 103.07605
   BlendFalloff:
     m_OverrideState: 1
     m_Value: 5.39
@@ -172,6 +172,9 @@ MonoBehaviour:
   BlendDistortFalloff:
     m_OverrideState: 1
     m_Value: 5.7
+  BlendDistortStrength:
+    m_OverrideState: 1
+    m_Value: 0.400218
   EnableRayleighScattering:
     m_OverrideState: 1
     m_Value: 1
@@ -198,13 +201,13 @@ MonoBehaviour:
     m_Value: 1
   AtmosphereDensityMultiplier_2:
     m_OverrideState: 1
-    m_Value: 0.271
+    m_Value: 1.9870453
   AtmosphereInscatteringTint_2:
     m_OverrideState: 1
-    m_Value: {r: 1.319508, g: 1.319508, b: 1.319508, a: 1}
+    m_Value: {r: 1.0240879, g: 1.0240879, b: 1.0240879, a: 1}
   AtmosphereUniformAbsorbsion_2:
     m_OverrideState: 1
-    m_Value: 0.23
+    m_Value: 0.201
   AtmosphereAbsorbsionWeightPerChannel_2:
     m_OverrideState: 1
     m_Value: {r: 0.0019579967, g: 0.06719, b: 0.138, a: 1}
@@ -234,7 +237,7 @@ MonoBehaviour:
     m_Value: 0.66
   AerosolsDensityMultiplier_2:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.04776323
   AerosolsInscatteringTint_2:
     m_OverrideState: 1
     m_Value: {r: 2, g: 2, b: 2, a: 1}
