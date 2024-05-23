@@ -10,6 +10,7 @@ float3 _SphereMaskCenter;
 float _SphereMaskRadius;
 float _SphereMaskBlend;
 float _SphereMaskDistortBlend;
+float _DistorsionStrength;
 #include "../INCLUDE/HL_AtmosphereHelper.hlsl"
 
 
@@ -74,9 +75,9 @@ void CalculateDistortion(float3 rayOrigin, float3 rayDir, float distance,inout f
     }
 
     float3 dirVS = mul(UNITY_MATRIX_V, float4(totalDir, 0)).xyz;
-    uv += dirVS.xy * 0.20;
-    uv2 += dirVS.xy * 0.20;
-    uv3 += dirVS.xy * 0.20;
+    uv += dirVS.xy * _DistorsionStrength;
+    uv2 += dirVS.xy * _DistorsionStrength;
+    uv3 += dirVS.xy * _DistorsionStrength;
 }
 
 float4 frag(v2f i) : SV_Target

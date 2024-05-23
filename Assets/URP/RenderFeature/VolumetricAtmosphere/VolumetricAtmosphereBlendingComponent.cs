@@ -18,6 +18,7 @@ public class VolumetricAtmosphereBlendingComponent : VolumeComponent, IPostProce
     public BoolParameter EnableMask = new BoolParameter(false, BoolParameter.DisplayType.Checkbox, false);
 
     public FloatParameter BlendDistortFalloff = new FloatParameter(10f, false);
+    public FloatParameter BlendDistortStrength = new FloatParameter(0.2f, false);
     [Header("Rayleigh Scattering")]
     public BoolParameter EnableRayleighScattering = new BoolParameter(true, BoolParameter.DisplayType.Checkbox, false);
     public FloatParameter AtmosphereHeight = new FloatParameter(100f, false);
