@@ -159,7 +159,7 @@ MonoBehaviour:
     m_Value: {x: 26.3, y: 32.8, z: 85.7}
   BlendRaidus:
     m_OverrideState: 1
-    m_Value: 103.07605
+    m_Value: 1025.6362
   BlendFalloff:
     m_OverrideState: 1
     m_Value: 5.39
@@ -174,7 +174,7 @@ MonoBehaviour:
     m_Value: 5.7
   BlendDistortStrength:
     m_OverrideState: 1
-    m_Value: 0.400218
+    m_Value: 0.0083832
   EnableRayleighScattering:
     m_OverrideState: 1
     m_Value: 1
@@ -201,7 +201,7 @@ MonoBehaviour:
     m_Value: 1
   AtmosphereDensityMultiplier_2:
     m_OverrideState: 1
-    m_Value: 1.9870453
+    m_Value: 2
   AtmosphereInscatteringTint_2:
     m_OverrideState: 1
     m_Value: {r: 1.0240879, g: 1.0240879, b: 1.0240879, a: 1}
@@ -237,7 +237,7 @@ MonoBehaviour:
     m_Value: 0.66
   AerosolsDensityMultiplier_2:
     m_OverrideState: 1
-    m_Value: 0.04776323
+    m_Value: 0.062
   AerosolsInscatteringTint_2:
     m_OverrideState: 1
     m_Value: {r: 2, g: 2, b: 2, a: 1}
@@ -300,22 +300,22 @@ MonoBehaviour:
     m_Value: 0
   focusDistance:
     m_OverrideState: 1
-    m_Value: 7.74
+    m_Value: 10
   aperture:
     m_OverrideState: 1
-    m_Value: 17.6
+    m_Value: 1
   focalLength:
     m_OverrideState: 1
-    m_Value: 155
+    m_Value: 13
   bladeCount:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 4
   bladeCurvature:
     m_OverrideState: 1
     m_Value: 1
   bladeRotation:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: -140
 --- !u!114 &1375400287623260813
 MonoBehaviour:
   m_ObjectHideFlags: 3

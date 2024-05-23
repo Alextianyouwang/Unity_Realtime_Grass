@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 [ExecuteInEditMode]
 [DefaultExecutionOrder (-101)]
@@ -9,9 +10,13 @@ public class ParameterHolder : MonoBehaviour
 {
     public VolumeProfile VolumeObject;
     private VolumetricAtmosphereBlendingComponent _setting;
-
+    private ChromaticAberration _aberration;
+    private DepthOfField _dof;
     public WindSimTest FlowBufferHolder;
     public MaskBufferManager MaskBufferHolder;
+    public float AberrationIntensity;
+    public float Dof;
+
 
     [Header("Spherical Mask")]
     public Vector3 SphereMaskCenter;
@@ -74,6 +79,8 @@ public class ParameterHolder : MonoBehaviour
     private void OnEnable()
     {
         VolumeObject.TryGet(out _setting);
+        VolumeObject.TryGet(out _aberration);
+        VolumeObject.TryGet(out _dof);
 
     }
     void LateUpdate()
@@ -106,6 +113,9 @@ public class ParameterHolder : MonoBehaviour
         _setting.AerosolsInscatteringTint_2.value = AerosolsInscatteringTint_2;
         _setting.AerosolsUniformAbsorbsion_2.value = AerosolsUniformAbsorbsion_2;
         _setting.AerosolsAnistropic_2.value = AerosolsAnistropic_2;
+
+        _aberration.intensity.value = AberrationIntensity;
+        _dof.focusDistance.value = Dof;
 
         StripeFXMat.SetFloat("_Alpha", StripeAlpha);
 

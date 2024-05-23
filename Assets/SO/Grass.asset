@@ -21,7 +21,7 @@ MonoBehaviour:
   SquaredInstancePerTile: 5
   SquaredChunksPerCluster: 8
   SquaredTilePerClump: 4
-  OccludeeBoundScaleMultiplier: 1
+  OccludeeBoundScaleMultiplier: 1.5
   DensityFilter: 1
   DensityFalloffThreshold: 15
   UseMask: 1
