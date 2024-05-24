@@ -687,7 +687,7 @@ AnimationClip:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 38.516666
+        time: 38.783333
         value: 99.13309
         inSlope: 9.10627
         outSlope: 9.10627
@@ -696,14 +696,23 @@ AnimationClip:
         inWeight: 0.33333334
         outWeight: 0.18912698
       - serializedVersion: 3
-        time: 41.3
-        value: 102.4256
-        inSlope: 1.3514171
-        outSlope: 1.3514171
+        time: 39.95
+        value: 104.535355
+        inSlope: 0.019201335
+        outSlope: 0.019201335
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
-        outWeight: 0.6148098
+        outWeight: 0.9689328
+      - serializedVersion: 3
+        time: 41.566666
+        value: 104.540016
+        inSlope: -0.0016753657
+        outSlope: -0.0016753657
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.2664013
       - serializedVersion: 3
         time: 43.566666
         value: 81.29049
@@ -2343,7 +2352,7 @@ AnimationClip:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 38.516666
+        time: 38.783333
         value: 99.13309
         inSlope: 9.10627
         outSlope: 9.10627
@@ -2352,14 +2361,23 @@ AnimationClip:
         inWeight: 0.33333334
         outWeight: 0.18912698
       - serializedVersion: 3
-        time: 41.3
-        value: 102.4256
-        inSlope: 1.3514171
-        outSlope: 1.3514171
+        time: 39.95
+        value: 104.535355
+        inSlope: 0.019201335
+        outSlope: 0.019201335
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
-        outWeight: 0.6148098
+        outWeight: 0.9689328
+      - serializedVersion: 3
+        time: 41.566666
+        value: 104.540016
+        inSlope: -0.0016753657
+        outSlope: -0.0016753657
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.2664013
       - serializedVersion: 3
         time: 43.566666
         value: 81.29049
