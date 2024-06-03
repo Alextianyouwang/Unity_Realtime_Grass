@@ -31,6 +31,22 @@ Shader "Procedural/S_Tile_PBR"
 
             ENDHLSL
         }
+
+      //         Pass
+      //{
+      //    Name "ShadowCaster"
+      //    Tags {"LightMode" = "ShadowCaster"}
+      //    ColorMask 0
+      //    HLSLPROGRAM
+      //
+      //    #pragma vertex vert
+      //    #pragma fragment frag
+      //    #pragma target 2.0
+      //    #define SHADOW_CASTER_PASS
+      //
+      //     #include "HL_Tile_PBR.hlsl"
+      //    ENDHLSL
+      //}
     }
 
 }
