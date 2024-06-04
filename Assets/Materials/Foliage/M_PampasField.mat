@@ -44,7 +44,7 @@ Material:
     - _NormalScale: 1
     - _RandomFacing: 1
     - _RandomScale: 0.3
-    - _SSSTightness: 0.093
+    - _SSSTightness: 0.157
     m_Colors:
     - _SSSColor: {r: 1, g: 0.82322484, b: 0.41037738, a: 1}
   m_BuildTextureStacks: []
