@@ -39,8 +39,12 @@ public class TileChunk
 
     private Color _chunkColor;
 
+    private bool _useMask;
+    private bool _reverseMask;
+
+
     public TileChunk(Mesh[] spawnMesh, Material spawmMeshMat, Camera renderCam, ComputeBuffer initialBuffer, Bounds chunkBounds, TileData tileData, Texture2D densityMap,
-        float occludeeBoundScaleMultiplier, float densityFilter, float densityFalloffThreshold)
+        float occludeeBoundScaleMultiplier, float densityFilter, float densityFalloffThreshold, bool useMask, bool reverseMask)
     {
         _spawnMesh = spawnMesh;
         _spawnMeshMaterial = spawmMeshMat;
@@ -53,6 +57,8 @@ public class TileChunk
         _occludeeBoundScaleMultiplier = occludeeBoundScaleMultiplier;
         _densityFilter = densityFilter;
         _densityFalloffThreshold = densityFalloffThreshold;
+        _useMask = useMask;
+        _reverseMask = reverseMask;
     }
 
     public void SetWindBuffer(ComputeBuffer windBuffer) 
@@ -113,10 +119,15 @@ public class TileChunk
         _cullShader.SetFloat("_GrassBoundScale", _occludeeBoundScaleMultiplier);
         _cullShader.SetFloat("_DensityFilter", _densityFilter);
 
+        _cullShader.SetBool("_UseMask", _useMask);
+        _cullShader.SetBool("_ReverseMask", _reverseMask);
+
         if (_densityMap != null)
             _cullShader.SetTexture(0, "_DensityMap", _densityMap);
         _cullShader.SetBuffer(0, "_SpawnBuffer", _spawnBuffer);
         _cullShader.SetBuffer(0, "_VoteBuffer", _voteBuffer);
+        if (_maskBuffer_external != null)
+            _cullShader.SetBuffer(0, "_MaskBuffer", _maskBuffer_external);
 
         _cullShader.SetBuffer(1, "_VoteBuffer", _voteBuffer);
         _cullShader.SetBuffer(1, "_ScanBuffer", _scanBuffer);
@@ -139,8 +150,14 @@ public class TileChunk
         _chunkColor = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
         _mpb.SetBuffer("_SpawnBuffer", _compactBuffer);
         _mpb.SetBuffer("_GroundNormalBuffer", _groundNormalBuffer_external);
-        _mpb.SetBuffer("_WindBuffer", _windBuffer_external);
-        _mpb.SetBuffer("_MaskBuffer", _maskBuffer_external);
+        if (_windBuffer_external != null)
+         _mpb.SetBuffer("_WindBuffer", _windBuffer_external);
+        if (_maskBuffer_external != null)
+            _mpb.SetBuffer("_MaskBuffer", _maskBuffer_external);
+
+        if (WindSimTest.NState)
+            _mpb.SetTexture("_FlowTexture",WindSimTest.NState);
+
         _mpb.SetFloat("_ClusterBotLeftX",bl.x);
         _mpb.SetFloat("_ClusterBotLeftY",bl.y);
         _mpb.SetFloat("_TileSize", _tileData.TileSize);
@@ -199,7 +216,7 @@ public class TileChunk
             _mpb.SetColor("_LOD_Color", Color.yellow);
 
         }
-        /*for (int i = 0; i < _spawnMesh.Length; i++) 
+        /*for (int i = 0; i < _spawnMesh.Length; i++)
         {
             uint[] data = new uint[5];
             _argsBuffer[i].GetData(data);

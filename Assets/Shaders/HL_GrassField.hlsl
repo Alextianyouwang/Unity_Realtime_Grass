@@ -5,7 +5,6 @@
 #include "../INCLUDE/HL_GraphicsHelper.hlsl"
 #include "../INCLUDE/HL_Noise.hlsl"
 #include "../INCLUDE/HL_ShadowHelper.hlsl"
-
 struct VertexInput
 {
     float3 positionOS : POSITION;
@@ -17,7 +16,7 @@ struct VertexInput
 struct VertexOutput
 {
     float4 positionCS : SV_POSITION;
-    float2 uv : TEXCOORD0;
+    float4 uv : TEXCOORD0;
     float3 normalWS : TEXCOORD1;
     float3 groundNormalWS : TEXCOOR2;
     float3 tangentWS : TEXCOORD3;
@@ -26,6 +25,8 @@ struct VertexOutput
     float4 debug : TEXCOOR6;
     float height : TEXCOOR7;
     float3 bakedGI : TEXCOORD8;
+    float4 mask : TEXCOORD9;
+    float4 flow : TEXCOORD10;
 };
 ////////////////////////////////////////////////
 // Spawn Data
@@ -45,6 +46,8 @@ StructuredBuffer<float3> _GroundNormalBuffer;
 StructuredBuffer<float3> _WindBuffer;
 StructuredBuffer<float4> _MaskBuffer;
 Texture2D<float> _InteractionTexture;
+Texture2D<float4> _FlowTexture;
+
 int _NumTilePerClusterSide;
 float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
 ////////////////////////////////////////////////
@@ -65,6 +68,7 @@ _SpecularTightness,
 _SSSTightness,
 _NormalScale,
 _BladeThickenFactor,_TextureShift;
+
 
 void CalculateGrassCurve(float t, float interaction,float wind, float variance, float hash, float4 posture, out float3 pos, out float3 tan)
 {
@@ -112,6 +116,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].z; // [0,1]
     float4 maskBuffer = _MaskBuffer[x * _NumTilePerClusterSide + y]; // [0,1]
     float interaction = saturate(_InteractionTexture[int2(x, y)]);
+    float4 flow = normalize(_FlowTexture[int2(x, y)]);
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
     float rand = _SpawnBuffer[instanceID].hash * 2 - 1; // [-1,1]
@@ -149,12 +154,17 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Clump
     float windAngle = -windDir + 90;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
+    float flowAngle = degrees(clamp(atan2(flow.x, flow.z), -UNITY_PI, UNITY_PI));
     float postureAngle = 360 * (posture.x*0.5 + posture.y * 0.5 + posture.w * 0.5) * _GrassPostureFacing;
     float postureHeight = step(0.97, posture.x ) ;
   
     float randomRotationMaxSpan = 180;
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
-    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01) - (frac(rand * 60) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01 + 0.2) - postureAngle  * reverseWind01;
+    
+    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01);
+    rotAngle -= (frac(rand * 60) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01 + 0.2);
+    rotAngle -= postureAngle * reverseWind01;
+    rotAngle = lerp(rotAngle, flowAngle, flow.y);
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand + postureHeight;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
@@ -183,9 +193,12 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 vertexSH;
     OUTPUT_SH(normalWS, vertexSH);
     ////////////////////////////////////////////////
-
+    float4 positionCS= mul(UNITY_MATRIX_P, float4(posVS, 1));
+    float2 uvSS = (positionCS.xy / positionCS.w) * 0.5 + 0.5;
+    uvSS.y = 1 - uvSS.y;
+    
     o.bakedGI = SAMPLE_GI(lightmapUV, vertexSH, normalWS);
-    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+    o.uv = float4(TRANSFORM_TEX(v.uv, _MainTex),uvSS);
     o.positionWS = posWS;
     o.normalWS = normalWS;
     o.tangentWS = tangentWS;
@@ -193,10 +206,13 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
     o.debug = float4(lerp(float2(0, 1), float2(1, 0), windStrength + 0.5), interaction,rand);
     o.height = max(scale, _GrassRandomLength * rand) * clumpHash;
+    o.mask = maskBuffer;
+    o.flow = atan2(flow.x, flow.z);
+
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
     #else
-        o.positionCS = mul(UNITY_MATRIX_P, float4(posVS, 1));
+        o.positionCS = positionCS;
     #endif
     return o;
    
@@ -251,6 +267,14 @@ float3 CustomCombineLight(CustomInputData d)
     return color;
 }
 
+float4 StaticElectricity(float2 uvSS, float depth)
+{
+    float noise = step(0.5,rand2dTo1d(uvSS + _Time.y));
+    float4 color = float4(0.1, 0.5, 1, 1) * 2;
+    color *= noise ;
+    return color;
+}
+
 float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 {
 #ifdef SHADOW_CASTER_PASS
@@ -258,13 +282,13 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 #else
     float rand01 = frac(((v.debug.w + 1) * 5));
     float2 texShift = float2(_TextureShift * step(0.5, rand01), 0);
-    float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv + texShift);
+    float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv.xy + texShift);
     clip(albedo.a +step(0.5, rand01) - 0.5);
     
     float3 normalWS = normalize(v.normalWS);
     float3 tangentWS = normalize(v.tangentWS);
     float3 bitangentWS = cross(normalWS, tangentWS);
-    float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv+ texShift), -_NormalScale);
+    float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv .xy + texShift), -_NormalScale);
     normalWS = normalize(
     normalTS.x * tangentWS +
     normalTS.z * normalWS +
@@ -283,8 +307,11 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     d.specularColor = _SpecularColor.xyz;
     d.bakedGI = v.bakedGI;
 
+    
     float3 finalColor = CustomCombineLight(d) ;
+    finalColor = v.mask.x >= 0.5 ? StaticElectricity(v.uv.zw, v.positionCS.w) : finalColor;
 #if _DEBUG_OFF
+
         return finalColor.xyzz;
 #elif _DEBUG_CHUNKID
         return _ChunkColor.xyzz;

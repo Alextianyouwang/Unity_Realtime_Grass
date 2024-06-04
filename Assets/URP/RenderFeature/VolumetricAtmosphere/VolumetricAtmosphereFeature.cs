@@ -5,7 +5,6 @@ public class VolumetricAtmosphereFeature : ScriptableRendererFeature
 {
     public bool showInSceneView = true;
     public RenderPassEvent _event = RenderPassEvent.AfterRenderingTransparents;
-
     private VolumetricAtmospherePass _volumePass;
     private Material _blitMat;
 
@@ -23,7 +22,6 @@ public class VolumetricAtmosphereFeature : ScriptableRendererFeature
         _volumePass = new VolumetricAtmospherePass(name);
         _volumePass.renderPassEvent = _event;
     }
-  
     private void CreateRenderRT() 
     {
         switch (PrebakedTextureQualitySetting)
@@ -51,19 +49,19 @@ public class VolumetricAtmosphereFeature : ScriptableRendererFeature
         _opticalDepthTex.filterMode = FilterMode.Point;
         _opticalDepthTex.enableRandomWrite = true;
         _opticalDepthTex.format = RenderTextureFormat.ARGBFloat;
-
+        _opticalDepthTex.Create();
     }
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if (!ReadyToEnqueue(renderingData)) return;
         renderer.EnqueuePass(_volumePass);
-
-      
     }
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
     {
+        if (_opticalDepthTex == null)
+            Create();
         if (!ReadyToEnqueue(renderingData)) return;
-        _volumePass.SetData(renderer.cameraColorTargetHandle,_baker, _opticalDepthTex,_blitMat,PrebakedTextureQualitySetting == PrebakedTextureQuality.Realtime);
+        _volumePass.SetData(renderer.cameraColorTargetHandle,_baker, _opticalDepthTex,_blitMat, PrebakedTextureQualitySetting == PrebakedTextureQuality.Realtime);
     }
     bool ReadyToEnqueue(RenderingData renderingData) 
     {

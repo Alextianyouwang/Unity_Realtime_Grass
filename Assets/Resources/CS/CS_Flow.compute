@@ -1,0 +1,18 @@
+
+#pragma kernel CSMain
+
+uint _MaxCount;
+float _TileSize;
+float _TileDimension;
+float _CornerX;
+float _CornerY;
+RWStructuredBuffer<float4> _FlowBuffer;
+RWStructuredBuffer<float4> _FBm1;
+RWStructuredBuffer<float4> _FBp1;
+
+[numthreads(1024,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    _FlowBuffer[id.x] = float4(1, 0, 1, 1);
+
+}

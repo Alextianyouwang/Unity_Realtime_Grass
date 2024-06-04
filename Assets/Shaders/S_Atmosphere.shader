@@ -23,11 +23,27 @@ Shader "Hidden/S_Atmosphere"
 #pragma shader_feature_local _ _USE_MIE
 #pragma shader_feature_local _ _USE_RAYLEIGH
 #pragma shader_feature_local _ _USE_REALTIME
+#pragma shader_feature_local _ _USE_MASK
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "HL_Atmosphere.hlsl"
 
 
+            ENDHLSL
+        }
+
+        Pass 
+        {
+            Name "BlitDistortedVolume"
+
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+       
+#pragma shader_feature_local _ _USE_DISTORSION
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "HL_VolumeDistorsion.hlsl"
             ENDHLSL
         }
     }

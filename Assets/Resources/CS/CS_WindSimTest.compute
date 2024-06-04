@@ -1,0 +1,102 @@
+
+#pragma kernel CSMain
+
+RWTexture2D<float4> _NState;
+RWTexture2D<float4> _Nm1State;
+RWTexture2D<float4> _Np1State;
+
+uint _ResX;
+uint _ResY;
+float _BotX;
+float _BotY;
+float _ClusterSize;
+
+float3 _Center;
+float _Size;
+float _Thickness;
+float _Atten;
+
+
+float3 SphericalNormal(float3 pos, float3 center, float radius, float falloff)
+{
+    float3 dir = pos - center;
+    float mult = smoothstep(radius, radius + falloff, length(dir));
+    return normalize(dir) * (1-mult);
+
+}
+
+float3 SphericalRingNormal(float3 pos, float3 center, float radius, float thickness,  out float mask)
+{
+    float3 diff = pos - center;
+    float3 invDiff = center - pos;
+    float3 dist = length(diff);
+    
+
+    float smallCircleHard = step(radius - thickness / 2.0, dist);
+    float circle = step(radius, dist);
+    float largeCircleHard = step(radius + thickness / 2.0, dist);
+    float outer = circle - largeCircleHard;
+    float inner = smallCircleHard - circle;
+    mask = smallCircleHard - largeCircleHard;
+    return normalize(diff) * outer + normalize(invDiff) * inner;
+
+}
+int3 WorldToPixel(float3 pos)
+{
+    float3 newCenter = pos - float3(_BotX, 0, _BotY);
+    float tileSize = _ClusterSize / (float) _ResX;
+    return (int) newCenter / tileSize;
+
+}
+float3 PixelToWorld( float2 uv)
+{
+ 
+    float tileSize = _ClusterSize / (float) _ResX;
+    return float3(uv.x * tileSize - _BotX, 0, uv.y * tileSize - _BotY);
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _ResX || id.y >= _ResY)
+        return;
+    
+    _Nm1State[id.xy] = _NState[id.xy];
+    _NState[id.xy] = _Np1State[id.xy];
+    
+    float3 ns = _NState[id.xy].xyz;
+    float3 nm1s = _Nm1State[id.xy].xyz;
+    uint spread = 1;
+    float3 ns_t = _NState[id.xy + uint2(0, spread)].xyz;
+    float3 ns_tr = _NState[id.xy + uint2(spread, 1)].xyz;
+    float3 ns_r = _NState[id.xy + uint2(spread, 0)].xyz;
+    float3 ns_br = _NState[id.xy + uint2(spread, -spread)].xyz;
+    float3 ns_b = _NState[id.xy + uint2(0, -spread)].xyz;
+    float3 ns_bl = _NState[id.xy + uint2(-spread, -spread)].xyz;
+    float3 ns_l = _NState[id.xy + uint2(-spread, 0)].xyz;
+    float3 ns_tl = _NState[id.xy + uint2(-spread, spread)].xyz;
+    float3 ns_dir = _NState[id.xy - (normalize(nm1s.xy - ns.xy) - 0.5) * 2].xyz;
+
+    float3 dir =ns +1.0 / 8.0 * (ns_t + ns_b + ns_l + ns_r + ns_tr + ns_br + ns_tl + ns_bl   -  8* ns);
+    //waveHeight = 2 * ns + dir - nm1s;
+
+    //waveHeight = ns + 0.2 * (ns_t + ns_b + ns_l + ns_r + ns_dir  - 5 * ns);
+    //waveHeight = ns + ns_dir;
+    //waveHeight = ns * 2 +  ( ns_dir -  ns);
+    
+    dir *= _Atten;
+    
+    float mask;
+    float3 WorldPos = PixelToWorld(id.xy);
+    float3 normal = SphericalRingNormal(WorldPos, _Center, _Size, _Thickness, mask);
+    mask *= 0.5;
+    if (mask > 0)
+    {
+        dir.xz = normal.xz;
+        dir.y += mask;
+    }
+
+    
+    _Np1State[id.xy] = float4(dir.xyz, 1);
+
+}

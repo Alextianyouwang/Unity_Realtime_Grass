@@ -6,41 +6,44 @@ public struct DataPerTileCluster
 {
     public ComputeShader Compute;
     public ComputeBuffer Buffer;
+
     public int Count;
 
 }
+
 public abstract class BufferPool : MonoBehaviour
 {
     protected Dictionary<int, DataPerTileCluster> _dataTracker = new Dictionary<int, DataPerTileCluster>();
-
     protected string _shaderName;
     protected string _bufferName;
     protected int _bufferStride;
 
     protected Action OnBufferCreated;
-    protected void Initialize(string shaderName,string bufferName,int bufferStride) 
+    protected void Initialize(string shaderName,string bufferName, int bufferStride) 
     {
         _shaderName = shaderName;
         _bufferName = bufferName; 
         _bufferStride = bufferStride;
     }
 
-    public DataPerTileCluster InitializeWindData(ComputeBuffer windBuffer, ComputeShader windCompute, int count)
+
+    public DataPerTileCluster InitializeWindData(ComputeBuffer buffer, 
+        ComputeShader compute, int count)
     {
         return new DataPerTileCluster
         {
-            Compute = windCompute,
-            Buffer = windBuffer,
+            Compute = compute,
+            Buffer = buffer,
             Count = count
         };
     }
+
 
     public ComputeBuffer CreateBuffer(int hash, int tileGridDimension, float tileSize, Vector2 gridBotLeftCorner)
     {
         int count = tileGridDimension * tileGridDimension;
         ComputeShader compute = Instantiate((ComputeShader)Resources.Load(_shaderName));
         ComputeBuffer buffer = new ComputeBuffer(count, sizeof(float) * _bufferStride);
-
         compute.SetInt("_MaxCount", count);
         compute.SetFloat("_TileSize", tileSize);
         compute.SetFloat("_TileDimension", tileGridDimension);
@@ -53,6 +56,7 @@ public abstract class BufferPool : MonoBehaviour
         OnBufferCreated?.Invoke();
         return buffer;
     }
+
     public void DisposeBuffer(int hash)
     {
         if (_dataTracker.ContainsKey(hash))
@@ -83,6 +87,12 @@ public abstract class BufferPool : MonoBehaviour
     {
         foreach (DataPerTileCluster d in _dataTracker.Values)
             d.Compute.SetInt(name, value);
+    }
+
+    protected void ComputeSetVector(string name, Vector4 value) 
+    {
+        foreach (DataPerTileCluster d in _dataTracker.Values)
+            d.Compute.SetVector(name, value);
     }
 
 }

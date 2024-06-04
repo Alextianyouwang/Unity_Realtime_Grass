@@ -1,0 +1,419 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-4537567817416249132
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97c23e3b12dc18c42a140437e53d3951, type: 3}
+  m_Name: Tonemapping
+  m_EditorClassIdentifier: 
+  active: 1
+  mode:
+    m_OverrideState: 1
+    m_Value: 2
+  neutralHDRRangeReductionMode:
+    m_OverrideState: 0
+    m_Value: 2
+  acesPreset:
+    m_OverrideState: 0
+    m_Value: 3
+  hueShiftAmount:
+    m_OverrideState: 0
+    m_Value: 0
+  detectPaperWhite:
+    m_OverrideState: 0
+    m_Value: 0
+  paperWhite:
+    m_OverrideState: 0
+    m_Value: 300
+  detectBrightnessLimits:
+    m_OverrideState: 0
+    m_Value: 1
+  minNits:
+    m_OverrideState: 0
+    m_Value: 0.005
+  maxNits:
+    m_OverrideState: 0
+    m_Value: 1000
+--- !u!114 &-3259519755131404258
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 859ab6eb70963d147b95c5aac902cd1e, type: 3}
+  m_Name: VolumetricAtmosphereComponent
+  m_EditorClassIdentifier: 
+  active: 0
+  Enabled:
+    m_OverrideState: 1
+    m_Value: 1
+  EarthRadius:
+    m_OverrideState: 1
+    m_Value: 1000
+  OpticalDepthSamples:
+    m_OverrideState: 1
+    m_Value: 50
+  InscatteringSamples:
+    m_OverrideState: 1
+    m_Value: 50
+  EnableRayleighScattering:
+    m_OverrideState: 1
+    m_Value: 1
+  AtmosphereHeight:
+    m_OverrideState: 1
+    m_Value: 50
+  AtmosphereDensityFalloff:
+    m_OverrideState: 1
+    m_Value: 10
+  AtmosphereDensityMultiplier:
+    m_OverrideState: 1
+    m_Value: 0.99
+  AtmosphereInscatteringTint:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  AtmosphereUniformAbsorbsion:
+    m_OverrideState: 1
+    m_Value: 0.56
+  AtmosphereAbsorbsionWeightPerChannel:
+    m_OverrideState: 1
+    m_Value: {r: 0.02745098, g: 0.2, b: 0.43137255, a: 1}
+  AtmosphereChannelSplit:
+    m_OverrideState: 1
+    m_Value: 1
+  EnableMieScattering:
+    m_OverrideState: 1
+    m_Value: 1
+  AerosolsHeight:
+    m_OverrideState: 1
+    m_Value: 50
+  AerosolsDensityFalloff:
+    m_OverrideState: 1
+    m_Value: 6
+  AerosolsDensityMultiplier:
+    m_OverrideState: 1
+    m_Value: 0.59
+  AerosolsInscatteringTint:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  AerosolsUniformAbsorbsion:
+    m_OverrideState: 1
+    m_Value: 0.167
+  AerosolsAnistropic:
+    m_OverrideState: 1
+    m_Value: 0.685
+  VolumePassOnly:
+    m_OverrideState: 1
+    m_Value: 0
+--- !u!114 &-1186860002733898911
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4156c757fca9ddf4faee97abff6e1522, type: 3}
+  m_Name: VolumetricAtmosphereBlendingComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  Enabled:
+    m_OverrideState: 1
+    m_Value: 1
+  EarthRadius:
+    m_OverrideState: 1
+    m_Value: 100
+  OpticalDepthSamples:
+    m_OverrideState: 1
+    m_Value: 100
+  InscatteringSamples:
+    m_OverrideState: 1
+    m_Value: 100
+  BlendCenter:
+    m_OverrideState: 1
+    m_Value: {x: 30.8, y: 21.6, z: -61.32}
+  BlendRaidus:
+    m_OverrideState: 1
+    m_Value: 33
+  BlendFalloff:
+    m_OverrideState: 1
+    m_Value: 12.4
+  EnableDistorsion:
+    m_OverrideState: 1
+    m_Value: 1
+  EnableMask:
+    m_OverrideState: 1
+    m_Value: 0
+  BlendDistortFalloff:
+    m_OverrideState: 0
+    m_Value: 10
+  BlendDistortStrength:
+    m_OverrideState: 0
+    m_Value: 0.2
+  EnableRayleighScattering:
+    m_OverrideState: 1
+    m_Value: 1
+  AtmosphereHeight:
+    m_OverrideState: 1
+    m_Value: 74
+  AtmosphereDensityFalloff:
+    m_OverrideState: 1
+    m_Value: 2.45
+  AtmosphereDensityMultiplier_1:
+    m_OverrideState: 1
+    m_Value: 3
+  AtmosphereInscatteringTint_1:
+    m_OverrideState: 1
+    m_Value: {r: 0.53333336, g: 0.9466022, b: 1, a: 1}
+  AtmosphereUniformAbsorbsion_1:
+    m_OverrideState: 1
+    m_Value: 0.565
+  AtmosphereAbsorbsionWeightPerChannel_1:
+    m_OverrideState: 1
+    m_Value: {r: 0, g: 0.06, b: 0.17, a: 1}
+  AtmosphereChannelSplit_1:
+    m_OverrideState: 1
+    m_Value: 0.234
+  AtmosphereDensityMultiplier_2:
+    m_OverrideState: 1
+    m_Value: 3
+  AtmosphereInscatteringTint_2:
+    m_OverrideState: 1
+    m_Value: {r: 1.1895647, g: 1.1895647, b: 1.1895647, a: 1}
+  AtmosphereUniformAbsorbsion_2:
+    m_OverrideState: 1
+    m_Value: 0.121
+  AtmosphereAbsorbsionWeightPerChannel_2:
+    m_OverrideState: 1
+    m_Value: {r: 0.015, g: 0.078, b: 0.213, a: 1}
+  AtmosphereChannelSplit_2:
+    m_OverrideState: 1
+    m_Value: 0.734
+  EnableMieScattering:
+    m_OverrideState: 1
+    m_Value: 1
+  AerosolsHeight:
+    m_OverrideState: 1
+    m_Value: 39.72
+  AerosolsDensityFalloff:
+    m_OverrideState: 1
+    m_Value: 1
+  AerosolsDensityMultiplier_1:
+    m_OverrideState: 1
+    m_Value: 3
+  AerosolsInscatteringTint_1:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 0.62095505, b: 0.4198113, a: 1}
+  AerosolsUniformAbsorbsion_1:
+    m_OverrideState: 1
+    m_Value: 1
+  AerosolsAnistropic_1:
+    m_OverrideState: 1
+    m_Value: 0.601
+  AerosolsDensityMultiplier_2:
+    m_OverrideState: 1
+    m_Value: 0.46
+  AerosolsInscatteringTint_2:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  AerosolsUniformAbsorbsion_2:
+    m_OverrideState: 1
+    m_Value: 0.631
+  AerosolsAnistropic_2:
+    m_OverrideState: 1
+    m_Value: 0.344
+  VolumePassOnly:
+    m_OverrideState: 1
+    m_Value: 0
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: IconSetting
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: 2887490133196386240}
+  - {fileID: 1122861171276779627}
+  - {fileID: -4537567817416249132}
+  - {fileID: -1186860002733898911}
+--- !u!114 &1122861171276779627
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c01700fd266d6914ababb731e09af2eb, type: 3}
+  m_Name: DepthOfField
+  m_EditorClassIdentifier: 
+  active: 0
+  mode:
+    m_OverrideState: 1
+    m_Value: 2
+  gaussianStart:
+    m_OverrideState: 1
+    m_Value: 10
+  gaussianEnd:
+    m_OverrideState: 1
+    m_Value: 100
+  gaussianMaxRadius:
+    m_OverrideState: 1
+    m_Value: 1
+  highQualitySampling:
+    m_OverrideState: 1
+    m_Value: 0
+  focusDistance:
+    m_OverrideState: 1
+    m_Value: 7.74
+  aperture:
+    m_OverrideState: 1
+    m_Value: 17.6
+  focalLength:
+    m_OverrideState: 1
+    m_Value: 155
+  bladeCount:
+    m_OverrideState: 1
+    m_Value: 5
+  bladeCurvature:
+    m_OverrideState: 1
+    m_Value: 1
+  bladeRotation:
+    m_OverrideState: 1
+    m_Value: 0
+--- !u!114 &1570348654172144620
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 859ab6eb70963d147b95c5aac902cd1e, type: 3}
+  m_Name: VolumetricAtmosphereComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  Enabled:
+    m_OverrideState: 1
+    m_Value: 1
+  EarthRadius:
+    m_OverrideState: 1
+    m_Value: 1000
+  OpticalDepthSamples:
+    m_OverrideState: 1
+    m_Value: 10
+  InscatteringSamples:
+    m_OverrideState: 1
+    m_Value: 30
+  EnableRayleighScattering:
+    m_OverrideState: 1
+    m_Value: 1
+  AtmosphereHeight:
+    m_OverrideState: 1
+    m_Value: 50
+  AtmosphereDensityFalloff:
+    m_OverrideState: 1
+    m_Value: 10
+  AtmosphereDensityMultiplier:
+    m_OverrideState: 1
+    m_Value: 3
+  AtmosphereInscatteringTint:
+    m_OverrideState: 1
+    m_Value: {r: 1.1486983, g: 1.1486983, b: 1.1486983, a: 1}
+  AtmosphereUniformAbsorbsion:
+    m_OverrideState: 1
+    m_Value: 0.153
+  AtmosphereAbsorbsionWeightPerChannel:
+    m_OverrideState: 1
+    m_Value: {r: 0.044, g: 0.134, b: 0.489, a: 1}
+  AtmosphereChannelSplit:
+    m_OverrideState: 1
+    m_Value: 1
+  EnableMieScattering:
+    m_OverrideState: 1
+    m_Value: 1
+  AerosolsHeight:
+    m_OverrideState: 1
+    m_Value: 28.1
+  AerosolsDensityFalloff:
+    m_OverrideState: 1
+    m_Value: 5.82
+  AerosolsDensityMultiplier:
+    m_OverrideState: 1
+    m_Value: 0.79
+  AerosolsInscatteringTint:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  AerosolsUniformAbsorbsion:
+    m_OverrideState: 1
+    m_Value: 0.685
+  AerosolsAnistropic:
+    m_OverrideState: 1
+    m_Value: 0.553
+  VolumePassOnly:
+    m_OverrideState: 1
+    m_Value: 0
+--- !u!114 &2887490133196386240
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b2db86121404754db890f4c8dfe81b2, type: 3}
+  m_Name: Bloom
+  m_EditorClassIdentifier: 
+  active: 1
+  skipIterations:
+    m_OverrideState: 0
+    m_Value: 1
+  threshold:
+    m_OverrideState: 1
+    m_Value: 1.1
+  intensity:
+    m_OverrideState: 1
+    m_Value: 4
+  scatter:
+    m_OverrideState: 1
+    m_Value: 0.7
+  clamp:
+    m_OverrideState: 1
+    m_Value: 65472
+  tint:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  highQualityFiltering:
+    m_OverrideState: 1
+    m_Value: 0
+  downscale:
+    m_OverrideState: 0
+    m_Value: 0
+  maxIterations:
+    m_OverrideState: 0
+    m_Value: 6
+  dirtTexture:
+    m_OverrideState: 1
+    m_Value: {fileID: 0}
+    dimension: 1
+  dirtIntensity:
+    m_OverrideState: 1
+    m_Value: 0

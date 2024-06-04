@@ -21,6 +21,7 @@ struct SpawnData
 
 Texture2D<float4> _DensityMap;
 StructuredBuffer<SpawnData> _SpawnBuffer;
+StructuredBuffer<float4> _MaskBuffer;
 RWStructuredBuffer<uint> _VoteBuffer;
 RWStructuredBuffer<uint> _ScanBuffer;
 RWStructuredBuffer<uint> _GroupScanBufferIn;
@@ -41,6 +42,9 @@ float _Camera_Near, _Camera_Far;
 float _GrassBoundScale;
 float _DensityFilter;
 bool _EnableOcclusionCulling;
+
+bool _UseMask;
+bool _ReverseMask;
 
 Texture2D<float> _HiZTexture;
 SamplerState sampler_HiZTexture;
@@ -107,8 +111,24 @@ void Vote (uint3 id : SV_DispatchThreadID)
     ///////////////////////////////////////////////////
     
     ///////////////////////////////////////////////////
+    //  Does current spawn pos are masked out? 
+   if (_UseMask)
+   {
+       float mask = _MaskBuffer[x * _NumTilePerClusterSide + y].y;
+       bool passMasking = _ReverseMask ? mask < 0.5 : mask > 0.5;
+       if (!passMasking)
+       {
+           _VoteBuffer[id.x] = false;
+           return;
+       }
+   }
+   
+   
+    ///////////////////////////////////////////////////
+    
+    ///////////////////////////////////////////////////
     //  Does current spawn pos passes density filter?
-    bool passDensityDrop = step(frac(hash * 12.9898 * 78.233), _DensityFilter);
+        bool passDensityDrop = step(frac(hash * 12.9898 * 78.233), _DensityFilter);
     if (!passDensityDrop)
     {
         _VoteBuffer[id.x] = false;
@@ -130,11 +150,12 @@ void Vote (uint3 id : SV_DispatchThreadID)
 
     ///////////////////////////////////////////////////
     //  Does current spawn pos passes frustum culling?
+    float rate = lerp(4, 1, dist / (_Camera_Far - _Camera_Near));
         bool isInView = (
-    posNDS.x < -1.1
-    || posNDS.x > 1.1
-    || posNDS.y > 1.1
-    || posNDS.y < -2.1
+    posNDS.x < -rate
+    || posNDS.x > rate
+    || posNDS.y > rate
+    || posNDS.y < -rate
     || posNDS.z < -0.1
     || dist > _MaxRenderDist) ? 0 : 1;
     if (!isInView)

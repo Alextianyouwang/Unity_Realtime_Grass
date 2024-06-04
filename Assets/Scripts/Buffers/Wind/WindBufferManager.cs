@@ -27,21 +27,21 @@ public class WindBufferManager : BufferPool
         OnBufferCreated += SetInitialParameters;
         TileGrandCluster.OnRequestWindBuffer += CreateBuffer;
         TileGrandCluster.OnRequestDisposeWindBuffer += DisposeBuffer;
-        TileVisualizer.OnRequestWindBuffer += CreateBuffer;
-        TileVisualizer.OnRequestDisposeWindBuffer += DisposeBuffer;
     }
     private void OnDisable()
     {
         TileGrandCluster.OnRequestWindBuffer -= CreateBuffer;
         TileGrandCluster.OnRequestDisposeWindBuffer -= DisposeBuffer;
-        TileVisualizer.OnRequestWindBuffer -= CreateBuffer;
-        TileVisualizer.OnRequestDisposeWindBuffer -= DisposeBuffer;
 
         foreach (DataPerTileCluster d in _dataTracker.Values)
             d.Buffer.Dispose();
         _dataTracker.Clear();
     }
 
+    private void OnValidate()
+    {
+        SetInitialParameters();
+    }
     private void SetInitialParameters() 
     {
         ComputeSetFloat("_Frequency", WindFrequencyMultiplier);

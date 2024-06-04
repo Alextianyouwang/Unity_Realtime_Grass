@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 [ExecuteInEditMode]
 [DefaultExecutionOrder(-99)]
@@ -11,8 +12,6 @@ public class TileGrandCluster : MonoBehaviour
     public int TileGridDimension = 512;
     public Vector2 TileGridCenterXZ;
     public Camera RenderCam;
-    public bool ShowDebugTile = true;
-    public Material DebugMaterial;
     public float LOD_Threshold_01 = 45;
     public float LOD_Threshold_12 = 125;
     public float MaxRenderDistance = 200;
@@ -20,21 +19,26 @@ public class TileGrandCluster : MonoBehaviour
     public bool EnableOcclusionCulling = true;
 
     public FoliageObjectData[] ObjectData;
+    public TileComponent[] TileComponents;
 
     private TileData _tileData;
-    private TileVisualizer _tileVisualizer;
-    private  TileChunkDispatcher[] _tileChunkDispatcher;
+    private TileChunkDispatcher[] _tileChunkDispatcher;
 
-    private ComputeBuffer _windBuffer_external;
-    private ComputeBuffer _maskBuffer_external;
+    private ComputeBuffer _windBuffer;
+    private ComputeBuffer _maskBuffer;
+    private ComputeBuffer _flowBuffer;
     private RenderTexture _interactionTexture_external;
 
     public static Func<RenderTexture> OnRequestInteractionTexture;
     public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestWindBuffer;
     public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestMaskBuffer;
+    public static Func<int, int, float, Vector2, ComputeBuffer> OnRequestFlowBuffer;
     public static Action<int> OnRequestDisposeWindBuffer;
     public static Action<int> OnRequestDisposeMaskBuffer;
+    public static Action<int> OnRequestDisposeFlowBuffer;
     public static Func<RenderTexture> OnRequestOcclusionTexture;
+
+    private int _hashcode;
 
     public static float _LOD_Threshold_01 { get; private set; }
     public static float _LOD_Threshold_12 { get; private set; }
@@ -43,19 +47,21 @@ public class TileGrandCluster : MonoBehaviour
 
     private void OnEnable()
     {
+        _hashcode = GetHashCode();
         SetupTileData();
-        SetupTileDebug();
         InitializeInteractionTexture();
         InitializeWindBuffer();
         InitializeMaskBuffer();
+        InitializeFlowBuffer();
         InitializeDispatcher();
+        InitializeTileComponent();
 
     }
     private void OnDisable()
     {
         CleanupBuffers();
     }
-    private void UpdateParam() 
+    private void UpdateParam()
     {
         _LOD_Threshold_01 = LOD_Threshold_01;
         _LOD_Threshold_12 = LOD_Threshold_12;
@@ -65,22 +71,21 @@ public class TileGrandCluster : MonoBehaviour
     private void LateUpdate()
     {
         UpdateParam();
-        if (ShowDebugTile)
-            DrawDebugView();
         IndirectDrawPerFrame();
+        UpdateTileComponent();
     }
 
 
-    void SetupTileData() 
+    void SetupTileData()
     {
         if (TileHeightmap)
-            _tileData = new TileData(TileGridCenterXZ, TileHeightmap.width, TileSize, TileHeightmap,TileHeightMultiplier);
+            _tileData = new TileData(TileGridCenterXZ, TileHeightmap.width, TileSize, TileHeightmap, TileHeightMultiplier);
         else
             _tileData = new TileData(TileGridCenterXZ, TileGridDimension, TileSize, null, TileHeightMultiplier);
         _tileData.ConstructTileGrid();
     }
 
- 
+
     public void InitializeInteractionTexture()
     {
         _interactionTexture_external = OnRequestInteractionTexture?.Invoke();
@@ -89,16 +94,22 @@ public class TileGrandCluster : MonoBehaviour
     {
         float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _windBuffer_external = OnRequestWindBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+        _windBuffer = OnRequestWindBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
 
-    void InitializeMaskBuffer() 
+    void InitializeMaskBuffer()
     {
         float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
         Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
-        _maskBuffer_external = OnRequestMaskBuffer?.Invoke(GetHashCode(), _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+        _maskBuffer = OnRequestMaskBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
     }
-    void InitializeDispatcher() 
+    void InitializeFlowBuffer()
+    {
+        float offset = -_tileData.TileGridDimension * _tileData.TileSize / 2 + _tileData.TileSize / 2;
+        Vector2 botLeftCorner = _tileData.TileGridCenterXZ + new Vector2(offset, offset);
+        _flowBuffer = OnRequestFlowBuffer?.Invoke(_hashcode, _tileData.TileGridDimension, _tileData.TileSize, botLeftCorner);
+    }
+    void InitializeDispatcher()
     {
 
         if (_tileData == null)
@@ -110,7 +121,7 @@ public class TileGrandCluster : MonoBehaviour
         if (ObjectData.Length == 0)
             return;
         _tileChunkDispatcher = new TileChunkDispatcher[ObjectData.Length];
-        for (int i = 0; i < _tileChunkDispatcher.Length; i++) 
+        for (int i = 0; i < _tileChunkDispatcher.Length; i++)
         {
             FoliageObjectData data = ObjectData[i];
             if (data.SpawnMesh == null)
@@ -126,8 +137,8 @@ public class TileGrandCluster : MonoBehaviour
            data.SpawnMeshMaterial,
            _tileData,
            RenderCam,
-           _windBuffer_external,
-           _maskBuffer_external,
+           _windBuffer,
+           _maskBuffer,
            OnRequestOcclusionTexture.Invoke(),
            _interactionTexture_external,
            data.DensityMap,
@@ -136,7 +147,9 @@ public class TileGrandCluster : MonoBehaviour
            data.SquaredTilePerClump,
            data.OccludeeBoundScaleMultiplier,
            data.DensityFilter,
-           data.DensityFalloffThreshold) ;
+           data.DensityFalloffThreshold,
+           data.UseMask,
+           data.ReverseMask);
 
             dispatcher.InitialSpawn();
             dispatcher.InitializeChunks();
@@ -144,37 +157,31 @@ public class TileGrandCluster : MonoBehaviour
         }
 
     }
- 
+
     void IndirectDrawPerFrame()
     {
         if (_tileChunkDispatcher == null)
             return;
-        foreach (TileChunkDispatcher d in _tileChunkDispatcher) 
+        foreach (TileChunkDispatcher d in _tileChunkDispatcher)
             d?.DispatchTileChunksDrawCall();
 
     }
     void CleanupBuffers()
     {
         _tileData?.ReleaseBuffer();
-        OnRequestDisposeWindBuffer?.Invoke(GetHashCode());
-        OnRequestDisposeMaskBuffer?.Invoke(GetHashCode());
-        _tileVisualizer?.ReleaseBuffer();
+        OnRequestDisposeWindBuffer?.Invoke(_hashcode);
+        OnRequestDisposeMaskBuffer?.Invoke(_hashcode);
+        OnRequestDisposeFlowBuffer?.Invoke(_hashcode);
         if (_tileChunkDispatcher != null)
             foreach (TileChunkDispatcher d in _tileChunkDispatcher)
                 d?.ReleaseBuffer();
-    }
-    void SetupTileDebug() 
-    {
-        if (_tileData == null)
-            return;
-        _tileVisualizer = new TileVisualizer(_tileData,DebugMaterial);
-        _tileVisualizer.InitializeTileDebug();
-    }
-    void DrawDebugView()
-    {
-        _tileVisualizer?.DrawIndirect();
+        DisposeTileComponent();
     }
 
+
+    private void InitializeTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.Initialization(_tileData,_windBuffer,_maskBuffer,_flowBuffer,_hashcode));
+    private void UpdateTileComponent() =>  TileComponents?.ToList().ForEach(t => t?.UpdateEffect(_hashcode));
+    private void DisposeTileComponent() => TileComponents?.ToList().ForEach(t => t?.DisposeEffect(_hashcode));
     private void OnDrawGizmos()
     {
         if (_tileChunkDispatcher == null)
