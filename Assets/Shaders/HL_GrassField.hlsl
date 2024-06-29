@@ -154,7 +154,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Apply Clump
     float windAngle = -windDir + 90;
     float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
-    float flowAngle = degrees(clamp(atan2(flow.x, flow.z), -UNITY_PI, UNITY_PI));
+   // float flowAngle = degrees(clamp(atan2(flow.x, flow.z), -UNITY_PI, UNITY_PI));
     float postureAngle = 360 * (posture.x*0.5 + posture.y * 0.5 + posture.w * 0.5) * _GrassPostureFacing;
     float postureHeight = step(0.97, posture.x ) ;
   
@@ -164,7 +164,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01);
     rotAngle -= (frac(rand * 60) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01 + 0.2);
     rotAngle -= postureAngle * reverseWind01;
-    rotAngle = lerp(rotAngle, flowAngle, flow.y);
+   // rotAngle = lerp(rotAngle, flowAngle, flow.y);
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand + postureHeight;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;

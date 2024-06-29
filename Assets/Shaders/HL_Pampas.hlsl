@@ -86,7 +86,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].z; // [0,1]
     float4 maskBuffer = _MaskBuffer[x * _NumTilePerClusterSide + y]; // [0,1]
     float interaction = saturate(_InteractionTexture[int2(x, y)]);
-    float4 flow = normalize(_FlowTexture[int2(x, y)]);
+   // float4 flow = normalize(_FlowTexture[int2(x, y)]);
     
     float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
     float2 uv2 = v.uv2;
@@ -117,19 +117,19 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float4 tangentWS = v.tangentOS;
     
     float windAngle = -windDir + 90;
-    float flowAngle = degrees(clamp(atan2(flow.x, flow.z), -UNITY_PI, UNITY_PI));
+    //float flowAngle = degrees(clamp(atan2(flow.x, flow.z), -UNITY_PI, UNITY_PI));
     float randomRotationMaxSpan = 180;
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
     float poseAngle = (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _RandomFacing + 90;
     float rotAngle = lerp(poseAngle, windAngle, reverseWind01 * 2) + windStrength * 30;
-    rotAngle = lerp(rotAngle, flowAngle, flow.y);
+   // rotAngle = lerp(rotAngle, flowAngle, flow.y);
     float bendAngle = interaction * 45;
-    bendAngle += flow.y * 60;
+ //  bendAngle += flow.y * 60;
     
     
 
     float scale = 1 + rand * _RandomScale;
-    scale -= flow.y * 1.5;
+    //scale -= flow.y * 1.5;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
      posWS = RotateAroundAxis(float4(posWS, 1), float3(1, 0, 0), bendAngle, spawnPosWS).xyz;
     posWS = RotateAroundAxis(float4(posWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
@@ -139,7 +139,6 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     tangentWS = normalize(RotateAroundXInDegrees(float4(tangentWS.xyz, 0), bendAngle));
     tangentWS = normalize(RotateAroundYInDegrees(float4(tangentWS.xyz, 0), rotAngle));
-    
     
     tangentWS.w = v.tangentOS.w;
     

@@ -150,7 +150,7 @@ void Vote (uint3 id : SV_DispatchThreadID)
 
     ///////////////////////////////////////////////////
     //  Does current spawn pos passes frustum culling?
-    float rate = lerp(4, 1, dist / (_Camera_Far - _Camera_Near));
+    float rate = 1.1;
         bool isInView = (
     posNDS.x < -rate
     || posNDS.x > rate
