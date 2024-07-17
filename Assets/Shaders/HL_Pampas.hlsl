@@ -44,7 +44,7 @@ StructuredBuffer<SpawnData> _SpawnBuffer;
 ////////////////////////////////////////////////
 // Field Data
 StructuredBuffer<float3> _GroundNormalBuffer;
-StructuredBuffer<float3> _WindBuffer;
+StructuredBuffer<float4> _WindBuffer;
 StructuredBuffer<float4> _MaskBuffer;
 Texture2D<float> _InteractionTexture;
 Texture2D<float4> _FlowTexture;
@@ -70,7 +70,7 @@ _SSSTightness,
 
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
-    VertexOutput o;
+    VertexOutput o = (VertexOutput)0;
     
 
     ////////////////////////////////////////////////
@@ -82,8 +82,8 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Sample Buffers Based on xy
     float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
     float windStrength = _WindBuffer[x * _NumTilePerClusterSide + y].x; // [-1,1]
-    float windDir = _WindBuffer[x * _NumTilePerClusterSide + y].y * 360; // [0,360]
-    float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].z; // [0,1]
+    float2 windDir = _WindBuffer[x * _NumTilePerClusterSide + y].yz; // [0,360]
+    float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].w; // [0,1]
     float4 maskBuffer = _MaskBuffer[x * _NumTilePerClusterSide + y]; // [0,1]
     float interaction = saturate(_InteractionTexture[int2(x, y)]);
    // float4 flow = normalize(_FlowTexture[int2(x, y)]);
@@ -116,7 +116,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 normalWS = v.normalOS;
     float4 tangentWS = v.tangentOS;
     
-    float windAngle = -windDir + 90;
+    float windAngle = -atan2(windDir.x, windDir.y) + 90;
     //float flowAngle = degrees(clamp(atan2(flow.x, flow.z), -UNITY_PI, UNITY_PI));
     float randomRotationMaxSpan = 180;
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
@@ -126,19 +126,20 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float bendAngle = interaction * 45;
  //  bendAngle += flow.y * 60;
     
+    rotAngle = windAngle;
     
 
     float scale = 1 + rand * _RandomScale;
     //scale -= flow.y * 1.5;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
-     posWS = RotateAroundAxis(float4(posWS, 1), float3(1, 0, 0), bendAngle, spawnPosWS).xyz;
-    posWS = RotateAroundAxis(float4(posWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
-    
-    normalWS = normalize(RotateAroundXInDegrees(float4(normalWS, 0), bendAngle)).xyz;
-    normalWS = normalize(RotateAroundYInDegrees(float4(normalWS, 0), rotAngle)).xyz;
-    
-    tangentWS = normalize(RotateAroundXInDegrees(float4(tangentWS.xyz, 0), bendAngle));
-    tangentWS = normalize(RotateAroundYInDegrees(float4(tangentWS.xyz, 0), rotAngle));
+   //  posWS = RotateAroundAxis(float4(posWS, 1), float3(1, 0, 0), bendAngle, spawnPosWS).xyz;
+   // posWS = RotateAroundAxis(float4(posWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
+   // 
+   // normalWS = normalize(RotateAroundXInDegrees(float4(normalWS, 0), bendAngle)).xyz;
+   // normalWS = normalize(RotateAroundYInDegrees(float4(normalWS, 0), rotAngle)).xyz;
+   // 
+   // tangentWS = normalize(RotateAroundXInDegrees(float4(tangentWS.xyz, 0), bendAngle));
+   // tangentWS = normalize(RotateAroundYInDegrees(float4(tangentWS.xyz, 0), rotAngle));
     
     tangentWS.w = v.tangentOS.w;
     
@@ -220,7 +221,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 #else
     clip(albedo.w - 0.5);
     float3 normalWS = normalize(v.normalWS);
-    float3 tangentWS = normalize(v.tangentWS);
+    float3 tangentWS = normalize(v.tangentWS).xyz;
     float3 bitangentWS = cross(normalWS, tangentWS);
     float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv), -_NormalScale );
   
@@ -230,7 +231,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     half3x3 tangentToWorld = half3x3(v.tangentWS.xyz, bitangent.xyz,v.normalWS.xyz);
     normalWS = mul(normalTS, tangentToWorld);
    
-    float3 posNDS = v.positionCS / v.positionCS.w;
+    float3 posNDS = v.positionCS.xyz / v.positionCS.w;
     float2 uvSS = posNDS.xy / 2 + 0.5;
     
     CustomInputData d = (CustomInputData) 0;
@@ -241,7 +242,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     d.viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
     d.viewDist = length(_WorldSpaceCameraPos - v.positionWS);
     d.smoothness = exp2(_SpecularTightness * 10 + 1);
-    d.sss = _SSSColor;
+    d.sss = _SSSColor.xyz;
     d.sssTightness = exp2(_SSSTightness * 10 + 1);
     d.albedo = 0;
     d.specularColor = _SpecularColor.xyz;

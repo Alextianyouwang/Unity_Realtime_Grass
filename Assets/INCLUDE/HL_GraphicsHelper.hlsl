@@ -172,6 +172,59 @@ float4 slerp(float4 v0, float4 v1, float t)
 
     return v0 * cos(theta) + v2 * sin(theta);
 }
+// Function to compute the quaternion rotation
+float4 ComputeQuaternionRotation(float3 from, float3 to)
+{
+    from = normalize(from);
+    to = normalize(to);
+
+    float3 halfRot = normalize (from + to);
+    float4 quat;
+    quat.xyz = cross(from, halfRot);
+    quat.w = dot(from, halfRot);
+    return quat;
+}
+
+// Function to apply a quaternion to a vector
+float4 ApplyQuaternion(float4 q, float3 v)
+{
+    float3 qvec = q.xyz;
+    float3 uv = cross(qvec, v);
+    float3 uuv = cross(qvec, uv);
+    uv *= (2.0 * q.w);
+    uuv *= 2.0;
+    return float4(v + uv + uuv, 1.0);
+}
+float4 TransformWithAlignment(float4 input, float3 align, float3 target)
+{
+    float4 rotationQuat = ComputeQuaternionRotation(align, target);
+    float3 transformed = ApplyQuaternion(rotationQuat, input.xyz).xyz;
+    return float4(transformed, input.w);
+}
+float4 TransformWithAlignment(float4 input, float3 align, float3 target, float3 pivot)
+{
+    float3 translatedInput = input.xyz - pivot;
+    float4 rotationQuat = ComputeQuaternionRotation(align, target);
+    float3 rotated = ApplyQuaternion(rotationQuat, translatedInput).xyz;
+    float3 finalPosition = rotated + pivot;
+    return float4(finalPosition, input.w);
+}
+
+float2 ReverseAtan2(float theta)
+{
+    float x = cos(theta);
+    float y = sin(theta);
+    return float2(x, y);
+}
+float2 ReverseAtan2Degrees(float thetaDegrees)
+{
+    float thetaRadians = thetaDegrees * (UNITY_PI / 180.0);
+    
+    float x = cos(thetaRadians);
+    float y = sin(thetaRadians);
+    
+    return float2(x, y);
+}
 void FastSSS_float(float3 ViewDir, float3 LightDir, float3 WorldNormal, float3 LightColor, float Flood, float Power, out float3 sss)
 {
     const float3 LAddN = LightDir + WorldNormal;

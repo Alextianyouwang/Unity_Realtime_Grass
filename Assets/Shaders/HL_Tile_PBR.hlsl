@@ -146,7 +146,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv);
 
     float3 normalWS = normalize(v.normalWS);
-    float3 tangentWS = normalize(v.tangentWS);
+    float3 tangentWS = normalize(v.tangentWS).xyz;
     float3 bitangentWS = cross(normalWS, tangentWS);
     float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, v.uv), -1 );
   
@@ -156,7 +156,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     half3x3 tangentToWorld = half3x3(v.tangentWS.xyz, bitangent.xyz,v.normalWS.xyz);
     normalWS = mul(normalTS, tangentToWorld);
    
-    float3 posNDS = v.positionCS / v.positionCS.w;
+    float3 posNDS = v.positionCS.xyz / v.positionCS.w;
     float2 uvSS = posNDS.xy / 2 + 0.5;
     
     //CustomInputData d = (CustomInputData) 0;
