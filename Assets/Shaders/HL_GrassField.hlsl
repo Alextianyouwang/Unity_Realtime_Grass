@@ -165,10 +165,12 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
     curvePosWS = ScaleWithCenter(curvePosWS, scale, spawnPosWS);
+
     posWS = TransformWithAlignment(float4(posWS, 1), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y), spawnPosWS).xyz;
     curvePosWS = TransformWithAlignment(float4(curvePosWS, 1), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y), spawnPosWS).xyz;
     float3 normalWS = TransformWithAlignment(float4(curveNormalOS, 0), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y)).xyz;
     float3 tangentWS = TransformWithAlignment(float4(curveTangentOS, 0), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y)).xyz;
+
     ////////////////////////////////////////////////
     
     
