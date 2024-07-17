@@ -43,7 +43,7 @@ Material:
     - USE_MAINWAVE_ON: 1
     - _Bend: 0.537
     - _BladeThickenFactor: 0.1
-    - _ClumpEmergeFactor: 0.799
+    - _ClumpEmergeFactor: 0.836
     - _ClumpHeight: 1
     - _ClumpHeightMultiplier: 0.3
     - _ClumpHeightOffset: 1
@@ -57,17 +57,17 @@ Material:
     - _DetailSpeed: 0.285
     - _DetailWeight: 0.175
     - _GlobalWindMult: 0.547
-    - _GrassBend: 0.3
+    - _GrassBend: 0.411
     - _GrassFacingDirection: 45
     - _GrassHeight: 1
     - _GrassPosture: 0.818
-    - _GrassPostureFacing: 0.321
+    - _GrassPostureFacing: 0.375
     - _GrassRandoemLength: 0.5
-    - _GrassRandomFacing: 0.606
-    - _GrassRandomLength: 0.509
+    - _GrassRandomFacing: 0.283
+    - _GrassRandomLength: 1
     - _GrassScale: 0.19
     - _GrassTilt: 1
-    - _GrassWaveAmplitude: 0.094
+    - _GrassWaveAmplitude: 0.039
     - _GrassWaveFrequency: 0.3
     - _GrassWaveSpeed: 0.903
     - _Height: 1.2

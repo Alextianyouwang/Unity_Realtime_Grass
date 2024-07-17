@@ -43,7 +43,7 @@ StructuredBuffer<SpawnData> _SpawnBuffer;
 ////////////////////////////////////////////////
 // Field Data
 StructuredBuffer<float3> _GroundNormalBuffer;
-StructuredBuffer<float3> _WindBuffer;
+StructuredBuffer<float4> _WindBuffer;
 StructuredBuffer<float4> _MaskBuffer;
 Texture2D<float> _InteractionTexture;
 Texture2D<float4> _FlowTexture;
@@ -112,8 +112,8 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     // Sample Buffers Based on xy
     float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
     float windStrength = _WindBuffer[x * _NumTilePerClusterSide + y].x; // [-1,1]
-    float windDir = _WindBuffer[x * _NumTilePerClusterSide + y].y * 360; // [0,360]
-    float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].z; // [0,1]
+    float2 windDir = _WindBuffer[x * _NumTilePerClusterSide + y].yz; // [0,360]
+    float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].w; // [0,1]
     float4 maskBuffer = _MaskBuffer[x * _NumTilePerClusterSide + y]; // [0,1]
     float interaction = saturate(_InteractionTexture[int2(x, y)]);
     float4 flow = normalize(_FlowTexture[int2(x, y)]);
@@ -152,26 +152,23 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     ////////////////////////////////////////////////
     // Apply Clump
-    float windAngle = -windDir + 90;
-    float clumpAngle = degrees(atan2(dirToClump.x, dirToClump.y)) * clumpHash * step(_ClumpThreshold, clumpHash);
-   // float flowAngle = degrees(clamp(atan2(flow.x, flow.z), -UNITY_PI, UNITY_PI));
-    float postureAngle = 360 * (posture.x*0.5 + posture.y * 0.5 + posture.w * 0.5) * _GrassPostureFacing;
-    float postureHeight = step(0.97, posture.x ) ;
-  
-    float randomRotationMaxSpan = 180;
+    float2 clumpDir = dirToClump * clumpHash * step(_ClumpThreshold, clumpHash);
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
-    
-    float rotAngle = lerp(windAngle, clumpAngle, mask * _ClumpEmergeFactor * reverseWind01);
-    rotAngle -= (frac(rand * 60) - 0.5) * randomRotationMaxSpan * _GrassRandomFacing * (reverseWind01 + 0.2);
-    rotAngle -= postureAngle * reverseWind01;
-   // rotAngle = lerp(rotAngle, flowAngle, flow.y);
+    float postureHeight = step(0.97, posture.x ) ;
     float scale = 1 + (_ClumpHeightOffset * 5 - distToClump) * _ClumpHeightMultiplier * clumpHash * step(_ClumpThreshold, clumpHash) * rand + postureHeight;
+
+    float2 finalDir = lerp(windDir, clumpDir, mask * _ClumpEmergeFactor * reverseWind01);
+    float2 postureDir = normalize(ReverseAtan2Degrees(360 * (posture.x * 0.5 + posture.y * 0.5 + posture.w * 0.5)));
+    float2 randomDir = normalize(ReverseAtan2Degrees( 360 * (frac(rand * 60) - 0.5)));
+    finalDir = lerp(finalDir, postureDir, _GrassPostureFacing * reverseWind01);
+    finalDir = lerp(finalDir, randomDir, _GrassRandomFacing * reverseWind01);
+    
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
-    posWS = RotateAroundAxis(float4(posWS, 1), float3(0,1,0),rotAngle,spawnPosWS).xyz;
     curvePosWS = ScaleWithCenter(curvePosWS, scale, spawnPosWS);
-    curvePosWS = RotateAroundAxis(float4(curvePosWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
-    float3 normalWS = normalize(RotateAroundYInDegrees(float4(curveNormalOS, 0), rotAngle).xyz);
-    float3 tangentWS = normalize(RotateAroundYInDegrees(float4(curveTangentOS, 0), rotAngle).xyz);
+    posWS = TransformWithAlignment(float4(posWS, 1), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y), spawnPosWS);
+    curvePosWS = TransformWithAlignment(float4(curvePosWS, 1), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y), spawnPosWS);
+    float3 normalWS = TransformWithAlignment(float4(curveNormalOS, 0), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y));
+    float3 tangentWS = TransformWithAlignment(float4(curveTangentOS, 0), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y));
     ////////////////////////////////////////////////
     
     

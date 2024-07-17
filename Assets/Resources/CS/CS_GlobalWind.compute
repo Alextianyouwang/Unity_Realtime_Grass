@@ -1,6 +1,6 @@
 #pragma kernel GlobalWind
 
-RWStructuredBuffer<float3> _WindBuffer;
+RWStructuredBuffer<float4> _WindBuffer;
 uint _MaxCount;
 float _TileSize;
 float _TileDimension;
@@ -17,7 +17,8 @@ float _Amplitude;
 float _AmplitudeFalloff;
 float _Speed;
 float _SpeedBuildup;
-float _Direction;
+float _DirectionX;
+float _DirectionY;
 #include "../../INCLUDE/HL_Noise.hlsl"
 #include "../../INCLUDE/HL_GraphicsHelper.hlsl"
 [numthreads(1024, 1, 1)]
@@ -29,8 +30,8 @@ void GlobalWind(uint3 id : SV_DispatchThreadID)
     int coordX = id.x / _TileDimension;
     int coordY = id.x % _TileDimension;
     float2 posXZ = float2(coordX * _TileSize + _CornerX, coordY * _TileSize + _CornerY);
-    posXZ = Rotate2D(posXZ, -_Direction);
-    
+    posXZ = Rotate2D(posXZ, atan2(_DirectionX, _DirectionY) / UNITY_PI * 180 - 90);
+
     float freq = _Frequency;
     float amp = _Amplitude;
     float speedRamp = 0;
@@ -47,6 +48,8 @@ void GlobalWind(uint3 id : SV_DispatchThreadID)
 
     posXZ *= 0.2;
     float3 voronoi = voronoiNoise(float3(posXZ.x, -_Time * 0.05, posXZ.y), 12.9898);
-    _WindBuffer[id.x] = float3(noise, (_Direction + noise / _Amplitude * 45) / 360.0,voronoi.x);
+    noise = noise * _Amplitude * 0.2;
+    float2 dir = normalize(float2(_DirectionX + noise, _DirectionY + noise));
+    _WindBuffer[id.x] = float4(noise, dir ,voronoi.x);
 
 }

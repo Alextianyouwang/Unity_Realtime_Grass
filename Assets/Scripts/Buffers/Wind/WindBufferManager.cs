@@ -8,9 +8,10 @@ public class WindBufferManager : BufferPool
     [Header("Unit : M/s")]
     public float WindSpeed = 10f;
 
-    [Header("Unit : Degree")]
-    [Range (0,360)]
-    public float WindDirection = 45;
+    [Range (-1,1)]
+    public float WindDirectionX = 1;
+    [Range(-1, 1)]
+    public float WindDirectionY = 1;
     [Space]
     public float WindAmplitudeMultiplier = 1.0f;
     public float WindFrequencyMultiplier = 0.05f;
@@ -23,7 +24,7 @@ public class WindBufferManager : BufferPool
     public float WindFrequencyBuildup = 1.5f;
     private void OnEnable()
     {
-        Initialize("CS/CS_GlobalWind", "_WindBuffer", sizeof(float) * 3);
+        Initialize("CS/CS_GlobalWind", "_WindBuffer", sizeof(float) * 4);
         OnBufferCreated += SetInitialParameters;
         TileGrandCluster.OnRequestWindBuffer += CreateBuffer;
         TileGrandCluster.OnRequestDisposeWindBuffer += DisposeBuffer;
@@ -51,7 +52,8 @@ public class WindBufferManager : BufferPool
         ComputeSetFloat("_Amplitude", WindAmplitudeMultiplier);
         ComputeSetFloat("_AmplitudeFalloff", WindAmplitudeFalloff);
         ComputeSetInt("_Octaves", WindOcatves);
-        ComputeSetFloat("_Direction", WindDirection);
+        ComputeSetFloat("_DirectionX", WindDirectionX);
+        ComputeSetFloat("_DirectionY", WindDirectionY);
 
     }
 
