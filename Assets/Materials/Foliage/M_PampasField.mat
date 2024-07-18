@@ -40,10 +40,10 @@ Material:
     - _GrassWaveAmplitude: 0.06
     - _GrassWaveFrequency: 4
     - _GrassWaveSpeed: 4
-    - _MasterScale: 0.727
+    - _MasterScale: 0.843
     - _NormalScale: 1
     - _RandomFacing: 0.668
-    - _RandomScale: 0.3
+    - _RandomScale: 0.28
     - _SSSTightness: 0.157
     m_Colors:
     - _SSSColor: {r: 1, g: 0.82322484, b: 0.41037738, a: 1}

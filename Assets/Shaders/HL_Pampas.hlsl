@@ -71,7 +71,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     
     float2 clumpDir = i.dirToClump * i.clumpHash * step(_ClumpThreshold, i.clumpHash);
     float reverseWind01 = 1 - (i.wind.x * 0.5 + 0.5);
-    float bendAngle = i.interaction * 45;
+    float bendAngle = i.interaction * 45 + i.wind.x * 25;
 
     float scale = 1 + i.hash * _RandomScale;
     posWS = ScaleWithCenter(posWS, scale, i.spawnPosWS);
