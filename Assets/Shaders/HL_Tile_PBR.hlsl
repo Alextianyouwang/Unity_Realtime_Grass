@@ -6,6 +6,8 @@
 #include "../INCLUDE/HL_GraphicsHelper.hlsl"
 #include "../INCLUDE/HL_Noise.hlsl"
 #include "../INCLUDE/HL_ShadowHelper.hlsl"
+#include "./INCHL_SharedData.hlsl"
+
 
 struct VertexInput
 {
@@ -25,28 +27,7 @@ struct VertexOutput
     float3 positionWS : TEXCOORD4;
     float3 bakedGI : TEXCOORD8;
 };
-////////////////////////////////////////////////
-// Spawn Data
-struct SpawnData
-{
-    float3 positionWS;
-    float hash;
-    float4 clumpInfo;
-    float4 postureData;
-};
-StructuredBuffer<SpawnData> _SpawnBuffer;
-////////////////////////////////////////////////
 
-////////////////////////////////////////////////
-// Field Data
-StructuredBuffer<float3> _GroundNormalBuffer;
-StructuredBuffer<float3> _WindBuffer;
-StructuredBuffer<float4> _MaskBuffer;
-Texture2D<float> _InteractionTexture;
-Texture2D<float4> _FlowTexture;
-int _NumTilePerClusterSide;
-float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
-////////////////////////////////////////////////
 
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 TEXTURE2D( _Normal);SAMPLER (sampler_Normal);float4 _Normal_ST;
@@ -55,23 +36,11 @@ float _MasterScale;
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o;
-    
-
-    ////////////////////////////////////////////////
-    // Fetch Input
-    float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS;
-    
-    int x = (spawnPosWS.x - _ClusterBotLeftX) / _TileSize;
-    int y = (spawnPosWS.z - _ClusterBotLeftY) / _TileSize;
-    // Sample Buffers Based on xy
-    float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
- 
-    float3 posOS = v.positionOS;
-    float viewDist = length(_WorldSpaceCameraPos - spawnPosWS);
-     ////////////////////////////////////////////////
+    VertexSharedData i = InitializeVertexSharedData(instanceID);
    
     // Apply Transform
-    float3 posWS = spawnPosWS + posOS * _MasterScale ;
+    float3 posOS = v.positionOS;
+    float3 posWS = i.spawnPosWS + posOS * _MasterScale ;
     float3 normalWS = v.normalOS;
     float4 tangentWS = v.tangentOS;
     
@@ -82,7 +51,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float2 lightmapUV;
     OUTPUT_LIGHTMAP_UV(v.uv1, unity_LightmapST, lightmapUV);
     float3 vertexSH;
-      OUTPUT_SH(normalWS, vertexSH);
+    OUTPUT_SH(normalWS, vertexSH);
     ////////////////////////////////////////////////
 
     o.bakedGI = SAMPLE_GI(lightmapUV, vertexSH, normalWS);
@@ -90,7 +59,7 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.positionWS = posWS;
     o.normalWS = normalWS;
     o.tangentWS = tangentWS;
-    o.groundNormalWS = groundNormalWS;
+    o.groundNormalWS = i.groundNormalWS;
 
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
@@ -99,45 +68,6 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     #endif
     return o;
    
-}
-
-struct CustomInputData
-{
-    float3 normalWS;
-    float3 groundNormalWS;
-    float3 positionWS;
-    float3 viewDir;
-    float viewDist;
-    
-    float3 albedo;
-    float3 specularColor;
-    float smoothness;
-    
-    float3 sss;
-    float sssTightness;
-
-    float3 bakedGI;
-    float4 shadowCoord;
-};
-
-float3 CustomLightHandling(CustomInputData d, Light l)
-{
-    float atten = lerp(l.shadowAttenuation, 1, smoothstep(20, 30, d.viewDist)) * l.distanceAttenuation;
-    float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
-    float3 sss = 0;
-    FastSSS_float(d.viewDir, l.direction, d.groundNormalWS, l.color, 0, d.sssTightness, sss);
-    return saturate(sss  * d.sss * atten);
-}
-float3 CustomCombineLight(CustomInputData d)
-{
-    Light mainLight = GetMainLight(d.shadowCoord);
-    MixRealtimeAndBakedGI(mainLight, d.normalWS, d.bakedGI);
-    float3 color = d.bakedGI * d.albedo;
-    color += CustomLightHandling(d, mainLight);
-    uint numAdditionalLights = GetAdditionalLightsCount();
-    for (uint lightI = 0; lightI < numAdditionalLights; lightI++)
-        color += CustomLightHandling(d, GetAdditionalLight(lightI, d.positionWS, d.shadowCoord));
-    return color;
 }
 
 
@@ -159,20 +89,6 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     float3 posNDS = v.positionCS.xyz / v.positionCS.w;
     float2 uvSS = posNDS.xy / 2 + 0.5;
     
-    //CustomInputData d = (CustomInputData) 0;
-    //d.normalWS = normalize(normalWS);
-    //d.groundNormalWS = normalize(v.groundNormalWS);
-    //d.positionWS = v.positionWS;
-    //d.shadowCoord = CalculateShadowCoord(v.positionWS, v.positionCS);
-    //d.viewDir = normalize(_WorldSpaceCameraPos - v.positionWS);
-    //d.viewDist = length(_WorldSpaceCameraPos - v.positionWS);
-    //d.smoothness = exp2(_SpecularTightness * 10 + 1);
-    //d.sss = _SSSColor;
-    //d.sssTightness = exp2(_SSSTightness * 10 + 1);
-    //d.albedo = 0;
-    //d.specularColor = _SpecularColor.xyz;
-    //d.bakedGI = v.bakedGI;
-    
     InputData data = (InputData) 0;
     
     data.positionWS = v.positionWS;
@@ -189,7 +105,6 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     
     SurfaceData surf = (SurfaceData) 0;
     
-    
     surf.albedo = albedo.xyz;
     surf.specular = 1;
     surf.metallic = 0;
@@ -200,11 +115,8 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     surf.alpha = albedo.w;
     surf.clearCoatMask = 0;
     surf.clearCoatSmoothness = 0;
-    
-    //float3 customSSS = CustomCombineLight(d);
-    
+
     float4 finalColor =  UniversalFragmentPBR(data, surf);
-    //finalColor.xyz += customSSS;
     return finalColor;
 
    

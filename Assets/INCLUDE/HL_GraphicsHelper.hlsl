@@ -225,10 +225,5 @@ float2 ReverseAtan2Degrees(float thetaDegrees)
     
     return float2(x, y);
 }
-void FastSSS_float(float3 ViewDir, float3 LightDir, float3 WorldNormal, float3 LightColor, float Flood, float Power, out float3 sss)
-{
-    const float3 LAddN = LightDir + WorldNormal;
-    sss = saturate(pow(saturate(dot(-LAddN, -LAddN * Flood + ViewDir)), Power)) * LightColor;
-    
-}
+
 #endif

@@ -5,7 +5,8 @@
 #include "../INCLUDE/HL_GraphicsHelper.hlsl"
 #include "../INCLUDE/HL_Noise.hlsl"
 #include "../INCLUDE/HL_ShadowHelper.hlsl"
-#include "./HL_SharedData.hlsl"
+#include "./INCHL_SharedData.hlsl"
+#include "./INCHL_LightingModel.hlsl"
 struct VertexInput
 {
     float3 positionOS : POSITION;
@@ -117,45 +118,6 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
    
 }
 
-struct CustomInputData
-{
-    float3 normalWS;
-    float3 groundNormalWS;
-    float3 positionWS;
-    float3 viewDir;
-    float viewDist;
-    
-    float3 albedo;
-    float3 specularColor;
-    float smoothness;
-    
-    float3 sss;
-    float sssTightness;
-
-    float3 bakedGI;
-    float4 shadowCoord;
-};
-
-float3 CustomLightHandling(CustomInputData d, Light l)
-{
-    float atten = lerp(l.shadowAttenuation, 1, smoothstep(20, 30, d.viewDist)) * l.distanceAttenuation;
-    float diffuseGround = saturate(dot(l.direction, d.groundNormalWS));
-    float3 sss = 0;
-    FastSSS_float(d.viewDir, l.direction, d.groundNormalWS, l.color, 0, d.sssTightness, sss);
-    return saturate(sss  * d.sss * atten);
-}
-float3 CustomCombineLight(CustomInputData d)
-{
-    Light mainLight = GetMainLight(d.shadowCoord);
-    MixRealtimeAndBakedGI(mainLight, d.normalWS, d.bakedGI);
-    float3 color = d.bakedGI * d.albedo;
-    color += CustomLightHandling(d, mainLight);
-    uint numAdditionalLights = GetAdditionalLightsCount();
-    for (uint lightI = 0; lightI < numAdditionalLights; lightI++)
-        color += CustomLightHandling(d, GetAdditionalLight(lightI, d.positionWS, d.shadowCoord));
-    return color;
-}
-
 
 float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
 {
@@ -221,7 +183,7 @@ float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
     surf.clearCoatMask = 0;
     surf.clearCoatSmoothness = 0;
     
-    float3 customSSS = CustomCombineLight(d);
+    float3 customSSS = CustomCombineLight_SSS(d);
     
     float4 finalColor =  UniversalFragmentPBR(data, surf);
     finalColor.xyz += customSSS;
