@@ -5,7 +5,7 @@
 #include "../INCLUDE/HL_GraphicsHelper.hlsl"
 #include "../INCLUDE/HL_Noise.hlsl"
 #include "../INCLUDE/HL_ShadowHelper.hlsl"
-
+#include "./HL_SharedData.hlsl"
 struct VertexInput
 {
     float3 positionOS : POSITION;
@@ -29,33 +29,6 @@ struct VertexOutput
     float2 uv2 : TEXCOORD7;
     float3 bakedGI : TEXCOORD8;
 };
-////////////////////////////////////////////////
-// Spawn Data
-struct SpawnData
-{
-    float3 positionWS;
-    float hash;
-    float4 clumpInfo;
-    float4 postureData;
-};
-StructuredBuffer<SpawnData> _SpawnBuffer;
-////////////////////////////////////////////////
-
-////////////////////////////////////////////////
-// Field Data
-StructuredBuffer<float3> _GroundNormalBuffer;
-StructuredBuffer<float4> _WindBuffer;
-StructuredBuffer<float4> _MaskBuffer;
-Texture2D<float> _InteractionTexture;
-Texture2D<float4> _FlowTexture;
-int _NumTilePerClusterSide;
-float _ClusterBotLeftX, _ClusterBotLeftY, _TileSize;
-////////////////////////////////////////////////
-
-////////////////////////////////////////////////
-// Debug
-float3 _ChunkColor, _LOD_Color;
-////////////////////////////////////////////////
 
 float4 _TopColor, _BotColor, _VariantTopColor, _SpecularColor, _SSSColor;
 TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
@@ -71,76 +44,51 @@ _SSSTightness,
 VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
 {
     VertexOutput o = (VertexOutput)0;
-    
-
-    ////////////////////////////////////////////////
-    // Fetch Input
-    float3 spawnPosWS = _SpawnBuffer[instanceID].positionWS;
-    
-    int x = (spawnPosWS.x - _ClusterBotLeftX) / _TileSize;
-    int y = (spawnPosWS.z - _ClusterBotLeftY) / _TileSize;
-    // Sample Buffers Based on xy
-    float3 groundNormalWS = _GroundNormalBuffer[x * _NumTilePerClusterSide + y];
-    float windStrength = _WindBuffer[x * _NumTilePerClusterSide + y].x; // [-1,1]
-    float2 windDir = _WindBuffer[x * _NumTilePerClusterSide + y].yz; // [0,360]
-    float windVariance = _WindBuffer[x * _NumTilePerClusterSide + y].w; // [0,1]
-    float4 maskBuffer = _MaskBuffer[x * _NumTilePerClusterSide + y]; // [0,1]
-    float interaction = saturate(_InteractionTexture[int2(x, y)]);
-   // float4 flow = normalize(_FlowTexture[int2(x, y)]);
-    
-    float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
-    float2 uv2 = v.uv2;
-    float rand = _SpawnBuffer[instanceID].hash * 2 - 1; // [-1,1]
-    float3 clumpCenter = float3(_SpawnBuffer[instanceID].clumpInfo.x, 0, _SpawnBuffer[instanceID].clumpInfo.y);
-    float2 dirToClump = normalize((spawnPosWS).xz - _SpawnBuffer[instanceID].clumpInfo.xy);
-    float distToClump = _SpawnBuffer[instanceID].clumpInfo.z;
-    float clumpHash = _SpawnBuffer[instanceID].clumpInfo.w; // [0,1]
-    float4 posture = _SpawnBuffer[instanceID].postureData * 2 - 1; // [-1,1]
-    float3 posOS = v.positionOS;
-    float viewDist = length(_WorldSpaceCameraPos - spawnPosWS);
-     ////////////////////////////////////////////////
+    VertexSharedData i = InitializeVertexSharedData(instanceID);
+   
     // Apply Curve
-    float wind01 = (windStrength * 0.5 + 0.5);
-    float offset = rand * 2 + windVariance * 30;
+    float2 uv2 = v.uv2;
+    float3 posOS = v.positionOS;
+    float viewDist = length(_WorldSpaceCameraPos - i.spawnPosWS);
+    float mask = 1 - smoothstep(20, 120, viewDist);
+    float wind01 = (i.wind.x * 0.5 + 0.5);
+    float offset = i.hash * 2 + i.wind.w * 30;
     float speed = _Time.y * _GrassWaveSpeed + wind01 * 5;
     float freq = _GrassWaveFrequency;
-    float amplitude = _GrassWaveAmplitude * (wind01-0.2) * (1 - interaction);
+    float amplitude = _GrassWaveAmplitude * (wind01-0.2) * (1 - i.interaction);
     float waveX = cos(uv2.y * freq - speed + offset) * amplitude;
     float waveY = sin((uv2.y * freq - speed + offset)*2 ) * amplitude / 2;
     posOS.y += waveY * uv2.y;
     posOS.x += waveX * uv2.y;
+    
     ////////////////////////////////////////////////
     // Apply Transform
-	spawnPosWS.xz = lerp(spawnPosWS.xz, clumpCenter.xz, _ClumpTightness);
-    float3 posWS = spawnPosWS + posOS * _MasterScale * 5;
+	i.spawnPosWS.xz = lerp(i.spawnPosWS.xz, i.clumpCenter.xz, _ClumpTightness);
+    float3 posWS = i.spawnPosWS + posOS * _MasterScale * 5;
     float3 normalWS = v.normalOS;
     float4 tangentWS = v.tangentOS;
     
+    float2 clumpDir = i.dirToClump * i.clumpHash * step(_ClumpThreshold, i.clumpHash);
+    float reverseWind01 = 1 - (i.wind.x * 0.5 + 0.5);
+    float bendAngle = i.interaction * 45;
 
-    float2 clumpDir = dirToClump * clumpHash * step(_ClumpThreshold, clumpHash);
-    float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
-    float bendAngle = interaction * 45;
-
-
-    float scale = 1 + rand * _RandomScale;
-    posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
+    float scale = 1 + i.hash * _RandomScale;
+    posWS = ScaleWithCenter(posWS, scale, i.spawnPosWS);
     //scale -= flow.y * 1.5;
 
-    float2 finalDir = lerp(windDir, clumpDir,  _ClumpEmergeFactor * reverseWind01);
-    float2 randomDir = normalize(ReverseAtan2Degrees(360 * (frac(rand * 60) - 0.5)));
+    float2 finalDir = lerp(i.wind.yz, clumpDir,  _ClumpEmergeFactor * reverseWind01);
+    float2 randomDir = normalize(ReverseAtan2Degrees(360 * (frac(i.hash * 60) - 0.5)));
     finalDir = lerp(finalDir, randomDir, _RandomFacing * reverseWind01);
     
-    posWS = TransformWithAlignment(float4(posWS, 1), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y), spawnPosWS).xyz;
+    posWS = TransformWithAlignment(float4(posWS, 1), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y), i.spawnPosWS).xyz;
     normalWS = TransformWithAlignment(float4(normalWS, 0), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y)).xyz;
     tangentWS = TransformWithAlignment(float4(tangentWS.xyz, 0), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y));
 
-     posWS = RotateAroundAxis(float4(posWS, 1), float3(1, 0, 0), bendAngle, spawnPosWS).xyz;
+     posWS = RotateAroundAxis(float4(posWS, 1), float3(1, 0, 0), bendAngle, i.spawnPosWS).xyz;
     normalWS = normalize(RotateAroundXInDegrees(float4(normalWS, 0), bendAngle)).xyz;
     tangentWS = normalize(RotateAroundXInDegrees(float4(tangentWS.xyz, 0), bendAngle));
 
     tangentWS.w = v.tangentOS.w;
-    
-    
     ////////////////////////////////////////////////
     
     ////////////////////////////////////////////////
@@ -156,9 +104,9 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     o.positionWS = posWS;
     o.normalWS = normalWS;
     o.tangentWS = tangentWS;
-    o.groundNormalWS = groundNormalWS;
+    o.groundNormalWS = i.groundNormalWS;
     o.clumpInfo = _SpawnBuffer[instanceID].clumpInfo;
-    o.debug = float4(lerp(float2(0, 1), float2(1, 0), windStrength + 0.5), interaction,rand);
+    o.debug = float4(lerp(float2(0, 1), float2(1, 0), i.wind.x + 0.5), i.interaction,i.hash);
 
     #ifdef SHADOW_CASTER_PASS
         o.positionCS = CalculatePositionCSWithShadowCasterLogic(posWS,normalWS);
