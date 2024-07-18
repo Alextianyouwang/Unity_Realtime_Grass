@@ -116,31 +116,28 @@ VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
     float3 normalWS = v.normalOS;
     float4 tangentWS = v.tangentOS;
     
-    float windAngle = -atan2(windDir.x, windDir.y) + 90;
-    //float flowAngle = degrees(clamp(atan2(flow.x, flow.z), -UNITY_PI, UNITY_PI));
-    float randomRotationMaxSpan = 180;
+
+    float2 clumpDir = dirToClump * clumpHash * step(_ClumpThreshold, clumpHash);
     float reverseWind01 = 1 - (windStrength * 0.5 + 0.5);
-    float poseAngle = (frac(rand * 12.9898) - 0.5) * randomRotationMaxSpan * _RandomFacing + 90;
-    float rotAngle = lerp(poseAngle, windAngle, reverseWind01 * 2) + windStrength * 30;
-   // rotAngle = lerp(rotAngle, flowAngle, flow.y);
     float bendAngle = interaction * 45;
- //  bendAngle += flow.y * 60;
-    
-    rotAngle = windAngle;
-    
+
 
     float scale = 1 + rand * _RandomScale;
-    //scale -= flow.y * 1.5;
     posWS = ScaleWithCenter(posWS, scale, spawnPosWS);
-   //  posWS = RotateAroundAxis(float4(posWS, 1), float3(1, 0, 0), bendAngle, spawnPosWS).xyz;
-   // posWS = RotateAroundAxis(float4(posWS, 1), float3(0, 1, 0), rotAngle, spawnPosWS).xyz;
-   // 
-   // normalWS = normalize(RotateAroundXInDegrees(float4(normalWS, 0), bendAngle)).xyz;
-   // normalWS = normalize(RotateAroundYInDegrees(float4(normalWS, 0), rotAngle)).xyz;
-   // 
-   // tangentWS = normalize(RotateAroundXInDegrees(float4(tangentWS.xyz, 0), bendAngle));
-   // tangentWS = normalize(RotateAroundYInDegrees(float4(tangentWS.xyz, 0), rotAngle));
+    //scale -= flow.y * 1.5;
+
+    float2 finalDir = lerp(windDir, clumpDir,  _ClumpEmergeFactor * reverseWind01);
+    float2 randomDir = normalize(ReverseAtan2Degrees(360 * (frac(rand * 60) - 0.5)));
+    finalDir = lerp(finalDir, randomDir, _RandomFacing * reverseWind01);
     
+    posWS = TransformWithAlignment(float4(posWS, 1), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y), spawnPosWS).xyz;
+    normalWS = TransformWithAlignment(float4(normalWS, 0), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y)).xyz;
+    tangentWS = TransformWithAlignment(float4(tangentWS.xyz, 0), float3(0, 0, 1), float3(finalDir.x, 0, finalDir.y));
+
+     posWS = RotateAroundAxis(float4(posWS, 1), float3(1, 0, 0), bendAngle, spawnPosWS).xyz;
+    normalWS = normalize(RotateAroundXInDegrees(float4(normalWS, 0), bendAngle)).xyz;
+    tangentWS = normalize(RotateAroundXInDegrees(float4(tangentWS.xyz, 0), bendAngle));
+
     tangentWS.w = v.tangentOS.w;
     
     

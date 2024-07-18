@@ -42,7 +42,7 @@ Material:
     - _GrassWaveSpeed: 4
     - _MasterScale: 0.727
     - _NormalScale: 1
-    - _RandomFacing: 1
+    - _RandomFacing: 0.668
     - _RandomScale: 0.3
     - _SSSTightness: 0.157
     m_Colors:
