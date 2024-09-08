@@ -126,7 +126,7 @@ public class GPUCullingTester_Advanced : MonoBehaviour
 
 
         Culler.Dispatch(3, 1, 1, 1);
-        Culler.Dispatch(0, Mathf.CeilToInt(_instances / 32), 1, 1);
+        Culler.Dispatch(0, 1, 1, 1);
         Culler.Dispatch(1, 1, 1, 1);
         Culler.Dispatch(2, 1, 1, 1);
 

@@ -31,10 +31,12 @@ RWStructuredBuffer<Args> _ArgsBuffer;
 uint _InstanceCount;
 float4x4 _Camera_VP;
 
-#define WRAP_SIZE 32
-groupshared int scan[WRAP_SIZE + WRAP_SIZE/2];
+#define NUM_THREAD  32
+#define LOG_NUM_THREAD 5
+#define NUM_GROUP 1024
+groupshared int temp[2 * NUM_THREAD * 2- 2 ];
 
-[numthreads(32, 1, 1)]
+[numthreads(64, 1, 1)]
 void Vote (uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _InstanceCount)
@@ -54,27 +56,53 @@ void Vote (uint3 id : SV_DispatchThreadID)
 
 }
 
-[numthreads(WRAP_SIZE, 1, 1)]
+[numthreads(NUM_THREAD, 1, 1)]
 void Scan(uint3 id : SV_DispatchThreadID)
 {
-    int x = _VoteBuffer[id.x];
-    int init = id.x + WRAP_SIZE / 2;
-    scan[init] = x;
-    int sum = x;
-
-    [unroll]
-    for (int i = 0; i < 5; i++)
+    temp[2 * id.x] = _VoteBuffer[2 * id.x];
+    temp[2 * id.x + 1] = _VoteBuffer[2 * id.x + 1];
+    uint d;
+    uint end = NUM_THREAD * 2;
+    uint start = 0;
+    for (d = NUM_THREAD; d >= 2; d >>= 1)
     {
         GroupMemoryBarrierWithGroupSync();
-        uint offset = 1 << i;
-        sum += scan[init - offset];
-        scan[init] = sum;
-    }
-    _ScanBuffer[id.x] = sum - x;
+        if (id.x < d)
+        {
+            temp[end + id.x] = temp[2 * id.x + start] + temp[2 * id.x + 1 + start];
+            
+        }
+        start = end;
+        end += d;
 
+    }
+    
+    GroupMemoryBarrierWithGroupSync();
+    if (id.x == 0)
+    {
+        temp[end - 1] = temp[end - 2];
+        temp[end - 2] = 0;
+    }
+    
+    for (d = 2; d <= NUM_THREAD; d *= 2)
+    {
+        GroupMemoryBarrierWithGroupSync();
+        end -= d;
+        start -= d * 2;
+        if (id.x < d)
+        {
+            int t = temp[start + id.x * 2];
+            temp[2 * id.x + start] = temp[end + id.x];
+            temp[2 * id.x + 1 + start] = t + temp[end + id.x];
+        }
+    }
+    GroupMemoryBarrierWithGroupSync();
+    
+    _ScanBuffer[2 * id.x] = temp[2 * id.x];
+    _ScanBuffer[2 * id.x + 1] = temp[2 * id.x + 1];
 
 }
-[numthreads(WRAP_SIZE, 1, 1)]
+[numthreads(64, 1, 1)]
 void Compact(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _InstanceCount)
