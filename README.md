@@ -2,23 +2,24 @@
 ![ezgif-4-574c809eb1](https://github.com/user-attachments/assets/3569d505-2e2f-4ced-84ac-995e12a74288)
 
 inspired by Ghost of Tsushima GDC talk, rendered as is without post-processing, project version: 2022.3.19f1
-check out demo in Main scene
-
+check out the demo in Main
+  
+General Features:
+- Independent of terrain geometry (height map driven)
+- Height map capture tool
+- Paintable density mask
+- Support rendering multiple objects
+  
 Technical Features:
 - Indirect instancing
 - Prefix sum GPU culling with reduced bank conflict (frustum, distance, occlusion, and mask)
-- Bilinear interpolation to smooth pixelation
+- Bilinear interpolation to smooth pixelation on height map
 - Local DDXY for ground normal
 - Custom tilling Voronoi buffer for clump visual
 - Bezier curve animation and per-blade normal by derivatives
 - Sample buffer from spacial hash to minimize per-vertex noise sampling
 - Data partitioning and LOD system
 - Global wind system simulated by Fractal Brownian motion 
-  
-General Features:
-- Independent of terrain geometry (height map driven)
-- Paintable density mask
-- Support rendering multiple objects
 
 Visual Features:
 - Multiple light support
