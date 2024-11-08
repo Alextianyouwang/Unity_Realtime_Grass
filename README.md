@@ -19,7 +19,7 @@ Technical Features:
 - Bezier curve animation and per-blade normal by derivatives
 - Sample buffer from spacial hash to minimize per-vertex noise sampling
 - Data partitioning and LOD system
-- Global wind system simulated by Fractal Brownian motion 
+- Global wind system simulated by FBM
 
 Visual Features:
 - Multiple light support
