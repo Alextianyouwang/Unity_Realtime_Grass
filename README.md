@@ -1,7 +1,8 @@
 # Real-time grass solution for Unity URP
 ![ezgif-4-574c809eb1](https://github.com/user-attachments/assets/3569d505-2e2f-4ced-84ac-995e12a74288)
 
-inspired by Ghost of Tsushima GDC talk, rendered as is without post-processing
+inspired by Ghost of Tsushima GDC talk, rendered as is without post-processing, project version: 2022.3.19f1
+check out demo in Main scene
 
 Technical Features:
 - Indirect instancing
