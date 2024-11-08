@@ -8,7 +8,7 @@ General Features:
 - Independent of terrain geometry (height map driven)
 - Height map capture tool
 - Paintable density mask
-- Support rendering multiple objects
+- Support rendering multiple types of detail objects
   
 Technical Features:
 - Indirect instancing
