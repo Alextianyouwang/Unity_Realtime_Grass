@@ -49,11 +49,15 @@ bool _ReverseMask;
 Texture2D<float> _HiZTexture;
 SamplerState sampler_HiZTexture;
 
-#define NUM_THREAD_GROUP 64
-#define NUM_GROUP 1024
+#define NUM_THREAD_GROUP 256
+#define LOG_NUM_THREAD_GROUP (uint)log2 (NUM_THREAD_GROUP)
+#define NUM_GROUP 256
+#define LOG_NUM_GROUP (uint)log2 (NUM_GROUP)
 
-groupshared int temp[2 * NUM_THREAD_GROUP];
-groupshared int tempGroup[2 * NUM_GROUP];
+
+groupshared int temp[2 * NUM_THREAD_GROUP * 2 - 2];
+groupshared int tempGroup[2 * NUM_GROUP * 2 - 2];
+
 
 inline float LinearEyeDepth(float depth)
 {
@@ -208,92 +212,98 @@ void ScanThreadGroup(uint3 id : SV_DispatchThreadID, uint3 groupTID : SV_GroupTh
     temp[2 * groupTID.x] = _VoteBuffer[2 * id.x];
     temp[2 * groupTID.x + 1] = _VoteBuffer[2 * id.x + 1];
     uint d;
-    uint offset = 1;
-    for (d = NUM_THREAD_GROUP; d > 0; d >>= 1)
+    uint end = NUM_THREAD_GROUP * 2;
+    uint start = 0;
+    [unroll]
+    for (d = LOG_NUM_THREAD_GROUP; d >= 1; d--)
     {
         GroupMemoryBarrierWithGroupSync();
-        if (groupTID.x < d)
-        {
-            int ai = offset * (2 * groupTID.x + 1) - 1;
-            int bi = offset * (2 * groupTID.x + 2) - 1;
-            temp[bi] += temp[ai];
+
+        uint depth = 1 << d;
+        uint active = groupTID.x < depth;
+        temp[end + groupTID.x] = (temp[2 * groupTID.x + start] + temp[2 * groupTID.x + 1 + start]) * active;
             
-        }
-        offset *= 2;
+        start = end;
+        end += depth;
 
     }
+    GroupMemoryBarrierWithGroupSync();
     if (groupTID.x == 0)
     {
-        _GroupScanBufferIn[groupID.x] = temp[NUM_THREAD_GROUP * 2 - 1];
-        temp[NUM_THREAD_GROUP * 2 - 1] = 0;
+        _GroupScanBufferIn[groupID.x] = temp[end - 1] + temp[end - 2];
+        temp[end - 1] = temp[end - 2];
+        temp[end - 2] = 0;
     }
-    
-    for (d = 1; d <= NUM_THREAD_GROUP; d *= 2)
+    [unroll]
+    for (d = 1; d <= LOG_NUM_THREAD_GROUP; d++)
     {
         GroupMemoryBarrierWithGroupSync();
-        offset /= 2;
-        if (groupTID.x < d)
-        {
-            int ai = offset * (2 * groupTID.x + 1) - 1;
-            int bi = offset * (2 * groupTID.x + 2) - 1;
-            int t = temp[bi];
-            temp[bi] += temp[ai];
-            temp[ai] = t;
-        }
+        uint depth = 1 << d;
+        end -= depth;
+        start -= depth * 2;
+        uint active = groupTID.x < depth;
 
+        uint s = temp[start + groupTID.x * 2];
+        uint s2 = temp[start + groupTID.x * 2 + 1];
+        uint e = temp[end + groupTID.x];
+        temp[start + groupTID.x * 2] = active ? e : s;
+        temp[start + groupTID.x * 2 + 1] = active ? s + e : s2;
     }
     GroupMemoryBarrierWithGroupSync();
     
     _ScanBuffer[2 * id.x] = temp[2 * groupTID.x];
     _ScanBuffer[2 * id.x + 1] = temp[2 * groupTID.x + 1];
-
-
+   
 }
 [numthreads(NUM_GROUP, 1, 1)]
 void ScanGroup(uint3 id : SV_DispatchThreadID, uint3 groupTID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-    tempGroup[2 * groupTID.x] = _GroupScanBufferIn[2 * id.x];
-    tempGroup[2 * groupTID.x + 1] = _GroupScanBufferIn[2 * id.x + 1];
+    tempGroup[2 * id.x] = _GroupScanBufferIn[2 * id.x];
+    tempGroup[2 * id.x + 1] = _GroupScanBufferIn[2 * id.x + 1];
     uint d;
-    uint offset = 1;
-    for (d = NUM_GROUP; d > 0; d >>= 1)
+    uint end = NUM_GROUP * 2;
+    uint start = 0;
+    [unroll]
+    for (d = LOG_NUM_GROUP; d >= 1; d--)
     {
         GroupMemoryBarrierWithGroupSync();
-        if (groupTID.x < d)
-        {
-            int ai = offset * (2 * groupTID.x + 1) - 1;
-            int bi = offset * (2 * groupTID.x + 2) - 1;
-            tempGroup[bi] += tempGroup[ai];
-            
-        }
-        offset *= 2;
 
-    }
-    if (id.x == 0)
-        tempGroup[NUM_GROUP * 2 - 1] = 0;
-    
-    for (d = 1; d <= NUM_GROUP; d *= 2)
-    {
-        GroupMemoryBarrierWithGroupSync();
-        offset /= 2;
-        if (id.x < d)
-        {
-            int ai = offset * (2 * groupTID.x + 1) - 1;
-            int bi = offset * (2 * groupTID.x + 2) - 1;
-            int t = tempGroup[bi];
-            tempGroup[bi] += tempGroup[ai];
-            tempGroup[ai] = t;
-        }
+        uint depth = 1 << d;
+        uint active = id.x < depth;
+        tempGroup[end + id.x] = (tempGroup[2 * id.x + start] + tempGroup[2 * id.x + 1 + start]) * active;
+            
+        start = end;
+        end += depth;
 
     }
     GroupMemoryBarrierWithGroupSync();
+    if (id.x == 0)
+    {
+        tempGroup[end - 1] = tempGroup[end - 2];
+        tempGroup[end - 2] = 0;
+    }
+    [unroll]
+    for (d = 1; d <= LOG_NUM_GROUP; d++)
+    {
+        GroupMemoryBarrierWithGroupSync();
+        uint depth = 1 << d;
+        end -= depth;
+        start -= depth * 2;
+        uint active = id.x < depth;
+
+        uint s = tempGroup[start + id.x * 2];
+        uint s2 = tempGroup[start + id.x * 2 + 1];
+        uint e = tempGroup[end + id.x];
+        tempGroup[start + id.x * 2] = active ? e : s;
+        tempGroup[start + id.x * 2 + 1] = active ? s + e : s2;
+    }
+    GroupMemoryBarrierWithGroupSync();
     
-    _GroupScanBufferOut[2 * id.x] = tempGroup[2 * groupTID.x];
-    _GroupScanBufferOut[2 * id.x + 1] = tempGroup[2 * groupTID.x + 1];
-
-
+    _GroupScanBufferOut[2 * id.x] = tempGroup[2 * id.x];
+    _GroupScanBufferOut[2 * id.x + 1] = tempGroup[2 * id.x + 1];
+   
 }
-[numthreads(128, 1, 1)]
+[numthreads(2 * NUM_THREAD_GROUP, 1, 1)]
 void Compact(uint3 id : SV_DispatchThreadID, uint3 groupID : SV_GroupID)
 {
     if (id.x >= _InstanceCount)
