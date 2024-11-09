@@ -20,7 +20,7 @@ public class TileChunk
     private ComputeBuffer _groupScanInBuffer;
     private ComputeBuffer _groupScanOutBuffer;
     private ComputeBuffer _compactBuffer;
-    private ComputeBuffer[] _argsBuffer;
+    private ComputeBuffer _argsBuffer_arry;
 
     private ComputeBuffer _windBuffer_external;
     private ComputeBuffer _maskBuffer_external;
@@ -95,19 +95,20 @@ public class TileChunk
         _groupScanOutBuffer = new ComputeBuffer(_groupCount, sizeof(int));
 
         _compactBuffer = new ComputeBuffer(_elementCount, sizeof(float) * 12);
-        _argsBuffer = new ComputeBuffer[_spawnMesh.Length];
-        for(int i = 0; i< _spawnMesh.Length; i++)
+    
+        _argsBuffer_arry = new ComputeBuffer (_spawnMesh.Length * 5, sizeof(uint), ComputeBufferType.IndirectArguments);
+        uint[] _args_arry = new uint[_spawnMesh.Length * 5];
+        for (int i = 0; i< _spawnMesh.Length; i++)
         {
-            _argsBuffer[i] = new ComputeBuffer(1, sizeof(uint) * 5, ComputeBufferType.IndirectArguments);
-            uint[] _args = new uint[] {
-            _spawnMesh[i].GetIndexCount(0),
-            (uint)_spawnBuffer.count,
-            _spawnMesh[i].GetIndexStart(0),
-            _spawnMesh[i].GetBaseVertex(0),
-            0
-        };
-            _argsBuffer[i].SetData(_args);
+            int offset = i * 5;
+            _args_arry[offset + 0] = _spawnMesh[i].GetIndexCount(0);
+            _args_arry[offset + 1] = (uint)_spawnBuffer.count;
+            _args_arry[offset + 2] = _spawnMesh[i].GetIndexStart(0);
+            _args_arry[offset + 3] = _spawnMesh[i].GetBaseVertex(0);
+            _args_arry[offset + 4] = 0;
+
         }
+        _argsBuffer_arry.SetData(_args_arry);
         
         Vector2 bl = _tileData.TileGridCenterXZ - (Vector2.one * _tileData.TileSize * _tileData.TileGridDimension / 2);
 
@@ -141,11 +142,8 @@ public class TileChunk
         _cullShader.SetBuffer(3, "_VoteBuffer", _voteBuffer);
         _cullShader.SetBuffer(3, "_ScanBuffer", _scanBuffer);
         _cullShader.SetBuffer(3, "_GroupScanBufferOut", _groupScanOutBuffer);
-        for (int i = 0; i < _spawnMesh.Length; i++) 
-        {
-            _cullShader.SetBuffer(3, $"_ArgsBuffer{i}", _argsBuffer[i]);
-            _cullShader.SetBuffer(4, $"_ArgsBuffer{i}", _argsBuffer[i]);
-        }
+        _cullShader.SetBuffer(3, "_ArgsBuffer", _argsBuffer_arry);
+        _cullShader.SetBuffer(4, "_ArgsBuffer", _argsBuffer_arry);
 
         _chunkColor = UnityEngine.Random.ColorHSV(0, 1, 0, 1, 0.5f, 1, 0.5f, 1);
         _mpb.SetBuffer("_SpawnBuffer", _compactBuffer);
@@ -172,7 +170,7 @@ public class TileChunk
         if (
             _spawnMesh == null
             || _spawnMeshMaterial == null
-            || _argsBuffer == null
+            || _argsBuffer_arry == null
             )
             return;
 
@@ -197,22 +195,22 @@ public class TileChunk
         float dist = Vector3.Distance(_renderCam.transform.position, ChunkBounds.center);
         if (dist < TileGrandCluster._LOD_Threshold_01)
         {
-            Graphics.DrawMeshInstancedIndirect(_spawnMesh[0], 0, _spawnMeshMaterial, ChunkBounds, _argsBuffer[0],
+            Graphics.DrawMeshInstancedIndirect(_spawnMesh[0], 0, _spawnMeshMaterial, ChunkBounds,_argsBuffer_arry,
           0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
             _mpb.SetColor("_LOD_Color", Color.green);
 
         }
         else if (dist >= TileGrandCluster._LOD_Threshold_01 && dist <= TileGrandCluster._LOD_Threshold_12)
         {
-            Graphics.DrawMeshInstancedIndirect(_spawnMesh[1], 0, _spawnMeshMaterial, ChunkBounds, _argsBuffer[1],
-         0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
+            Graphics.DrawMeshInstancedIndirect(_spawnMesh[1], 0, _spawnMeshMaterial, ChunkBounds, _argsBuffer_arry,
+         5 * sizeof(uint), _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
             _mpb.SetColor("_LOD_Color", Color.blue);
 
         }
         else  if (dist > TileGrandCluster._LOD_Threshold_12)
         {
-            Graphics.DrawMeshInstancedIndirect(_spawnMesh[2], 0, _spawnMeshMaterial, ChunkBounds, _argsBuffer[2],
-           0, _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
+            Graphics.DrawMeshInstancedIndirect(_spawnMesh[2], 0, _spawnMeshMaterial, ChunkBounds, _argsBuffer_arry,
+           10 * sizeof(uint), _mpb, UnityEngine.Rendering.ShadowCastingMode.On, true, 0, null, UnityEngine.Rendering.LightProbeUsage.BlendProbes);
             _mpb.SetColor("_LOD_Color", Color.yellow);
 
         }
@@ -234,9 +232,7 @@ public class TileChunk
         _groupScanInBuffer?.Dispose();
         _groupScanOutBuffer?.Dispose();
         _compactBuffer?.Dispose();
-        if (_argsBuffer != null) 
-            foreach (ComputeBuffer arg in _argsBuffer) 
-                arg?.Dispose();
+        _argsBuffer_arry?.Dispose();
     
         _cullShader = null;
     }

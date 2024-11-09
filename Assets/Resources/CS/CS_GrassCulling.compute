@@ -3,14 +3,7 @@
 #pragma kernel ScanGroup
 #pragma kernel Compact
 #pragma kernel ClearArgs
-struct Args
-{
-    uint meshVertCount;
-    uint numOfInstance;
-    uint meshIndexStart;
-    uint meshBaseVertex;
-    uint reserved;
-};
+
 struct SpawnData
 {
     float3 positionWS;
@@ -27,9 +20,7 @@ RWStructuredBuffer<uint> _ScanBuffer;
 RWStructuredBuffer<uint> _GroupScanBufferIn;
 RWStructuredBuffer<uint> _GroupScanBufferOut;
 RWStructuredBuffer<SpawnData> _CompactBuffer;
-RWStructuredBuffer<Args> _ArgsBuffer0;
-RWStructuredBuffer<Args> _ArgsBuffer1;
-RWStructuredBuffer<Args> _ArgsBuffer2;
+RWStructuredBuffer<uint> _ArgsBuffer;
 
 uint _InstanceCount;
 int _NumTilePerClusterSide;
@@ -311,19 +302,25 @@ void Compact(uint3 id : SV_DispatchThreadID, uint3 groupID : SV_GroupID)
     int groupSum = _GroupScanBufferOut[groupID.x];
     if (_VoteBuffer[id.x] == 1)
     {
-        InterlockedAdd(_ArgsBuffer0[0].numOfInstance, 1);
-        InterlockedAdd(_ArgsBuffer1[0].numOfInstance, 1);
-        InterlockedAdd(_ArgsBuffer2[0].numOfInstance, 1);
+        [unroll]
+        for (uint i = 0; i < 3; i++)
+        {
+            uint offset = i * 5;
+            InterlockedAdd(_ArgsBuffer[offset + 1], 1);
+        }
         _CompactBuffer[_ScanBuffer[id.x] + groupSum] = _SpawnBuffer[id.x];
     }
 
 }
 [numthreads(1, 1, 1)]
-void ClearArgs(uint3 id : SV_DispatchThreadID)
+void ClearArgs()
 {
-    _ArgsBuffer0[0].numOfInstance = 0;
-    _ArgsBuffer1[0].numOfInstance = 0;
-    _ArgsBuffer2[0].numOfInstance = 0;
+    [unroll]
+    for (uint i = 0; i < 3; i++)
+    {
+        uint offset = i * 5;
+        _ArgsBuffer[offset + 1] = 0;
+    }
 }
 
 
