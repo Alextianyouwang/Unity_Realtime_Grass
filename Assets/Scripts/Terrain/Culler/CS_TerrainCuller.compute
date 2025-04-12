@@ -1,0 +1,55 @@
+
+#pragma kernel ParseMeshVertBuffer
+StructuredBuffer<uint> _TargetMeshRawBuffer;
+struct SpawnData
+{
+    float3 positionOS;
+    float3 normalOS;
+    float2 uv;
+};
+RWStructuredBuffer<SpawnData> _SpawnBuffer;
+float4x4 _LocalToWorld;
+
+[numthreads(128,1,1)]
+void ParseMeshVertBuffer(uint3 id : SV_DispatchThreadID)
+{
+    uint vertexStart = id.x * 12;
+    
+    float3 position = asfloat(uint3(
+        _TargetMeshRawBuffer[vertexStart],
+        _TargetMeshRawBuffer[vertexStart + 1],
+        _TargetMeshRawBuffer[vertexStart + 2]
+    ));
+    float3 normal = 
+     asfloat(uint3(
+        _TargetMeshRawBuffer[vertexStart + 3],
+        _TargetMeshRawBuffer[vertexStart + 4],
+        _TargetMeshRawBuffer[vertexStart + 5]
+    ));
+    float4 tangent =
+     asfloat(uint4(
+        _TargetMeshRawBuffer[vertexStart + 6],
+        _TargetMeshRawBuffer[vertexStart + 7],
+        _TargetMeshRawBuffer[vertexStart + 8],
+        _TargetMeshRawBuffer[vertexStart + 9]
+    ));
+    float4 color =
+     asfloat(uint4(
+        _TargetMeshRawBuffer[vertexStart + 10],
+        _TargetMeshRawBuffer[vertexStart + 11],
+        _TargetMeshRawBuffer[vertexStart + 12],
+        _TargetMeshRawBuffer[vertexStart + 13]
+    ));
+    float2 uv0 =
+     asfloat(uint2(
+        _TargetMeshRawBuffer[vertexStart + 14],
+        _TargetMeshRawBuffer[vertexStart + 15]
+    ));
+    SpawnData o;
+    o.positionOS = mul(_LocalToWorld, float4(position, 1)).xyz;
+    // o.positionOS = position;
+    o.normalOS = mul(_LocalToWorld, float4(normal, 0)).xyz;
+    o.uv = uv0;
+    _SpawnBuffer[id.x] = o;
+
+}
