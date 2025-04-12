@@ -1,4 +1,4 @@
-Shader "Procedural/S_Simple_IndInst"
+Shader "Procedural/S_SimpleProc_IndInst"
 {
     Properties
     {
@@ -29,30 +29,23 @@ Shader "Procedural/S_Simple_IndInst"
                 float2 uv;
             };
             StructuredBuffer<SpawnData> _SpawnBuffer;
+            StructuredBuffer<uint> _IndexBuffer;
             float4 _Tint;
             float _MasterScale;
             TEXTURE2D( _MainTex);SAMPLER (sampler_MainTex);float4 _MainTex_ST;
 
-            struct VertexInput
-            {
-                float3 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
-                
-            };
+
             struct VertexOutput
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
             };
 
-            VertexOutput vert(VertexInput v, uint instanceID : SV_INSTANCEID)
+            VertexOutput vert(uint vertexID : SV_VertexID)
             {
                 VertexOutput o;
-
-                float3 posOS = v.positionOS;
-
-                SpawnData i = _SpawnBuffer[instanceID];
-                float3 posWS = i.positionOS + posOS * _MasterScale ;
+                SpawnData i = _SpawnBuffer[ _IndexBuffer[vertexID]];
+                float3 posWS = i.positionOS ;
                 
                 o.positionCS = mul(UNITY_MATRIX_VP, float4(posWS, 1));
                 o.uv = i.uv;
