@@ -9,10 +9,10 @@ public class TerrainCulling : MonoBehaviour
 
     [SerializeField] private Material _terrainRenderMaterial;
 
-    private MeshVertex[] _meshVertexArray;
     private int[] _meshTriangleArray;
 
     private uint _vertCount;
+    private uint _triCount;
 
     private bool _properlySetup = false;
     private ComputeBuffer _cb_vertexBuffer;
@@ -23,12 +23,6 @@ public class TerrainCulling : MonoBehaviour
     private MaterialPropertyBlock _mpb_finalRender;
 
 
-    public struct MeshVertex
-    {
-        public Vector3 PosOS;
-        public Vector3 NormalOS;
-        public Vector2 UV;
-    }
 
     private void ReferenceCheck() 
     {
@@ -47,7 +41,7 @@ public class TerrainCulling : MonoBehaviour
     {
         if (!_properlySetup)
             return;
-        _cb_vertexBuffer = new ComputeBuffer(_targetMesh.vertexCount, sizeof(float) * 8);
+        _cb_vertexBuffer = new ComputeBuffer(_targetMesh.vertexCount, sizeof(float) * 11);
         _cb_vertexVisualization_args = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
         uint[] _args_arry = new uint[]
         {
@@ -59,9 +53,11 @@ public class TerrainCulling : MonoBehaviour
         };
         _cb_vertexVisualization_args.SetData(_args_arry);
 
+        _triCount = (uint)_targetMesh.triangles.Length
+            ;
         _cb_finalRender_args = new ComputeBuffer(4, sizeof(uint), ComputeBufferType.IndirectArguments);
         uint[] _args = new uint[] {
-            (uint)_targetMesh.triangles.Length,
+            _triCount,
             1,
             0,
             0,
@@ -69,11 +65,16 @@ public class TerrainCulling : MonoBehaviour
         _cb_finalRender_args.SetData(_args);
 
         _targetMesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
-        _targetMesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
         GraphicsBuffer vb = _targetMesh.GetVertexBuffer(0);
-        _gb_indexBuffer = _targetMesh.GetIndexBuffer();
         _terrainCullCompute.SetBuffer(0, "_TargetMeshRawVertexBuffer", vb);
+        _terrainCullCompute.SetBuffer(1, "_TargetMeshRawVertexBuffer", vb);
         vb.Dispose();
+
+        _targetMesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
+        _gb_indexBuffer = _targetMesh.GetIndexBuffer();
+        _terrainCullCompute.SetBuffer(1, "_TargetMeshIndexBuffer", _gb_indexBuffer);
+        _terrainCullCompute.SetBuffer(1, "_SpawnBuffer", _cb_vertexBuffer);
+
         _terrainCullCompute.SetBuffer(0, "_SpawnBuffer", _cb_vertexBuffer);
         _terrainCullCompute.SetMatrix("_LocalToWorld", transform.localToWorldMatrix);
         _terrainCullCompute.Dispatch(0, Mathf.CeilToInt(_targetMesh.vertexCount / 128f), 1, 1);
@@ -90,7 +91,11 @@ public class TerrainCulling : MonoBehaviour
         if (!_properlySetup)
             return;
 
- 
+        _terrainCullCompute.SetMatrix("_Camera_V",  Camera.main.worldToCameraMatrix);
+        _terrainCullCompute.SetMatrix("_Camera_P", Camera.main.projectionMatrix );
+        _terrainCullCompute.Dispatch(1, Mathf.CeilToInt(( _triCount / 3) / 128f), 1, 1);
+
+
         Graphics.DrawMeshInstancedIndirect(_visualizationMesh, 0, _visualizationMaterial, new Bounds(Vector3.zero, Vector3.one * 10000), _cb_vertexVisualization_args, 0, _mpb_visual);
         Graphics.DrawProceduralIndirect(_terrainRenderMaterial, new Bounds(Vector3.zero, Vector3.one * 10000),MeshTopology.Triangles, _cb_finalRender_args, 0, null,_mpb_finalRender);
     }

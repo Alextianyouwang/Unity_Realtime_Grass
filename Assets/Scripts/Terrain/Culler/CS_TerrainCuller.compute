@@ -1,10 +1,13 @@
 
 #pragma kernel ParseMeshVertBuffer
+#pragma kernel ProcessMeshTriangle
+
 StructuredBuffer<uint> _TargetMeshRawVertexBuffer;
 struct SpawnData
 {
-    float3 positionOS;
-    float3 normalOS;
+    float3 positionWS;
+    float3 normalWS;
+    float3 color;
     float2 uv;
 };
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
@@ -46,10 +49,62 @@ void ParseMeshVertBuffer(uint3 id : SV_DispatchThreadID)
         _TargetMeshRawVertexBuffer[vertexStart + 11]
     ));
     SpawnData o;
-    o.positionOS = mul(_LocalToWorld, float4(position, 1)).xyz;
+    o.positionWS = mul(_LocalToWorld, float4(position, 1)).xyz;
     // o.positionOS = position;
-    o.normalOS = mul(_LocalToWorld, float4(normal, 0)).xyz;
+    o.normalWS = mul(_LocalToWorld, float4(normal, 0)).xyz;
+    o.color = 0;
     o.uv = uv0;
     _SpawnBuffer[id.x] = o;
 
+}
+
+struct UnitTriangle
+{
+    float3 p1;
+    float3 p2;
+    float3 p3;
+};
+StructuredBuffer<uint> _TargetMeshIndexBuffer;
+float4x4 _Camera_V, _Camera_P;
+
+void SpaceConversion(float3 pos, out float3 posVS, out float3 posNDS, out float2 uv)
+{
+    posVS = mul(_Camera_V, float4(pos, 1)).xyz;
+    float4 posCS = mul(_Camera_P, float4(posVS, 1));
+    posNDS = posCS.xyz / posCS.w;
+    posNDS.z = posCS.w;
+    uv = posNDS.xy * 0.5 + 0.5;
+}
+[numthreads(128, 1, 1)]
+void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
+{
+
+
+    UnitTriangle t;
+    uint triStart = id.x * 3;
+    t.p1 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart]].positionWS;
+    t.p2 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]].positionWS;
+    t.p3 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]].positionWS;
+    
+    
+    float3 pos = (t.p1 + t.p2 + t.p3) * 0.333333;
+
+    float3 posNDS;
+    float3 posVS;
+    float2 uv;
+   
+    SpaceConversion(pos, posVS, posNDS, uv);
+    
+    float rate = 1.1;
+    bool isInView =
+    posNDS.x > -rate
+    && posNDS.x < rate
+    && posNDS.y > - rate
+    && posNDS.y < rate
+    && posNDS.z > -0.1
+    ;
+
+    _SpawnBuffer[_TargetMeshIndexBuffer[triStart]].color = isInView;
+    _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]].color = isInView;
+    _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]].color = isInView;
 }

@@ -26,6 +26,7 @@ Shader "Procedural/S_Simple_IndInst"
             {
                 float3 positionOS;
                 float3 normalOS;
+                 float3 color;
                 float2 uv;
             };
             StructuredBuffer<SpawnData> _SpawnBuffer;

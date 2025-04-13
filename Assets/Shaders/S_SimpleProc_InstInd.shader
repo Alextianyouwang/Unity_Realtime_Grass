@@ -26,6 +26,7 @@ Shader "Procedural/S_SimpleProc_IndInst"
             {
                 float3 positionOS;
                 float3 normalOS;
+                float3 color;
                 float2 uv;
             };
             StructuredBuffer<SpawnData> _SpawnBuffer;
@@ -39,6 +40,7 @@ Shader "Procedural/S_SimpleProc_IndInst"
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
+                float3 color : TEXCOORD1;
             };
 
             VertexOutput vert(uint vertexID : SV_VertexID)
@@ -49,6 +51,7 @@ Shader "Procedural/S_SimpleProc_IndInst"
                 
                 o.positionCS = mul(UNITY_MATRIX_VP, float4(posWS, 1));
                 o.uv = i.uv;
+                o.color = i.color;
                 return o;
                
             }
@@ -56,6 +59,7 @@ Shader "Procedural/S_SimpleProc_IndInst"
             float4 frag(VertexOutput v, bool frontFace : SV_IsFrontFace) : SV_Target
             {
                 float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, v.uv);
+                albedo.xyz *=  v.color;
                 return albedo * _Tint;             
             }
             
