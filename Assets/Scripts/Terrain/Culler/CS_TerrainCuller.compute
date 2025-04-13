@@ -2,8 +2,11 @@
 #pragma kernel ParseMeshVertBuffer
 #pragma kernel ProcessMeshTriangle
 #include "../../../INCLUDE/HL_PrefixSum.hlsl"
+#pragma kernel Compact
+#pragma kernel ClearArgs
 
 StructuredBuffer<uint> _TargetMeshRawVertexBuffer;
+
 struct SpawnData
 {
     float3 positionWS;
@@ -12,6 +15,7 @@ struct SpawnData
     float2 uv;
 };
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
+RWStructuredBuffer<uint> _ArgsBuffer;
 float4x4 _LocalToWorld;
 
 
@@ -54,7 +58,7 @@ void ParseMeshVertBuffer(uint3 id : SV_DispatchThreadID)
     o.positionWS = mul(_LocalToWorld, float4(position, 1)).xyz;
     // o.positionOS = position;
     o.normalWS = mul(_LocalToWorld, float4(normal, 0)).xyz;
-    o.color = 0;
+    o.color = 1;
     o.uv = uv0;
     _SpawnBuffer[id.x] = o;
 
@@ -67,6 +71,7 @@ struct UnitTriangle
     float3 p3;
 };
 StructuredBuffer<uint> _TargetMeshIndexBuffer;
+RWStructuredBuffer<uint> _CompactIndexBuffer;
 float4x4 _Camera_V, _Camera_P;
 
 void SpaceConversion(float3 pos, out float3 posVS, out float3 posNDS, out float2 uv)
@@ -115,21 +120,34 @@ void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
             p3NDS.z > 0
         );
 
-    if (!isInView)
-    {
-        // Example: Mark for discard
-        //_VoteBuffer[triStart] = true;
-        //_VoteBuffer[triStart + 1] = true;
-        //_VoteBuffer[triStart + 2] = true;
-        //return;
-    }
-    
-  // _VoteBuffer[triStart] = false;
-  // _VoteBuffer[triStart + 1] = false;
-  // _VoteBuffer[triStart + 2] = false;
+    _VoteBuffer[triStart] = isInView;
+    _VoteBuffer[triStart + 1] = isInView;
+    _VoteBuffer[triStart + 2] = isInView;
+
+
    
 
-        _SpawnBuffer[_TargetMeshIndexBuffer[triStart]].color = isInView;
-    _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]].color = isInView;
-    _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]].color = isInView;
+   //    _SpawnBuffer[_TargetMeshIndexBuffer[triStart]].color = isInView;
+   //_SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]].color = isInView;
+   //_SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]].color = isInView;
 }
+[numthreads(2 * NUM_THREAD_GROUP, 1, 1)]
+void Compact(uint3 id : SV_DispatchThreadID, uint3 groupID : SV_GroupID)
+{
+
+    int groupSum = _GroupScanBufferOut[groupID.x];
+    if (_VoteBuffer[id.x] == 1)
+    {
+        InterlockedAdd(_ArgsBuffer[0], 1);
+        
+        _CompactIndexBuffer[_ScanBuffer[id.x] + groupSum] = _TargetMeshIndexBuffer[id.x];
+    }
+
+}
+
+[numthreads(1, 1, 1)]
+void ClearArgs()
+{
+    _ArgsBuffer[0] = 0;
+}
+

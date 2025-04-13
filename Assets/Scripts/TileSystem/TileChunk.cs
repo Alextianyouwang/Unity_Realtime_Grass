@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class TileChunk
 {
+    const int NUM_ELEMENT_PER_THREAD = 512;
     public Bounds ChunkBounds { get; private set; }
 
     private TileData _tileData;
@@ -87,7 +88,7 @@ public class TileChunk
         
 
         _elementCount = Utility.CeilToNearestPowerOf2(_spawnBuffer.count);
-        _groupCount = _elementCount / 128;
+        _groupCount = _elementCount / NUM_ELEMENT_PER_THREAD;
 
         _voteBuffer = new ComputeBuffer(_elementCount, sizeof(int));
         _scanBuffer = new ComputeBuffer(_elementCount, sizeof(int));
@@ -190,7 +191,7 @@ public class TileChunk
         _cullShader.Dispatch(0, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);
         _cullShader.Dispatch(1, _groupCount, 1, 1);
         _cullShader.Dispatch(2, 1, 1, 1);
-        _cullShader.Dispatch(3, Mathf.CeilToInt(_spawnBuffer.count / 128f), 1, 1);
+        _cullShader.Dispatch(3, Mathf.CeilToInt(_spawnBuffer.count / NUM_ELEMENT_PER_THREAD), 1, 1);
 
         float dist = Vector3.Distance(_renderCam.transform.position, ChunkBounds.center);
         if (dist < TileGrandCluster._LOD_Threshold_01)

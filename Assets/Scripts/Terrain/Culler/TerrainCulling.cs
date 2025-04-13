@@ -14,11 +14,20 @@ public class TerrainCulling : MonoBehaviour
     private uint _vertCount;
     private uint _triCount;
 
+
+    private int _elementCount;
+    private int _groupCount;
+
     private bool _properlySetup = false;
     private ComputeBuffer _cb_vertexBuffer;
     private ComputeBuffer _cb_vertexVisualization_args;
     private ComputeBuffer _cb_finalRender_args;
     private GraphicsBuffer _gb_indexBuffer;
+    private ComputeBuffer _cb_triangleVote;
+    private ComputeBuffer _cb_triangleScanBuffer;
+    private ComputeBuffer _cb_triangleGroupScanInBuffer;
+    private ComputeBuffer _cb_triangleGroupScanOutBuffer;
+    private ComputeBuffer _cb_triangleCompactBuffer;
     private MaterialPropertyBlock _mpb_visual;
     private MaterialPropertyBlock _mpb_finalRender;
 
@@ -41,8 +50,19 @@ public class TerrainCulling : MonoBehaviour
     {
         if (!_properlySetup)
             return;
+
+        _triCount = (uint)_targetMesh.triangles.Length
+    ;
+        _elementCount = Utility.CeilToNearestPowerOf2((int)_triCount);
+        _groupCount = _elementCount / 512;
         _cb_vertexBuffer = new ComputeBuffer(_targetMesh.vertexCount, sizeof(float) * 11);
         _cb_vertexVisualization_args = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
+
+        _cb_triangleVote = new ComputeBuffer(_elementCount, sizeof(uint));
+        _cb_triangleScanBuffer = new ComputeBuffer(_elementCount, sizeof(int));
+        _cb_triangleGroupScanInBuffer = new ComputeBuffer(_groupCount, sizeof(int));
+        _cb_triangleGroupScanOutBuffer = new ComputeBuffer(_groupCount, sizeof(int));
+        _cb_triangleCompactBuffer = new ComputeBuffer((int)_triCount, sizeof(int));
         uint[] _args_arry = new uint[]
         {
             _visualizationMesh.GetIndexCount(0),
@@ -53,8 +73,7 @@ public class TerrainCulling : MonoBehaviour
         };
         _cb_vertexVisualization_args.SetData(_args_arry);
 
-        _triCount = (uint)_targetMesh.triangles.Length
-            ;
+
         _cb_finalRender_args = new ComputeBuffer(4, sizeof(uint), ComputeBufferType.IndirectArguments);
         uint[] _args = new uint[] {
             _triCount,
@@ -79,11 +98,32 @@ public class TerrainCulling : MonoBehaviour
         _terrainCullCompute.SetMatrix("_LocalToWorld", transform.localToWorldMatrix);
         _terrainCullCompute.Dispatch(0, Mathf.CeilToInt(_targetMesh.vertexCount / 128f), 1, 1);
 
+        _terrainCullCompute.SetBuffer(1, "_VoteBuffer", _cb_triangleVote);
+
+        _terrainCullCompute.SetBuffer(2, "_VoteBuffer", _cb_triangleVote);
+        _terrainCullCompute.SetBuffer(2, "_ScanBuffer", _cb_triangleScanBuffer);
+        _terrainCullCompute.SetBuffer(2, "_GroupScanBufferIn", _cb_triangleGroupScanInBuffer);
+
+        _terrainCullCompute.SetBuffer(3, "_GroupScanBufferIn", _cb_triangleGroupScanInBuffer);
+        _terrainCullCompute.SetBuffer(3, "_GroupScanBufferOut", _cb_triangleGroupScanOutBuffer);
+
+        _terrainCullCompute.SetBuffer(4, "_VoteBuffer", _cb_triangleVote);
+        _terrainCullCompute.SetBuffer(4, "_ScanBuffer", _cb_triangleScanBuffer);
+        _terrainCullCompute.SetBuffer(4, "_GroupScanBufferOut", _cb_triangleGroupScanOutBuffer);
+        _terrainCullCompute.SetBuffer(4, "_CompactIndexBuffer", _cb_triangleCompactBuffer);
+        _terrainCullCompute.SetBuffer(4, "_TargetMeshIndexBuffer", _gb_indexBuffer);
+        _terrainCullCompute.SetBuffer(4, "_ArgsBuffer", _cb_finalRender_args);
+
+
+        _terrainCullCompute.SetBuffer(5, "_ArgsBuffer", _cb_finalRender_args);
+
+
+
         _mpb_visual = new MaterialPropertyBlock();
         _mpb_visual.SetBuffer("_SpawnBuffer", _cb_vertexBuffer);
 
         _mpb_finalRender = new MaterialPropertyBlock();
-        _mpb_finalRender.SetBuffer("_IndexBuffer", _gb_indexBuffer);
+        _mpb_finalRender.SetBuffer("_IndexBuffer", _cb_triangleCompactBuffer);
         _mpb_finalRender.SetBuffer("_SpawnBuffer", _cb_vertexBuffer);
     }
     private void DrawContent()
@@ -93,7 +133,13 @@ public class TerrainCulling : MonoBehaviour
 
         _terrainCullCompute.SetMatrix("_Camera_V",  Camera.main.worldToCameraMatrix);
         _terrainCullCompute.SetMatrix("_Camera_P", Camera.main.projectionMatrix );
+
+        _terrainCullCompute.Dispatch(5, 1, 1, 1);
         _terrainCullCompute.Dispatch(1, Mathf.CeilToInt(( _triCount / 3) / 128f), 1, 1);
+        _terrainCullCompute.Dispatch(2, _groupCount, 1, 1);
+        _terrainCullCompute.Dispatch(3, 1, 1, 1);
+        _terrainCullCompute.Dispatch(4, Mathf.CeilToInt((_triCount) / 512), 1, 1);
+
 
 
         Graphics.DrawMeshInstancedIndirect(_visualizationMesh, 0, _visualizationMaterial, new Bounds(Vector3.zero, Vector3.one * 10000), _cb_vertexVisualization_args, 0, _mpb_visual);
@@ -110,6 +156,16 @@ public class TerrainCulling : MonoBehaviour
         _cb_finalRender_args = null;
         _cb_vertexVisualization_args?.Dispose();
         _cb_vertexVisualization_args = null;
+        _cb_triangleVote?.Dispose();
+        _cb_triangleVote = null;
+        _cb_triangleScanBuffer?.Dispose(); 
+        _cb_triangleScanBuffer = null;
+        _cb_triangleGroupScanInBuffer?.Dispose();
+        _cb_triangleGroupScanInBuffer = null;
+        _cb_triangleGroupScanOutBuffer?.Dispose();
+        _cb_triangleGroupScanOutBuffer = null;
+        _cb_triangleCompactBuffer?.Dispose();  
+        _cb_triangleCompactBuffer = null;
     }
 
     private void OnEnable()
