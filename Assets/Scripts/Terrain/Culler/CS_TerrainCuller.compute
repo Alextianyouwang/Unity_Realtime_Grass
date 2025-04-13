@@ -1,6 +1,7 @@
 
 #pragma kernel ParseMeshVertBuffer
 #pragma kernel ProcessMeshTriangle
+#include "../../../INCLUDE/HL_PrefixSum.hlsl"
 
 StructuredBuffer<uint> _TargetMeshRawVertexBuffer;
 struct SpawnData
@@ -12,6 +13,7 @@ struct SpawnData
 };
 RWStructuredBuffer<SpawnData> _SpawnBuffer;
 float4x4 _LocalToWorld;
+
 
 [numthreads(128,1,1)]
 void ParseMeshVertBuffer(uint3 id : SV_DispatchThreadID)
@@ -85,26 +87,49 @@ void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
     t.p1 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart]].positionWS;
     t.p2 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]].positionWS;
     t.p3 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]].positionWS;
-    
-    
-    float3 pos = (t.p1 + t.p2 + t.p3) * 0.333333;
 
-    float3 posNDS;
-    float3 posVS;
-    float2 uv;
-   
-    SpaceConversion(pos, posVS, posNDS, uv);
-    
-    float rate = 1.1;
+    float3 p1NDS, p2NDS, p3NDS;
+    float3 tmpVS;
+    float2 tmpUV;
+
+    SpaceConversion(t.p1, tmpVS, p1NDS, tmpUV);
+    SpaceConversion(t.p2, tmpVS, p2NDS, tmpUV);
+    SpaceConversion(t.p3, tmpVS, p3NDS, tmpUV);
+
+    float rate = 1.0;
+
     bool isInView =
-    posNDS.x > -rate
-    && posNDS.x < rate
-    && posNDS.y > - rate
-    && posNDS.y < rate
-    && posNDS.z > -0.1
-    ;
+        (
+            p1NDS.x > -rate && p1NDS.x < rate &&
+            p1NDS.y > -rate && p1NDS.y < rate &&
+            p1NDS.z > 0
+        ) ||
+        (
+            p2NDS.x > -rate && p2NDS.x < rate &&
+            p2NDS.y > -rate && p2NDS.y < rate &&
+            p2NDS.z > 0
+        ) ||
+        (
+            p3NDS.x > -rate && p3NDS.x < rate &&
+            p3NDS.y > -rate && p3NDS.y < rate &&
+            p3NDS.z > 0
+        );
 
-    _SpawnBuffer[_TargetMeshIndexBuffer[triStart]].color = isInView;
+    if (!isInView)
+    {
+        // Example: Mark for discard
+        //_VoteBuffer[triStart] = true;
+        //_VoteBuffer[triStart + 1] = true;
+        //_VoteBuffer[triStart + 2] = true;
+        //return;
+    }
+    
+  // _VoteBuffer[triStart] = false;
+  // _VoteBuffer[triStart + 1] = false;
+  // _VoteBuffer[triStart + 2] = false;
+   
+
+        _SpawnBuffer[_TargetMeshIndexBuffer[triStart]].color = isInView;
     _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]].color = isInView;
     _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]].color = isInView;
 }
