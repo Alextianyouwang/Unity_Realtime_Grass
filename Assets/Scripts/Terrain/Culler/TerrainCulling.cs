@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 [ExecuteInEditMode]
 public class TerrainCulling : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class TerrainCulling : MonoBehaviour
     [SerializeField] private Mesh _visualizationMesh;
 
     [SerializeField] private Material _terrainRenderMaterial;
+    [SerializeField] private Material _terrainDepthOnly;
 
     private int[] _meshTriangleArray;
 
@@ -31,7 +33,7 @@ public class TerrainCulling : MonoBehaviour
     private MaterialPropertyBlock _mpb_visual;
     private MaterialPropertyBlock _mpb_finalRender;
 
-
+    public RenderTexture _depthPrePass;
 
     private void ReferenceCheck() 
     {
@@ -43,6 +45,10 @@ public class TerrainCulling : MonoBehaviour
             return;
         if (_terrainCullCompute == null)
             return;
+        if (_terrainRenderMaterial == null)
+            return;
+        if (_terrainDepthOnly == null)
+            return;
 
         _properlySetup = true;
     }
@@ -51,6 +57,9 @@ public class TerrainCulling : MonoBehaviour
         if (!_properlySetup)
             return;
 
+        _depthPrePass = new RenderTexture(Camera.main.pixelWidth, Camera.main.pixelHeight, 24, RenderTextureFormat.R16);
+        _depthPrePass.enableRandomWrite = true;
+        _depthPrePass.depthStencilFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.D16_UNorm;
         _triCount = (uint)_targetMesh.triangles.Length
     ;
         _elementCount = Utility.CeilToNearestPowerOf2((int)_triCount);
@@ -74,12 +83,13 @@ public class TerrainCulling : MonoBehaviour
         _cb_vertexVisualization_args.SetData(_args_arry);
 
 
-        _cb_finalRender_args = new ComputeBuffer(4, sizeof(uint), ComputeBufferType.IndirectArguments);
+        _cb_finalRender_args = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
         uint[] _args = new uint[] {
             _triCount,
             1,
             0,
             0,
+            0
         };
         _cb_finalRender_args.SetData(_args);
 
@@ -115,7 +125,9 @@ public class TerrainCulling : MonoBehaviour
         _terrainCullCompute.SetBuffer(4, "_ArgsBuffer", _cb_finalRender_args);
 
 
+
         _terrainCullCompute.SetBuffer(5, "_ArgsBuffer", _cb_finalRender_args);
+
 
 
 
@@ -130,19 +142,33 @@ public class TerrainCulling : MonoBehaviour
     {
         if (!_properlySetup)
             return;
+        _terrainCullCompute.SetVector("_CameraPos", Camera.main.transform.position);
+        _terrainCullCompute.SetTexture(1, "_HiZTexture", _depthPrePass);
 
-        _terrainCullCompute.SetMatrix("_Camera_V",  Camera.main.worldToCameraMatrix);
-        _terrainCullCompute.SetMatrix("_Camera_P", Camera.main.projectionMatrix );
+        _terrainCullCompute.SetFloat("_Camera_Near", Camera.main.nearClipPlane);
+        _terrainCullCompute.SetFloat("_Camera_Far", Camera.main.farClipPlane);
 
-        _terrainCullCompute.Dispatch(5, 1, 1, 1);
-        _terrainCullCompute.Dispatch(1, Mathf.CeilToInt(( _triCount / 3) / 128f), 1, 1);
-        _terrainCullCompute.Dispatch(2, _groupCount, 1, 1);
-        _terrainCullCompute.Dispatch(3, 1, 1, 1);
-        _terrainCullCompute.Dispatch(4, Mathf.CeilToInt((_triCount) / 512), 1, 1);
+        _terrainCullCompute.SetMatrix("_Camera_V", Camera.main.worldToCameraMatrix);
+        _terrainCullCompute.SetMatrix("_Camera_P", Camera.main.projectionMatrix);
 
+        CommandBuffer cb = new CommandBuffer();
+        cb.name = "Terrain GPU Cull Command";
+        cb.SetRenderTarget(_depthPrePass);
+        cb.ClearRenderTarget(true, true, Color.clear);
+        cb.SetViewMatrix(Camera.main.worldToCameraMatrix);
+        cb.SetProjectionMatrix(Camera.main.projectionMatrix);
+        cb.DrawMesh(_targetMesh, transform.localToWorldMatrix, _terrainDepthOnly);
+ 
+        cb.DispatchCompute(_terrainCullCompute, 5, 1, 1, 1);
+        cb.DispatchCompute(_terrainCullCompute, 1, Mathf.CeilToInt((_triCount / 3) / 128f), 1, 1);
+        cb.DispatchCompute(_terrainCullCompute, 2, _groupCount, 1, 1);
+        cb.DispatchCompute(_terrainCullCompute, 3, 1, 1, 1);
+        cb.DispatchCompute(_terrainCullCompute, 4, Mathf.CeilToInt((_triCount) / 512), 1, 1);
 
+        Graphics.ExecuteCommandBuffer(cb);
+        cb.Release();
 
-        Graphics.DrawMeshInstancedIndirect(_visualizationMesh, 0, _visualizationMaterial, new Bounds(Vector3.zero, Vector3.one * 10000), _cb_vertexVisualization_args, 0, _mpb_visual);
+        //Graphics.DrawMeshInstancedIndirect(_visualizationMesh, 0, _visualizationMaterial, new Bounds(Vector3.zero, Vector3.one * 10000), _cb_vertexVisualization_args, 0, _mpb_visual);
         Graphics.DrawProceduralIndirect(_terrainRenderMaterial, new Bounds(Vector3.zero, Vector3.one * 10000),MeshTopology.Triangles, _cb_finalRender_args, 0, null,_mpb_finalRender);
     }
 
@@ -166,6 +192,9 @@ public class TerrainCulling : MonoBehaviour
         _cb_triangleGroupScanOutBuffer = null;
         _cb_triangleCompactBuffer?.Dispose();  
         _cb_triangleCompactBuffer = null;
+
+        _depthPrePass.Release();
+        _depthPrePass = null;
     }
 
     private void OnEnable()

@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_DMII_SimpleMeshVert
-  m_Shader: {fileID: 4800000, guid: 6fc1ae5d6ed15af45a3e3665e139cc6a, type: 3}
+  m_Name: M_Empty
+  m_Shader: {fileID: 4800000, guid: f3d96011b894e7a40a4a79a2555edece, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -16,20 +16,14 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
+    m_TexEnvs: []
     m_Ints: []
-    m_Floats:
-    - _MasterScale: 0.086
-    m_Colors:
-    - _Tint: {r: 0, g: 1, b: 0.049598455, a: 1}
+    m_Floats: []
+    m_Colors: []
   m_BuildTextureStacks: []

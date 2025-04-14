@@ -5,12 +5,13 @@ Shader "Utility/S_DepthOnly"
     }
     SubShader
     {
-         Tags {"RenderType" = "Opaque""RenderPipeline" = "UniversalRenderPipeline"}
+         Tags {"RenderType" = "Opaque"}
         Pass
         {
             Name "DepthOnly"
             Cull back
             ZWrite On
+            ColorMask R
             HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex vert
@@ -23,8 +24,9 @@ Shader "Utility/S_DepthOnly"
                 return mul(UNITY_MATRIX_MVP,float4(positionOS,1));
             }
 
-            float4 frag(float4 vert : SV_POSITION) : SV_Target
+            float4 frag(float4 vert : SV_POSITION, out float outDepth : SV_Depth) : SV_Target
             {
+                outDepth = vert.z;
                 return vert.z;
             }
             ENDHLSL

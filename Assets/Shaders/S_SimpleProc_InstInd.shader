@@ -15,6 +15,7 @@ Shader "Procedural/S_SimpleProc_IndInst"
             Name "ForwardLit"
             Tags {"LightMode" = "UniversalForward"}
             Cull back
+
             HLSLPROGRAM
             #pragma target 5.0
 

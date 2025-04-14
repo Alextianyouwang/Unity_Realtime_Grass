@@ -73,6 +73,21 @@ struct UnitTriangle
 StructuredBuffer<uint> _TargetMeshIndexBuffer;
 RWStructuredBuffer<uint> _CompactIndexBuffer;
 float4x4 _Camera_V, _Camera_P;
+float _Camera_Near, _Camera_Far;
+float3 _CameraPos;
+Texture2D<float> _HiZTexture;
+SamplerState sampler_HiZTexture;
+
+inline float LinearEyeDepth(float depth)
+{
+    // Reversed Z
+    depth = 1 - depth;
+    float x = 1 - _Camera_Far / _Camera_Near;
+    float y = _Camera_Far / _Camera_Near;
+    float z = x / _Camera_Far;
+    float w = y / _Camera_Far;
+    return 1.0 / (z * depth + w);
+}
 
 void SpaceConversion(float3 pos, out float3 posVS, out float3 posNDS, out float2 uv)
 {
@@ -82,6 +97,7 @@ void SpaceConversion(float3 pos, out float3 posVS, out float3 posNDS, out float2
     posNDS.z = posCS.w;
     uv = posNDS.xy * 0.5 + 0.5;
 }
+
 [numthreads(128, 1, 1)]
 void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
 {
@@ -89,22 +105,38 @@ void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
 
     UnitTriangle t;
     uint triStart = id.x * 3;
-    t.p1 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart]].positionWS;
-    t.p2 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]].positionWS;
-    t.p3 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]].positionWS;
+    SpawnData v1 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart]];
+    SpawnData v2 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]];
+    SpawnData v3 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]];
+    t.p1 = v1.positionWS;
+    t.p2 = v2.positionWS;
+    t.p3 = v3.positionWS;
+    
+    
+    float3 triNormal = normalize((v1.normalWS + v2.normalWS + v3.normalWS) * 0.33333);
+    float3 viewDir = normalize(_CameraPos - (t.p1 + t.p2 + t.p3) * 0.33333);
+    bool passedOrientationCull = dot(triNormal, viewDir) > 0;
+    
+    if (!passedOrientationCull)
+    {
+        _VoteBuffer[triStart] = false;
+        _VoteBuffer[triStart + 1] = false;
+        _VoteBuffer[triStart + 2] = false;
+        return;
+    }
+    
 
     float3 p1NDS, p2NDS, p3NDS;
-    float3 tmpVS;
-    float2 tmpUV;
+    float3 p1VS, p2VS, p3VS;
+    float2 p1UV, p2UV, p3UV;
 
-    SpaceConversion(t.p1, tmpVS, p1NDS, tmpUV);
-    SpaceConversion(t.p2, tmpVS, p2NDS, tmpUV);
-    SpaceConversion(t.p3, tmpVS, p3NDS, tmpUV);
-
+    SpaceConversion(t.p1, p1VS, p1NDS, p1UV);
+    SpaceConversion(t.p2, p2VS, p2NDS, p2UV);
+    SpaceConversion(t.p3, p3VS, p3NDS, p3UV);
+    
+ 
     float rate = 1.0;
-
-    bool isInView =
-        (
+    bool passedFrustumCull = ((
             p1NDS.x > -rate && p1NDS.x < rate &&
             p1NDS.y > -rate && p1NDS.y < rate &&
             p1NDS.z > 0
@@ -118,18 +150,43 @@ void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
             p3NDS.x > -rate && p3NDS.x < rate &&
             p3NDS.y > -rate && p3NDS.y < rate &&
             p3NDS.z > 0
-        );
+        ));
 
-    _VoteBuffer[triStart] = isInView;
-    _VoteBuffer[triStart + 1] = isInView;
-    _VoteBuffer[triStart + 2] = isInView;
+    if (!passedFrustumCull)
+    {
+        _VoteBuffer[triStart] = false;
+        _VoteBuffer[triStart + 1] = false;
+        _VoteBuffer[triStart + 2] = false;
+        return;
+    }
 
+    
 
-   
+   float p1Depth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, p1UV, 0));
+    float p2Depth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, p2UV, 0));
+    float p3Depth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, p3UV, 0));
+  
+    bool passedOcclusionCull =
+        (p1Depth > p1NDS.z - 0.5
+        || p2Depth > p2NDS.z - 0.5
+        || p3Depth > p3NDS.z - 0.5
+    );
+    if (!passedOcclusionCull)
+    {
+        _VoteBuffer[triStart] = false;
+        _VoteBuffer[triStart + 1] = false;
+        _VoteBuffer[triStart + 2] = false;
+        return;
+    }
 
-   //    _SpawnBuffer[_TargetMeshIndexBuffer[triStart]].color = isInView;
-   //_SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]].color = isInView;
-   //_SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]].color = isInView;
+    _VoteBuffer[triStart] = true;
+    _VoteBuffer[triStart + 1] = true;
+    _VoteBuffer[triStart + 2] = true;
+
+    
+   //_SpawnBuffer[_TargetMeshIndexBuffer[triStart]].color.xy = p1UV;
+   //_SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]].color.xy = p1UV;
+   //_SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]].color.xy = p1UV;
 }
 [numthreads(2 * NUM_THREAD_GROUP, 1, 1)]
 void Compact(uint3 id : SV_DispatchThreadID, uint3 groupID : SV_GroupID)
