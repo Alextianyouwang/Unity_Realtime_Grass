@@ -7,7 +7,7 @@
 
 #define NUM_THREAD_GROUP 256
 #define LOG_NUM_THREAD_GROUP (uint)log2 (NUM_THREAD_GROUP)
-#define NUM_GROUP 512
+#define NUM_GROUP 1024
 #define LOG_NUM_GROUP (uint)log2 (NUM_GROUP)
 
 

@@ -24,7 +24,7 @@ public class TerrainCulling : MonoBehaviour
     private ComputeBuffer _cb_vertexBuffer;
     private ComputeBuffer _cb_vertexVisualization_args;
     private ComputeBuffer _cb_finalRender_args;
-    private GraphicsBuffer _gb_indexBuffer;
+    private ComputeBuffer _cb_finalindexBuffer;
     private ComputeBuffer _cb_triangleVote;
     private ComputeBuffer _cb_triangleScanBuffer;
     private ComputeBuffer _cb_triangleGroupScanInBuffer;
@@ -57,15 +57,16 @@ public class TerrainCulling : MonoBehaviour
         if (!_properlySetup)
             return;
 
-        _depthPrePass = new RenderTexture(Camera.main.pixelWidth, Camera.main.pixelHeight, 24, RenderTextureFormat.R16);
+        _depthPrePass = new RenderTexture(Camera.main.pixelWidth, Camera.main.pixelHeight, 24, RenderTextureFormat.RFloat);
         _depthPrePass.enableRandomWrite = true;
         _depthPrePass.depthStencilFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.D16_UNorm;
-        _triCount = (uint)_targetMesh.triangles.Length
-    ;
+        _triCount = (uint)_targetMesh.triangles.Length;
+
         _elementCount = Utility.CeilToNearestPowerOf2((int)_triCount);
         _groupCount = _elementCount / 512;
         _cb_vertexBuffer = new ComputeBuffer(_targetMesh.vertexCount, sizeof(float) * 11);
         _cb_vertexVisualization_args = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
+        _cb_finalindexBuffer = new ComputeBuffer((int)_triCount, sizeof(float));
 
         _cb_triangleVote = new ComputeBuffer(_elementCount, sizeof(uint));
         _cb_triangleScanBuffer = new ComputeBuffer(_elementCount, sizeof(int));
@@ -93,40 +94,50 @@ public class TerrainCulling : MonoBehaviour
         };
         _cb_finalRender_args.SetData(_args);
 
-        _targetMesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+        _targetMesh.vertexBufferTarget |= GraphicsBuffer.Target.Structured;
         GraphicsBuffer vb = _targetMesh.GetVertexBuffer(0);
         _terrainCullCompute.SetBuffer(0, "_TargetMeshRawVertexBuffer", vb);
-        _terrainCullCompute.SetBuffer(1, "_TargetMeshRawVertexBuffer", vb);
+        _terrainCullCompute.SetBuffer(2, "_TargetMeshRawVertexBuffer", vb);
         vb.Dispose();
 
-        _targetMesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
-        _gb_indexBuffer = _targetMesh.GetIndexBuffer();
-        _terrainCullCompute.SetBuffer(1, "_TargetMeshIndexBuffer", _gb_indexBuffer);
-        _terrainCullCompute.SetBuffer(1, "_SpawnBuffer", _cb_vertexBuffer);
+        _targetMesh.indexBufferTarget |=  GraphicsBuffer.Target.Index | GraphicsBuffer.Target.Structured;
+        GraphicsBuffer ib = _targetMesh.GetIndexBuffer();
+
+        _terrainCullCompute.SetInt("_TriCount",(int)_triCount);
+        _terrainCullCompute.SetInt("_Use16Bit",_targetMesh.indexFormat == IndexFormat.UInt16? 1 : 0);
+
+        _terrainCullCompute.SetBuffer(1, "_TargetMeshIndexBuffer", ib);
+        _terrainCullCompute.SetBuffer(1, "_IndexBuffer",_cb_finalindexBuffer);
+        _terrainCullCompute.Dispatch(1, Mathf.CeilToInt(_triCount  / 128f ), 1, 1);
+
+        ib.Dispose();
+
+        _terrainCullCompute.SetBuffer(2, "_IndexBuffer", _cb_finalindexBuffer);
+        _terrainCullCompute.SetBuffer(2, "_SpawnBuffer", _cb_vertexBuffer);
 
         _terrainCullCompute.SetBuffer(0, "_SpawnBuffer", _cb_vertexBuffer);
         _terrainCullCompute.SetMatrix("_LocalToWorld", transform.localToWorldMatrix);
         _terrainCullCompute.Dispatch(0, Mathf.CeilToInt(_targetMesh.vertexCount / 128f), 1, 1);
 
-        _terrainCullCompute.SetBuffer(1, "_VoteBuffer", _cb_triangleVote);
-
         _terrainCullCompute.SetBuffer(2, "_VoteBuffer", _cb_triangleVote);
-        _terrainCullCompute.SetBuffer(2, "_ScanBuffer", _cb_triangleScanBuffer);
-        _terrainCullCompute.SetBuffer(2, "_GroupScanBufferIn", _cb_triangleGroupScanInBuffer);
 
+        _terrainCullCompute.SetBuffer(3, "_VoteBuffer", _cb_triangleVote);
+        _terrainCullCompute.SetBuffer(3, "_ScanBuffer", _cb_triangleScanBuffer);
         _terrainCullCompute.SetBuffer(3, "_GroupScanBufferIn", _cb_triangleGroupScanInBuffer);
-        _terrainCullCompute.SetBuffer(3, "_GroupScanBufferOut", _cb_triangleGroupScanOutBuffer);
 
-        _terrainCullCompute.SetBuffer(4, "_VoteBuffer", _cb_triangleVote);
-        _terrainCullCompute.SetBuffer(4, "_ScanBuffer", _cb_triangleScanBuffer);
+        _terrainCullCompute.SetBuffer(4, "_GroupScanBufferIn", _cb_triangleGroupScanInBuffer);
         _terrainCullCompute.SetBuffer(4, "_GroupScanBufferOut", _cb_triangleGroupScanOutBuffer);
-        _terrainCullCompute.SetBuffer(4, "_CompactIndexBuffer", _cb_triangleCompactBuffer);
-        _terrainCullCompute.SetBuffer(4, "_TargetMeshIndexBuffer", _gb_indexBuffer);
-        _terrainCullCompute.SetBuffer(4, "_ArgsBuffer", _cb_finalRender_args);
 
-
-
+        _terrainCullCompute.SetBuffer(5, "_VoteBuffer", _cb_triangleVote);
+        _terrainCullCompute.SetBuffer(5, "_ScanBuffer", _cb_triangleScanBuffer);
+        _terrainCullCompute.SetBuffer(5, "_GroupScanBufferOut", _cb_triangleGroupScanOutBuffer);
+        _terrainCullCompute.SetBuffer(5, "_CompactIndexBuffer", _cb_triangleCompactBuffer);
+        _terrainCullCompute.SetBuffer(5, "_IndexBuffer", _cb_finalindexBuffer);
         _terrainCullCompute.SetBuffer(5, "_ArgsBuffer", _cb_finalRender_args);
+
+
+
+        _terrainCullCompute.SetBuffer(6, "_ArgsBuffer", _cb_finalRender_args);
 
 
 
@@ -143,7 +154,7 @@ public class TerrainCulling : MonoBehaviour
         if (!_properlySetup)
             return;
         _terrainCullCompute.SetVector("_CameraPos", Camera.main.transform.position);
-        _terrainCullCompute.SetTexture(1, "_HiZTexture", _depthPrePass);
+        _terrainCullCompute.SetTexture(2, "_HiZTexture", _depthPrePass);
 
         _terrainCullCompute.SetFloat("_Camera_Near", Camera.main.nearClipPlane);
         _terrainCullCompute.SetFloat("_Camera_Far", Camera.main.farClipPlane);
@@ -159,16 +170,16 @@ public class TerrainCulling : MonoBehaviour
         cb.SetProjectionMatrix(Camera.main.projectionMatrix);
         cb.DrawMesh(_targetMesh, transform.localToWorldMatrix, _terrainDepthOnly);
  
-        cb.DispatchCompute(_terrainCullCompute, 5, 1, 1, 1);
-        cb.DispatchCompute(_terrainCullCompute, 1, Mathf.CeilToInt((_triCount / 3) / 128f), 1, 1);
-        cb.DispatchCompute(_terrainCullCompute, 2, _groupCount, 1, 1);
-        cb.DispatchCompute(_terrainCullCompute, 3, 1, 1, 1);
-        cb.DispatchCompute(_terrainCullCompute, 4, Mathf.CeilToInt((_triCount) / 512), 1, 1);
+        cb.DispatchCompute(_terrainCullCompute, 6, 1, 1, 1);
+        cb.DispatchCompute(_terrainCullCompute, 2, Mathf.CeilToInt((_triCount / 3) / 128f), 1, 1);
+        cb.DispatchCompute(_terrainCullCompute, 3, _groupCount, 1, 1);
+        cb.DispatchCompute(_terrainCullCompute, 4, 1, 1, 1);
+        cb.DispatchCompute(_terrainCullCompute, 5, Mathf.CeilToInt((_triCount) / 512), 1, 1);
 
         Graphics.ExecuteCommandBuffer(cb);
         cb.Release();
 
-        //Graphics.DrawMeshInstancedIndirect(_visualizationMesh, 0, _visualizationMaterial, new Bounds(Vector3.zero, Vector3.one * 10000), _cb_vertexVisualization_args, 0, _mpb_visual);
+        Graphics.DrawMeshInstancedIndirect(_visualizationMesh, 0, _visualizationMaterial, new Bounds(Vector3.zero, Vector3.one * 10000), _cb_vertexVisualization_args, 0, _mpb_visual);
         Graphics.DrawProceduralIndirect(_terrainRenderMaterial, new Bounds(Vector3.zero, Vector3.one * 10000),MeshTopology.Triangles, _cb_finalRender_args, 0, null,_mpb_finalRender);
     }
 
@@ -176,8 +187,6 @@ public class TerrainCulling : MonoBehaviour
     {
         _cb_vertexBuffer.Dispose();
         _cb_vertexBuffer = null;
-        _gb_indexBuffer.Dispose();
-        _gb_indexBuffer = null;
         _cb_finalRender_args.Dispose();
         _cb_finalRender_args = null;
         _cb_vertexVisualization_args?.Dispose();
@@ -192,6 +201,8 @@ public class TerrainCulling : MonoBehaviour
         _cb_triangleGroupScanOutBuffer = null;
         _cb_triangleCompactBuffer?.Dispose();  
         _cb_triangleCompactBuffer = null;
+        _cb_finalindexBuffer?.Dispose();
+        _cb_finalindexBuffer = null;
 
         _depthPrePass.Release();
         _depthPrePass = null;

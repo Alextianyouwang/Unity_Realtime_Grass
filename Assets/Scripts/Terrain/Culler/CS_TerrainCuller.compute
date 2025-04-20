@@ -1,5 +1,6 @@
 
 #pragma kernel ParseMeshVertBuffer
+#pragma kernel ParseMeshIndexBuffer
 #pragma kernel ProcessMeshTriangle
 #include "../../../INCLUDE/HL_PrefixSum.hlsl"
 #pragma kernel Compact
@@ -22,8 +23,7 @@ float4x4 _LocalToWorld;
 [numthreads(128,1,1)]
 void ParseMeshVertBuffer(uint3 id : SV_DispatchThreadID)
 {
-    uint vertexStart = id.x * 12;
-    
+    uint vertexStart = id.x * 15;
     float3 position = asfloat(uint3(
         _TargetMeshRawVertexBuffer[vertexStart],
         _TargetMeshRawVertexBuffer[vertexStart + 1],
@@ -42,17 +42,17 @@ void ParseMeshVertBuffer(uint3 id : SV_DispatchThreadID)
         _TargetMeshRawVertexBuffer[vertexStart + 8],
         _TargetMeshRawVertexBuffer[vertexStart + 9]
     ));
-    //float4 color =
-    // asfloat(uint4(
-    //    _TargetMeshRawVertexBuffer[vertexStart + 10],
-    //    _TargetMeshRawVertexBuffer[vertexStart + 11],
-    //    _TargetMeshRawVertexBuffer[vertexStart + 12],
-    //    _TargetMeshRawVertexBuffer[vertexStart + 13]
-    //));
+   // float4 color =
+   //  asfloat(uint4(
+   //     _TargetMeshRawVertexBuffer[vertexStart + 10],
+   //     _TargetMeshRawVertexBuffer[vertexStart + 11],
+   //     _TargetMeshRawVertexBuffer[vertexStart + 12],
+   //     _TargetMeshRawVertexBuffer[vertexStart + 13]
+   // ));
     float2 uv0 =
      asfloat(uint2(
-        _TargetMeshRawVertexBuffer[vertexStart + 10],
-        _TargetMeshRawVertexBuffer[vertexStart + 11]
+        _TargetMeshRawVertexBuffer[vertexStart + 11],
+        _TargetMeshRawVertexBuffer[vertexStart + 12]
     ));
     SpawnData o;
     o.positionWS = mul(_LocalToWorld, float4(position, 1)).xyz;
@@ -64,6 +64,7 @@ void ParseMeshVertBuffer(uint3 id : SV_DispatchThreadID)
 
 }
 
+
 struct UnitTriangle
 {
     float3 p1;
@@ -71,12 +72,14 @@ struct UnitTriangle
     float3 p3;
 };
 StructuredBuffer<uint> _TargetMeshIndexBuffer;
+RWStructuredBuffer<uint> _IndexBuffer;
 RWStructuredBuffer<uint> _CompactIndexBuffer;
 float4x4 _Camera_V, _Camera_P;
 float _Camera_Near, _Camera_Far;
 float3 _CameraPos;
 Texture2D<float> _HiZTexture;
 SamplerState sampler_HiZTexture;
+uint _TriCount, _Use16Bit;
 
 inline float LinearEyeDepth(float depth)
 {
@@ -97,7 +100,32 @@ void SpaceConversion(float3 pos, out float3 posVS, out float3 posNDS, out float2
     posNDS.z = posCS.w;
     uv = posNDS.xy * 0.5 + 0.5;
 }
+uint2 UnpackUShort2(uint packedValue)
+{
 
+    return uint2(packedValue & 0xFFFF, packedValue >> 16);
+}
+[numthreads(128, 1, 1)]
+void ParseMeshIndexBuffer(uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x;
+    uint floorHalf = floor(_TriCount / 2);
+    if (_Use16Bit == 1)
+    {
+        if (index >= (_TriCount % 2 == 0 ? floorHalf : floorHalf + 1))
+            return;
+
+        uint2 unpacked = UnpackUShort2(_TargetMeshIndexBuffer[index]);
+        _IndexBuffer[index * 2] = unpacked.x;
+        _IndexBuffer[index * 2 + 1] = unpacked.y;
+    }
+    else
+    {
+        if (index >= _TriCount)
+            return;
+        _IndexBuffer[index] = _TargetMeshIndexBuffer[index];
+    }
+}
 [numthreads(128, 1, 1)]
 void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
 {
@@ -105,9 +133,9 @@ void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
 
     UnitTriangle t;
     uint triStart = id.x * 3;
-    SpawnData v1 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart]];
-    SpawnData v2 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 1]];
-    SpawnData v3 = _SpawnBuffer[_TargetMeshIndexBuffer[triStart + 2]];
+    SpawnData v1 = _SpawnBuffer[_IndexBuffer[triStart]];
+    SpawnData v2 = _SpawnBuffer[_IndexBuffer[triStart + 1]];
+    SpawnData v3 = _SpawnBuffer[_IndexBuffer[triStart + 2]];
     t.p1 = v1.positionWS;
     t.p2 = v2.positionWS;
     t.p3 = v3.positionWS;
@@ -129,12 +157,12 @@ void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
     float3 p1NDS, p2NDS, p3NDS;
     float3 p1VS, p2VS, p3VS;
     float2 p1UV, p2UV, p3UV;
-
+  
     SpaceConversion(t.p1, p1VS, p1NDS, p1UV);
     SpaceConversion(t.p2, p2VS, p2NDS, p2UV);
     SpaceConversion(t.p3, p3VS, p3NDS, p3UV);
     
- 
+  
     float rate = 1.0;
     bool passedFrustumCull = ((
             p1NDS.x > -rate && p1NDS.x < rate &&
@@ -151,7 +179,7 @@ void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
             p3NDS.y > -rate && p3NDS.y < rate &&
             p3NDS.z > 0
         ));
-
+  
     if (!passedFrustumCull)
     {
         _VoteBuffer[triStart] = false;
@@ -159,9 +187,9 @@ void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
         _VoteBuffer[triStart + 2] = false;
         return;
     }
-
+  
     
-
+  
    float p1Depth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, p1UV, 0));
     float p2Depth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, p2UV, 0));
     float p3Depth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, p3UV, 0));
@@ -197,7 +225,7 @@ void Compact(uint3 id : SV_DispatchThreadID, uint3 groupID : SV_GroupID)
     {
         InterlockedAdd(_ArgsBuffer[0], 1);
         
-        _CompactIndexBuffer[_ScanBuffer[id.x] + groupSum] = _TargetMeshIndexBuffer[id.x];
+        _CompactIndexBuffer[_ScanBuffer[id.x] + groupSum] = _IndexBuffer[id.x];
     }
 
 }
