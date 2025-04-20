@@ -19,6 +19,10 @@ RWStructuredBuffer<SpawnData> _SpawnBuffer;
 RWStructuredBuffer<uint> _ArgsBuffer;
 float4x4 _LocalToWorld;
 
+cbuffer FrustumData
+{
+    float4 _FrustumPlanes[6];
+}
 
 [numthreads(128,1,1)]
 void ParseMeshVertBuffer(uint3 id : SV_DispatchThreadID)
@@ -105,6 +109,28 @@ uint2 UnpackUShort2(uint packedValue)
 
     return uint2(packedValue & 0xFFFF, packedValue >> 16);
 }
+float DistanceFromPlane(float3 p, float4 plane)
+{
+    return dot(float4(p, 1.0), plane);
+}
+bool3 CullTriangleEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
+{
+    bool3 edgesOutside = false;
+
+    for (int i = 0; i < numPlanes; i++)
+    {
+        bool3 pointsOutside = bool3(DistanceFromPlane(p0, frustumPlanes[i]) < epsilon,
+                                    DistanceFromPlane(p1, frustumPlanes[i]) < epsilon,
+                                    DistanceFromPlane(p2, frustumPlanes[i]) < epsilon);
+
+        // If both points of the edge are behind any of the planes, we cull.
+        edgesOutside.x = edgesOutside.x || (pointsOutside.y && pointsOutside.z);
+        edgesOutside.y = edgesOutside.y || (pointsOutside.x && pointsOutside.z);
+        edgesOutside.z = edgesOutside.z || (pointsOutside.x && pointsOutside.y);
+    }
+
+    return edgesOutside;
+}
 [numthreads(128, 1, 1)]
 void ParseMeshIndexBuffer(uint3 id : SV_DispatchThreadID)
 {
@@ -130,7 +156,6 @@ void ParseMeshIndexBuffer(uint3 id : SV_DispatchThreadID)
 void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
 {
 
-
     UnitTriangle t;
     uint triStart = id.x * 3;
     SpawnData v1 = _SpawnBuffer[_IndexBuffer[triStart]];
@@ -153,33 +178,8 @@ void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
         return;
     }
     
-
-    float3 p1NDS, p2NDS, p3NDS;
-    float3 p1VS, p2VS, p3VS;
-    float2 p1UV, p2UV, p3UV;
-  
-    SpaceConversion(t.p1, p1VS, p1NDS, p1UV);
-    SpaceConversion(t.p2, p2VS, p2NDS, p2UV);
-    SpaceConversion(t.p3, p3VS, p3NDS, p3UV);
-    
-  
-    float rate = 1.0;
-    bool passedFrustumCull = ((
-            p1NDS.x > -rate && p1NDS.x < rate &&
-            p1NDS.y > -rate && p1NDS.y < rate &&
-            p1NDS.z > 0
-        ) ||
-        (
-            p2NDS.x > -rate && p2NDS.x < rate &&
-            p2NDS.y > -rate && p2NDS.y < rate &&
-            p2NDS.z > 0
-        ) ||
-        (
-            p3NDS.x > -rate && p3NDS.x < rate &&
-            p3NDS.y > -rate && p3NDS.y < rate &&
-            p3NDS.z > 0
-        ));
-  
+    bool3 fc = CullTriangleEdgesFrustum(t.p1, t.p2, t.p3, 0.001, _FrustumPlanes, 4);
+    bool passedFrustumCull = !fc.x || !fc.y || !fc.z;
     if (!passedFrustumCull)
     {
         _VoteBuffer[triStart] = false;
@@ -188,6 +188,13 @@ void ProcessMeshTriangle(uint3 id : SV_DispatchThreadID)
         return;
     }
   
+    float3 p1NDS, p2NDS, p3NDS;
+    float3 p1VS, p2VS, p3VS;
+    float2 p1UV, p2UV, p3UV;
+  
+    SpaceConversion(t.p1, p1VS, p1NDS, p1UV);
+    SpaceConversion(t.p2, p2VS, p2NDS, p2UV);
+    SpaceConversion(t.p3, p3VS, p3NDS, p3UV);
     
   
    float p1Depth = LinearEyeDepth(_HiZTexture.SampleLevel(sampler_HiZTexture, p1UV, 0));

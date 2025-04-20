@@ -210,13 +210,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 146833428}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.04442585, y: -0.60323054, z: -0.03368338, w: 0.795616}
-  m_LocalPosition: {x: 360, y: 78, z: -234}
+  m_LocalRotation: {x: 0.052015837, y: -0.35933006, z: -0.020064387, w: 0.93154377}
+  m_LocalPosition: {x: -9.6, y: 37.3, z: -431.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 1.722, y: -74.431, z: -6.157}
+  m_LocalEulerAnglesHint: {x: 4.732, y: -42.365, z: -4.302}
 --- !u!114 &146833432
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -301,7 +301,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   rotationLerpTime: 0.01
   invertY: 0
---- !u!84 &426343806
+--- !u!84 &665468838
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -766,12 +766,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _terrainCullCompute: {fileID: 7200000, guid: 4bf0a84d7046cd045b7afe60a7cf3b28, type: 3}
-  _targetMesh: {fileID: 6728881165057769235, guid: 42149fbfe2a251a4bbb78e95b5902712, type: 3}
+  _targetMesh: {fileID: 2905751695110385725, guid: 2eb80e32635fcc04f8eb7185bedb1906, type: 3}
   _visualizationMaterial: {fileID: 2100000, guid: 9f71143f1dd5b3b438ca796a099157ff, type: 2}
   _visualizationMesh: {fileID: 4300000, guid: 19e6c15522128ae49b60270e1ac4575a, type: 2}
   _terrainRenderMaterial: {fileID: 2100000, guid: b8665a7ea864f4a4497059d98d11c54c, type: 2}
   _terrainDepthOnly: {fileID: 2100000, guid: fc9fdb2c86951954e98d7bd240b2fa79, type: 2}
-  _depthPrePass: {fileID: 426343806}
+  _depthPrePass: {fileID: 665468838}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

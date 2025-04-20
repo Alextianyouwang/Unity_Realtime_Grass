@@ -162,6 +162,16 @@ public class TerrainCulling : MonoBehaviour
         _terrainCullCompute.SetMatrix("_Camera_V", Camera.main.worldToCameraMatrix);
         _terrainCullCompute.SetMatrix("_Camera_P", Camera.main.projectionMatrix);
 
+        Plane[] frustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
+        Vector4[] planeVectors = new Vector4[6];
+        for (int i = 0; i < 6; i++)
+        {
+            Plane p = frustumPlanes[i];
+            planeVectors[i] = new Vector4(p.normal.x, p.normal.y, p.normal.z, p.distance);
+        }
+
+        _terrainCullCompute.SetVectorArray("_FrustumPlanes", planeVectors);
+
         CommandBuffer cb = new CommandBuffer();
         cb.name = "Terrain GPU Cull Command";
         cb.SetRenderTarget(_depthPrePass);
