@@ -97,7 +97,7 @@ Material:
     - _SSSColor: {r: 0.8301887, g: 0.64891654, b: 0.3485226, a: 1}
     - _SpecularColor: {r: 0.3490566, g: 0.3490566, b: 0.3490566, a: 1}
     - _TopColor: {r: 0.40611815, g: 0.5, b: 0.19103774, a: 1}
-    - _VariantTopColor: {r: 0.8113208, g: 0.80393225, b: 0.17221434, a: 1}
+    - _VariantTopColor: {r: 0.6248937, g: 0.6981132, b: 0.21404415, a: 1}
     - _WindDirection: {r: 1, g: 1, b: 0, a: 0}
     - _WindNoiseFrequency: {r: 0.3, g: 0.3, b: 0, a: 0}
   m_BuildTextureStacks: []
