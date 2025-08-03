@@ -22,7 +22,7 @@ MonoBehaviour:
   SquaredChunksPerCluster: 1
   SquaredTilePerClump: 4
   OccludeeBoundScaleMultiplier: 4
-  DensityFilter: 0.005
+  DensityFilter: 0.002
   DensityFalloffThreshold: 100
   UseMask: 0
   ReverseMask: 0

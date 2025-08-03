@@ -148,7 +148,8 @@ public class TileChunkDispatcher
             if (GeometryUtility.TestPlanesAABB(p, t.ChunkBounds))
                 if (t != null)
                 {
-                    t.SetZTex(_zTex_external);
+                    if (_zTex_external != null)
+                        t.SetZTex(_zTex_external);
                     t.DrawContent(ref totalInstance);
                 }
         //Debug.Log(totalInstance);

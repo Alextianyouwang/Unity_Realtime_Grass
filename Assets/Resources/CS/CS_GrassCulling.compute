@@ -98,17 +98,17 @@ void Vote (uint3 id : SV_DispatchThreadID)
     
     ///////////////////////////////////////////////////
     //  Does current spawn pos are masked out? 
-   if (_UseMask)
-   {
-       float mask = _MaskBuffer[x * _NumTilePerClusterSide + y].y;
-       bool passMasking = _ReverseMask ? mask < 0.5 : mask > 0.5;
-       if (!passMasking)
-       {
-           _VoteBuffer[id.x] = false;
-           return;
-       }
-   }
-   
+  if (_UseMask)
+  {
+      float mask = _MaskBuffer[x * _NumTilePerClusterSide + y].y;
+      bool passMasking = _ReverseMask ? mask < 0.5 : mask > 0.5;
+      if (!passMasking)
+      {
+          _VoteBuffer[id.x] = false;
+          return;
+      }
+  }
+  
    
     ///////////////////////////////////////////////////
     

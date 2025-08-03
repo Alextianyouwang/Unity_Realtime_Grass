@@ -8,7 +8,7 @@ Shader "Procedural/S_SimpleProc_IndInst"
     }
     SubShader
     {
-         Tags {"RenderType" = "Opaque" "Queue" = "AlphaTest" "RenderPipeline" = "UniversalRenderPipeline"}
+         Tags {"RenderType" = "Opaque" "Queue" = "AlphaTest" "RenderPipeline" = "UniversalPipeline"}
 
          Pass
         {
