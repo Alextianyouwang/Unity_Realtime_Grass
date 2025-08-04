@@ -96,8 +96,8 @@ Material:
     - _BotColor: {r: 0.1792453, g: 0.13084742, b: 0.036356356, a: 1}
     - _SSSColor: {r: 0.8301887, g: 0.64891654, b: 0.3485226, a: 1}
     - _SpecularColor: {r: 0.3679245, g: 0.36351904, b: 0.31065324, a: 1}
-    - _TopColor: {r: 0.509434, g: 0.509434, b: 0.509434, a: 1}
-    - _VariantTopColor: {r: 0.6981132, g: 0.66000915, b: 0, a: 1}
+    - _TopColor: {r: 0.6320754, g: 0.59072155, b: 0, a: 1}
+    - _VariantTopColor: {r: 0.6313726, g: 0.5108305, b: 0, a: 1}
     - _WindDirection: {r: 1, g: 1, b: 0, a: 0}
     - _WindNoiseFrequency: {r: 0.3, g: 0.3, b: 0, a: 0}
   m_BuildTextureStacks: []
