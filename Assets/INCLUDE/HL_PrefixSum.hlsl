@@ -2,8 +2,11 @@
 #ifndef PREFIX_SUM_INCLUDE
 #define PREFIX_SUM_INCLUDE
 
-#pragma kernel ScanThreadGroup
-#pragma kernel ScanGroup
+// NOTE: #pragma kernel declarations must be in the main .compute file, not in includes.
+// Unity 6000.2+ no longer processes kernel declarations from included files.
+// Add these lines to your .compute file BEFORE including this file:
+//   #pragma kernel ScanThreadGroup
+//   #pragma kernel ScanGroup
 
 #define NUM_THREAD_GROUP 256
 #define LOG_NUM_THREAD_GROUP (uint)log2 (NUM_THREAD_GROUP)

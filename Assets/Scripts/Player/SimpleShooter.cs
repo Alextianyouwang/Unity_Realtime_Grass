@@ -34,7 +34,7 @@ public class SimpleShooter : MonoBehaviour
         GameObject currentObj = _object_pool[_index];
         currentObj.SetActive(true);
         currentObj.transform.position = transform.position + transform.forward * 2f + transform.up * 2f;
-        currentObj.GetComponent<Rigidbody>().velocity = transform.forward * BulletVelocity;
+        currentObj.GetComponent<Rigidbody>().linearVelocity = transform.forward * BulletVelocity;
         _index++;
         _index %= _object_pool.Length;
     }

@@ -1,10 +1,12 @@
-
 #pragma kernel ParseMeshVertBuffer
 #pragma kernel ParseMeshIndexBuffer
 #pragma kernel ProcessMeshTriangle
-#include "../../../INCLUDE/HL_PrefixSum.hlsl"
+#pragma kernel ScanThreadGroup
+#pragma kernel ScanGroup
 #pragma kernel Compact
 #pragma kernel ClearArgs
+
+#include "../../../INCLUDE/HL_PrefixSum.hlsl"
 
 StructuredBuffer<uint> _TargetMeshRawVertexBuffer;
 

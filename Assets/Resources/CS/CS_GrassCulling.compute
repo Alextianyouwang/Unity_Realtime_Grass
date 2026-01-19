@@ -1,9 +1,10 @@
 #pragma kernel Vote
-
-#include "../../INCLUDE/HL_PrefixSum.hlsl"
-
+#pragma kernel ScanThreadGroup
+#pragma kernel ScanGroup
 #pragma kernel Compact
 #pragma kernel ClearArgs
+
+#include "../../INCLUDE/HL_PrefixSum.hlsl"
 
 struct SpawnData
 {
