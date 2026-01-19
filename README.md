@@ -2,6 +2,7 @@
 ![ezgif-4-574c809eb1](https://github.com/user-attachments/assets/3569d505-2e2f-4ced-84ac-995e12a74288)
 
 inspired by Ghost of Tsushima GDC talk, rendered as is without post-processing, project version: 2022.3.19f1
+* updated to 6000.2.14f1
 check out the demo in Main
   
 General Features:
